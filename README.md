@@ -30,26 +30,27 @@ Tres principios de diseño heredados de alfred-dev:
 
 ## Instalación
 
-Requisitos: VS Code con GitHub Copilot Chat (custom agents y agent plugins). Los agentes aparecen en el dropdown de agentes del chat.
+Requisitos: VS Code con GitHub Copilot Chat. Tras instalar, los agentes aparecen en el selector de agente del chat (abajo-izquierda del input) y quedan disponibles **en todos tus proyectos**.
 
-### Opción A: instalar desde el código fuente (recomendada)
+### Opción A: con el instalador (descargando el repo)
 
-1. Sube este repo a tu cuenta de GitHub (o usa un fork).
-2. En VS Code: paleta de comandos (⇧⌘P) → **`Chat: Install Plugin From Source`**.
-3. Introduce la URL del repo Git (p. ej. `https://github.com/686f6c61/alfred-dev-vscode`).
-4. Confirma la instalación. Los 10 agentes aparecen en el dropdown de agentes del chat.
+```bash
+# macOS / Linux
+./install.sh
 
-### Opción B: instalación local (desarrollo)
-
-Registra la carpeta local del repo como plugin en tu `settings.json`:
-
-```json
-"chat.pluginLocations": {
-  "/ruta/absoluta/a/alfred-dev-vscode": true
-}
+# Windows (PowerShell)
+.\install.ps1
 ```
 
-O ejecuta `./install.sh --local` (macOS/Linux) / `.\install.ps1 -Local` (Windows), que lo hace por ti con copia de seguridad de settings.
+El instalador copia los 11 agentes a `~/.copilot/agents/`, la carpeta oficial de
+usuario de Copilot. Recarga la ventana de VS Code (`Developer: Reload Window`) y
+listo. Para desinstalar: `./install.sh --uninstall` (o `.\install.ps1 -Uninstall`).
+
+### Opción B: sin descargar nada (desde GitHub)
+
+1. Paleta de comandos (⇧⌘P) → **`Chat: Install Plugin From Source`**.
+2. Introduce la URL del repo: `https://github.com/SrScorpio/alfred-dev-vscode`.
+3. Confirma. VS Code clona y registra el plugin él mismo (y gestiona sus updates).
 
 ### Opción C: para equipos
 
@@ -57,7 +58,7 @@ Añade el marketplace en los settings del usuario y recomienda el plugin en el w
 
 ```json
 // settings.json (usuario)
-"chat.plugins.marketplaces": ["686f6c61/alfred-dev-vscode"]
+"chat.plugins.marketplaces": ["SrScorpio/alfred-dev-vscode"]
 ```
 
 ```json
@@ -65,21 +66,30 @@ Añade el marketplace en los settings del usuario y recomienda el plugin en el w
 {
   "extraKnownMarketplaces": {
     "alfred-dev-vscode": {
-      "source": { "source": "github", "repo": "686f6c61/alfred-dev-vscode" }
+      "source": { "source": "github", "repo": "SrScorpio/alfred-dev-vscode" }
     }
   },
   "enabledPlugins": { "alfred-dev-vscode@alfred-dev-vscode": true }
 }
 ```
 
-### Sin plugin: copia manual de agentes
+### Registro alternativo como plugin local (desarrollo)
 
-Si prefieres no usar el sistema de plugins, copia los `.agent.md` que quieras a la carpeta oficial de agentes de Copilot:
+Con `./install.sh --plugin` (o `.\install.ps1 -Plugin`) se registra además este
+directorio en `chat.pluginLocations` de tu settings, con copia de seguridad:
 
-- **Usuario** (todos tus workspaces): `~/.copilot/agents/`
-- **Workspace** (un solo proyecto): `.github/agents/` dentro del repo
+```json
+"chat.pluginLocations": { "/ruta/absoluta/a/alfred-dev-vscode": true }
+```
 
-Las instrucciones globales (`instructions/global-instructions.md.instructions.md`) se copian a `.github/instructions/` del workspace.
+### Copia manual
+
+Copia los `.agent.md` que quieras a `~/.copilot/agents/` (usuario, todos los
+proyectos) o a `.github/agents/` de tu proyecto (solo ese workspace). Evita
+tener el plugin instalado y a la vez los ficheros en `.github/agents/` del
+mismo repo: saldrían duplicados.
+
+Las instrucciones globales (`instructions/global-instructions.md.instructions.md`) se copian a `.github/instructions/` del proyecto que quieras.
 
 ## Configuración de modelos
 

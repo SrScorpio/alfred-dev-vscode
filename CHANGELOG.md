@@ -5,6 +5,17 @@ Todos los cambios notables de este proyecto se documentan en este fichero.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-08-18
+
+### Changed
+
+- Instaladores reescritos: la acción por defecto ahora copia los agentes a
+  `~/.copilot/agents/` (carpeta oficial de usuario de Copilot, disponible en
+  todos los proyectos). Nuevo modo `--uninstall` / `-Uninstall`. El registro
+  como plugin local pasa a ser opcional (`--plugin` / `-Plugin`).
+- README: sección de instalación reordenada (instalador → plugin desde
+  GitHub → equipos → plugin local → copia manual).
+
 ## [0.2.0] - 2026-08-18
 
 ### Added

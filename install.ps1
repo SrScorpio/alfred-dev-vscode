@@ -1,103 +1,83 @@
 # Alfred Dev for VS Code — instalador (Windows / PowerShell)
 #
 # Uso:
-#   .\install.ps1             -> verifica prerequisitos y muestra instrucciones
-#   .\install.ps1 -Local      -> registra este directorio como plugin local en
-#                                chat.pluginLocations (con copia de seguridad)
+#   .\install.ps1             -> copia los 11 agentes a ~\.copilot\agents\ (nivel usuario:
+#                                disponibles en TODOS los proyectos, sin mas configuracion)
+#   .\install.ps1 -Plugin     -> ademas registra este directorio como plugin local
+#                                (chat.pluginLocations, con copia de settings)
+#   .\install.ps1 -Uninstall  -> retira los agentes de ~\.copilot\agents\
 #
-# La instalación soportada es el sistema nativo de agent plugins de VS Code:
-#   1. Paleta de comandos -> "Chat: Install Plugin From Source"
-#   2. Introducir la URL de este repositorio Git
+# Alternativa sin descargar nada (repo publicado en GitHub):
+#   Paleta de comandos -> "Chat: Install Plugin From Source" -> URL del repo
 
 param(
-    [switch]$Local
+    [switch]$Plugin,
+    [switch]$Uninstall
 )
 
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$Dest = "$env:USERPROFILE\.copilot\agents"
 
-Write-Host ""
 Write-Host "Alfred Dev for VS Code — instalador" -ForegroundColor Green
 Write-Host "------------------------------------"
-Write-Host ""
 
-# --- 1. Verificar VS Code CLI -------------------------------------------------
-$codeBin = Get-Command code -ErrorAction SilentlyContinue
-if (-not $codeBin) {
-    $codeBin = Get-Command code-insiders -ErrorAction SilentlyContinue
-}
-
-if ($codeBin) {
-    Write-Host "[ok] VS Code CLI encontrado: $($codeBin.Source)" -ForegroundColor Green
-} else {
-    Write-Host "[aviso] CLI 'code' no encontrado en PATH." -ForegroundColor Yellow
-    Write-Host "       Abre VS Code y ejecuta: Shell Command: Install 'code' command in PATH" -ForegroundColor Yellow
-}
-
-# --- 2. Verificar estructura del plugin --------------------------------------
-if ((Test-Path "$ScriptDir\plugin.json") -and (Test-Path "$ScriptDir\agents")) {
-    $agentes = (Get-ChildItem "$ScriptDir\agents\*.agent.md" -ErrorAction SilentlyContinue).Count
-    Write-Host "[ok] plugin.json presente, $agentes agentes en agents\" -ForegroundColor Green
-} else {
+# --- Verificar estructura del repo -------------------------------------------
+if (-not ((Test-Path "$ScriptDir\plugin.json") -and (Test-Path "$ScriptDir\agents"))) {
     Write-Host "[error] Falta plugin.json o agents\. Ejecuta este script desde la raiz del repo." -ForegroundColor Red
     exit 1
 }
 
-# --- 3. Modo -Local: registrar chat.pluginLocations ---------------------------
-if ($Local) {
-    $userSettings = "$env:APPDATA\Code\User\settings.json"
-
-    if (-not (Test-Path $userSettings)) {
-        Write-Host "[error] No se encontro settings.json en: $userSettings" -ForegroundColor Red
-        exit 1
+# --- Desinstalacion -----------------------------------------------------------
+if ($Uninstall) {
+    $n = 0
+    Get-ChildItem "$ScriptDir\agents\*.agent.md" | ForEach-Object {
+        $target = Join-Path $Dest $_.Name
+        if (Test-Path $target) { Remove-Item $target; $n++ }
     }
-
-    Copy-Item $userSettings "$userSettings.bak-alfred-dev"
-    Write-Host "[backup] $userSettings.bak-alfred-dev" -ForegroundColor Yellow
-
-    $settings = Get-Content $userSettings -Raw | ConvertFrom-Json
-
-    if (-not $settings.'chat.pluginLocations') {
-        $settings | Add-Member -MemberType NoteProperty -Name 'chat.pluginLocations' -Value (New-Object PSObject)
-    }
-
-    $pluginDir = $ScriptDir.Replace('\', '\\')
-    Add-Member -InputObject $settings.'chat.pluginLocations' -MemberType NoteProperty -Name $ScriptDir -Value $true -Force
-
-    $settings | ConvertTo-Json -Depth 10 | Set-Content $userSettings -Encoding UTF8
-    Write-Host "[ok] chat.pluginLocations actualizado con: $ScriptDir" -ForegroundColor Green
-
-    Write-Host ""
-    Write-Host "Plugin local registrado. Reinicia VS Code (o recarga la ventana) y busca los agentes en el dropdown del chat." -ForegroundColor Green
+    Write-Host "[ok] $n agentes retirados de $Dest" -ForegroundColor Green
+    Write-Host "Recarga la ventana de VS Code para que desaparezcan del selector."
     exit 0
 }
 
-# --- 4. Instrucciones ---------------------------------------------------------
-Write-Host @"
-Este repo es un agent plugin de VS Code (formato Copilot).
+# --- 1. Copiar agentes a la carpeta oficial de usuario de Copilot -------------
+New-Item -ItemType Directory -Path $Dest -Force | Out-Null
+$n = 0
+Get-ChildItem "$ScriptDir\agents\*.agent.md" | ForEach-Object {
+    Copy-Item $_.FullName $Dest -Force
+    $n++
+}
+Write-Host "[ok] $n agentes instalados en $Dest" -ForegroundColor Green
+Write-Host "      (nivel usuario: disponibles en todos tus proyectos)"
 
-Instalacion recomendada (cualquier maquina con el repo publicado en Git):
-  1. Paleta de comandos (Ctrl+Shift+P)
-  2. "Chat: Install Plugin From Source"
-  3. URL del repositorio Git de alfred-dev-vscode
+# --- 2. Registro opcional como plugin local ------------------------------------
+if ($Plugin) {
+    $userSettings = "$env:APPDATA\Code\User\settings.json"
+    if (Test-Path $userSettings) {
+        Copy-Item $userSettings "$userSettings.bak-alfred-dev"
+        $raw = Get-Content $userSettings -Raw
+        $settings = if ($raw.Trim()) { $raw | ConvertFrom-Json } else { New-Object PSObject }
+        if (-not $settings.'chat.pluginLocations') {
+            $settings | Add-Member -MemberType NoteProperty -Name 'chat.pluginLocations' -Value (New-Object PSObject)
+        }
+        Add-Member -InputObject $settings.'chat.pluginLocations' -MemberType NoteProperty -Name $ScriptDir -Value $true -Force
+        $settings | ConvertTo-Json -Depth 10 | Set-Content $userSettings -Encoding UTF8
+        Write-Host "[ok] Plugin local registrado en chat.pluginLocations (backup: settings.json.bak-alfred-dev)" -ForegroundColor Green
+    } else {
+        Write-Host "[aviso] No se encontro settings.json ($userSettings); se omite el registro del plugin." -ForegroundColor Yellow
+    }
+}
 
-Instalacion local de desarrollo (esta maquina):
-  .\install.ps1 -Local
-  -> registra este directorio en chat.pluginLocations (con backup de settings).
-
-Instalacion para equipos:
-  settings.json del usuario:
-    "chat.plugins.marketplaces": ["<owner>/alfred-dev-vscode"]
-  .github/copilot/settings.json del workspace:
-    "extraKnownMarketplaces" + "enabledPlugins" (ver README)
-
-Despues de instalar:
-  - El dropdown de agentes del chat mostrara: alfred, product-owner, selina,
-    architect, senior-dev, security-officer, qa-engineer, tech-writer,
-    devops-engineer y lucius.
-  - Para diagnosticar problemas: clic derecho en el chat -> Diagnostics.
-
-Requisitos opcionales por agente:
-  - lucius necesita Codex CLI: npm install -g `@openai/codex && codex login
-  - Modelos Grok/GPT/GLM requieren sus extensiones de proveedor (ver README).
-"@
+# --- 3. Pasos finales ----------------------------------------------------------
+Write-Host ""
+Write-Host "Listo. Pasos finales:" -ForegroundColor Green
+Write-Host "  1. Recarga VS Code: paleta (Ctrl+Shift+P) -> 'Developer: Reload Window'"
+Write-Host "  2. Abre el Chat de Copilot y pulsa el selector de agente (abajo-izquierda del input)"
+Write-Host "  3. Deben aparecer los 11 agentes: alfred, product-owner, selina, architect,"
+Write-Host "     junior-dev, senior-dev, security-officer, qa-engineer, tech-writer,"
+Write-Host "     devops-engineer y lucius"
+Write-Host ""
+Write-Host "Instrucciones globales (opcional, por proyecto):"
+Write-Host "  copy instructions\global-instructions.md.instructions.md <tu-proyecto>\.github\instructions\"
+Write-Host ""
+Write-Host "Desinstalar:  .\install.ps1 -Uninstall"

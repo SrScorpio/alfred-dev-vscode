@@ -3,17 +3,19 @@
 # Alfred Dev for VS Code — instalador (macOS / Linux)
 #
 # Uso:
-#   ./install.sh            -> muestra verificación de prerequisitos e instrucciones
-#   ./install.sh --local    -> registra este directorio como plugin local en
-#                              chat.pluginLocations (con copia de seguridad de settings)
+#   ./install.sh              -> copia los 11 agentes a ~/.copilot/agents/ (nivel usuario:
+#                                disponibles en TODOS los proyectos, sin más configuración)
+#   ./install.sh --plugin     -> además registra este directorio como plugin local
+#                                (chat.pluginLocations, con backup de settings)
+#   ./install.sh --uninstall  -> retira los agentes de ~/.copilot/agents/
 #
-# La instalación soportada es el sistema nativo de agent plugins de VS Code:
-#   1. Paleta de comandos -> "Chat: Install Plugin From Source"
-#   2. Introducir la URL de este repositorio Git
+# Alternativa sin descargar nada (repo publicado en GitHub):
+#   Paleta de comandos -> "Chat: Install Plugin From Source" -> URL del repo
 #
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEST="$HOME/.copilot/agents"
 
 amarillo() { printf '\033[33m%s\033[0m\n' "$1"; }
 verde()    { printf '\033[32m%s\033[0m\n' "$1"; }
@@ -22,104 +24,66 @@ rojo()     { printf '\033[31m%s\033[0m\n' "$1"; }
 echo
 verde "Alfred Dev for VS Code — instalador"
 echo "-------------------------------------"
-echo
 
-# --- 1. Verificar VS Code CLI -------------------------------------------------
-CODE_BIN="$(command -v code || command -v code-insiders || true)"
-if [ -n "$CODE_BIN" ]; then
-  verde "[ok] VS Code CLI encontrado: $CODE_BIN"
-else
-  amarillo "[aviso] CLI 'code' no encontrado en PATH."
-  amarillo "       Abre VS Code y ejecuta: Shell Command: Install 'code' command in PATH"
-fi
-
-# --- 2. Verificar estructura del plugin --------------------------------------
-if [ -f "$SCRIPT_DIR/plugin.json" ] && [ -d "$SCRIPT_DIR/agents" ]; then
-  AGENTES="$(ls -1 "$SCRIPT_DIR/agents"/*.agent.md 2>/dev/null | wc -l | tr -d ' ')"
-  verde "[ok] plugin.json presente, $AGENTES agentes en agents/"
-else
+# --- Verificar estructura del repo -------------------------------------------
+if [ ! -f "$SCRIPT_DIR/plugin.json" ] || [ ! -d "$SCRIPT_DIR/agents" ]; then
   rojo "[error] Falta plugin.json o agents/. Ejecuta este script desde la raíz del repo."
   exit 1
 fi
 
-# --- 3. Modo --local: registrar chat.pluginLocations --------------------------
-if [ "${1:-}" = "--local" ]; then
-  # Ruta estándar de settings.json por plataforma (no requiere el CLI 'code')
+# --- Desinstalación -----------------------------------------------------------
+if [ "${1:-}" = "--uninstall" ]; then
+  n=0
+  for f in "$SCRIPT_DIR"/agents/*.agent.md; do
+    base="$(basename "$f")"
+    if [ -f "$DEST/$base" ]; then rm "$DEST/$base"; n=$((n+1)); fi
+  done
+  verde "[ok] $n agentes retirados de $DEST"
+  echo "Recarga la ventana de VS Code para que desaparezcan del selector."
+  exit 0
+fi
+
+# --- 1. Copiar agentes a la carpeta oficial de usuario de Copilot -------------
+mkdir -p "$DEST"
+n=0
+for f in "$SCRIPT_DIR"/agents/*.agent.md; do
+  cp "$f" "$DEST/"
+  n=$((n+1))
+done
+verde "[ok] $n agentes instalados en $DEST"
+echo "      (nivel usuario: disponibles en todos tus proyectos)"
+
+# --- 2. Registro opcional como plugin local ------------------------------------
+if [ "${1:-}" = "--plugin" ]; then
   case "$(uname -s)" in
     Darwin) USER_SETTINGS="$HOME/Library/Application Support/Code/User/settings.json" ;;
     *)      USER_SETTINGS="$HOME/.config/Code/User/settings.json" ;;
   esac
-
-  # Fallback: si hay CLI 'code' (insiders, variantes), intentar resolver la ruta
-  if [ ! -f "$USER_SETTINGS" ] && [ -n "$CODE_BIN" ]; then
-    CLI_DIR="$(dirname "$(dirname "$CODE_BIN")")"
-    for CAND in \
-      "$HOME/Library/Application Support/Code - Insiders/User/settings.json" \
-      "$HOME/.config/Code - Insiders/User/settings.json"; do
-      [ -f "$CAND" ] && USER_SETTINGS="$CAND" && break
-    done
-  fi
-
-  if [ ! -f "$USER_SETTINGS" ]; then
-    rojo "[error] No se encontró settings.json en: $USER_SETTINGS"
-    rojo "        Abre VS Code, ejecuta en la paleta 'Shell Command: Install code command in PATH' y reintenta."
-    exit 1
-  fi
-
-  cp "$USER_SETTINGS" "$USER_SETTINGS.bak-alfred-dev"
-  amarillo "[backup] $USER_SETTINGS.bak-alfred-dev"
-
-  python3 - "$USER_SETTINGS" "$SCRIPT_DIR" <<'PYEOF'
+  if [ -f "$USER_SETTINGS" ]; then
+    cp "$USER_SETTINGS" "$USER_SETTINGS.bak-alfred-dev"
+    python3 - "$USER_SETTINGS" "$SCRIPT_DIR" <<'PYEOF'
 import json, sys
-
 settings_path, plugin_dir = sys.argv[1], sys.argv[2]
-
-with open(settings_path, "r", encoding="utf-8") as f:
-    text = f.read()
-
-data = json.loads(text) if text.strip() else {}
-
-locations = data.setdefault("chat.pluginLocations", {})
-locations[plugin_dir] = True
-
-with open(settings_path, "w", encoding="utf-8") as f:
-    json.dump(data, f, indent=4, ensure_ascii=False)
-    f.write("\n")
-
-print("[ok] chat.pluginLocations actualizado con: " + plugin_dir)
+data = json.load(open(settings_path, encoding="utf-8"))
+data.setdefault("chat.pluginLocations", {})[plugin_dir] = True
+json.dump(data, open(settings_path, "w", encoding="utf-8"), indent=4, ensure_ascii=False)
 PYEOF
-
-  echo
-  verde "Plugin local registrado. Reinicia VS Code (o recarga la ventana) y busca los agentes en el dropdown del chat."
-  exit 0
+    verde "[ok] Plugin local registrado en chat.pluginLocations (backup: settings.json.bak-alfred-dev)"
+  else
+    amarillo "[aviso] No se encontró settings.json ($USER_SETTINGS); se omite el registro del plugin."
+  fi
 fi
 
-# --- 4. Instrucciones ---------------------------------------------------------
-cat <<EOF
-Este repo es un agent plugin de VS Code (formato Copilot).
-
-Instalación recomendada (cualquier máquina con el repo publicado en Git):
-  1. Paleta de comandos (Cmd+Shift+P / Ctrl+Shift+P)
-  2. "Chat: Install Plugin From Source"
-  3. URL del repositorio Git de alfred-dev-vscode
-
-Instalación local de desarrollo (esta máquina):
-  ./install.sh --local
-  -> registra este directorio en chat.pluginLocations (con backup de settings).
-
-Instalación para equipos:
-  settings.json del usuario:
-    "chat.plugins.marketplaces": ["<owner>/alfred-dev-vscode"]
-  .github/copilot/settings.json del workspace:
-    "extraKnownMarketplaces" + "enabledPlugins" (ver README)
-
-Después de instalar:
-  - El dropdown de agentes del chat mostrará: alfred, product-owner, selina,
-    architect, senior-dev, security-officer, qa-engineer, tech-writer,
-    devops-engineer y lucius.
-  - Para diagnosticar problemas: clic derecho en el chat -> Diagnostics.
-
-Requisitos opcionales por agente:
-  - lucius necesita Codex CLI: npm install -g @openai/codex && codex login
-  - Modelos Grok/GPT/GLM requieren sus extensiones de proveedor (ver README).
-EOF
+# --- 3. Pasos finales ----------------------------------------------------------
+echo
+verde "Listo. Pasos finales:"
+echo "  1. Recarga VS Code: paleta (Mayús+Cmd+P) -> 'Developer: Reload Window'"
+echo "  2. Abre el Chat de Copilot y pulsa el selector de agente (abajo-izquierda del input)"
+echo "  3. Deben aparecer los 11 agentes: alfred, product-owner, selina, architect,"
+echo "     junior-dev, senior-dev, security-officer, qa-engineer, tech-writer,"
+echo "     devops-engineer y lucius"
+echo
+echo "Instrucciones globales (opcional, por proyecto):"
+echo "  cp instructions/global-instructions.md.instructions.md <tu-proyecto>/.github/instructions/"
+echo
+echo "Desinstalar:  ./install.sh --uninstall"
