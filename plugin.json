@@ -1,8 +1,8 @@
 {
   "name": "alfred-dev-vscode",
   "displayName": "Alfred Dev for VS Code",
-  "description": "Equipo de 10 agentes de ingeniería de software para VS Code: orquestación con quality gates, TDD, seguridad y compliance europeo (RGPD, NIS2, CRA). Multi-modelo: Grok, GPT, GLM y Claude con fallback automático.",
-  "version": "0.1.0",
+  "description": "Equipo de 11 agentes de ingeniería de software para VS Code: orquestación con quality gates, TDD, seguridad y compliance europeo (RGPD, NIS2, CRA). Multi-modelo con política de coste: junior-dev (Luna) para el día a día, senior-dev (Sol) para lo muy complicado.",
+  "version": "0.2.0",
   "publisher": "686f6c61",
   "license": "MIT",
   "repository": {

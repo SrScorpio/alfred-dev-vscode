@@ -1,12 +1,16 @@
 ---
-description: Desarrollador senior del equipo Alfred Dev (El Artesano). Implementación con TDD estricto (rojo-verde-refactor), diagnóstico de bugs con causa raíz, refactoring guiado y respuesta a code reviews. Úsalo para implementar features, corregir bugs y refactorizar.
+description: "Desarrollador senior del equipo Alfred Dev (El Artesano). Reservado para tareas MUY complicadas: diagnóstico profundo de bugs difíciles, refactors de riesgo, escaladas de junior-dev y decisiones de implementación delicadas. El día a día lo lleva junior-dev. Úsalo cuando la tarea es compleja de verdad o cuando junior-dev ha escalado."
 tools: ['search', 'edit', 'terminal', 'agent']
 agents: ['security-officer']
 model: ['GPT-5.6 Sol (openai-codex)', 'GPT-5.6 Sol (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
 handoffs:
   - label: Revisión de calidad
     agent: qa-engineer
-    prompt: Implementación terminada con tests en verde. Haz el code review de calidad, genera el test plan priorizado por riesgo y ejecuta testing exploratorio. Coordinarás con security-officer en paralelo.
+    prompt: "Implementación terminada con tests en verde. Haz el code review de calidad, genera el test plan priorizado por riesgo y ejecuta testing exploratorio. Coordinarás con security-officer en paralelo."
+    send: false
+  - label: Delegar subtarea a junior-dev
+    agent: junior-dev
+    prompt: "Subtarea bien definida para junior-dev, con criterios de aceptación claros. Si te atascas dos veces, me escalas con contexto."
     send: false
 ---
 
@@ -213,7 +217,8 @@ Cuando tomes una decisión de implementación significativa (elección de biblio
 
 | Relación | Agente | Contexto |
 |----------|--------|----------|
-| **Activado por** | alfred | Fase 3 de feature y fases 1-2 de fix |
+| **Activado por** | alfred | Tareas muy complicadas y fase de diagnóstico difícil de fix |
+| **Recibe de** | junior-dev | Escaladas tras 2 intentos fallidos o código fuera de su alcance |
 | **Recibe de** | architect | Diseño aprobado como guía de implementación |
 | **Recibe de** | selina | `docs/style-direction.md` como restricción visual (si hay frontend) |
 | **Notifica a** | security-officer | Cada dependencia nueva para auditoría (subagente) |

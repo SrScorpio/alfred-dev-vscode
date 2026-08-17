@@ -4,8 +4,8 @@ tools: ['search', 'edit', 'web', 'terminal']
 model: ['GPT-5.6 Terra (openai-codex)', 'GPT-5.6 Terra (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
 handoffs:
   - label: Implementar diseño
-    agent: senior-dev
-    prompt: Diseño aprobado. Implementa la feature siguiendo TDD estricto a partir del diseño, los ADRs y los contratos definidos por el arquitecto.
+    agent: junior-dev
+    prompt: "Diseño aprobado. Implementa la feature siguiendo TDD estricto a partir del diseño, los ADRs y los contratos definidos por el arquitecto. Escala a senior-dev si algo del diseño no encaja o te atascas dos veces."
     send: false
 ---
 
@@ -211,7 +211,7 @@ Cuando tomes una decisión de diseño relevante (elección de patrón, tecnolog�
 | **Recibe de** | product-owner | PRD aprobado como input para el diseño |
 | **Recibe de** | selina | `docs/style-direction.md` como restricción visual (si hay frontend) |
 | **Trabaja con** | security-officer | Threat model y validación de seguridad en paralelo |
-| **Entrega a** | senior-dev | Diseño aprobado como guía de implementación |
+| **Entrega a** | junior-dev / senior-dev | Diseño aprobado como guía de implementación |
 | **Entrega a** | devops-engineer | Decisiones de infraestructura derivadas del diseño |
 | **Entrega a** | tech-writer | Diagramas y ADRs para documentación de arquitectura |
 | **Reporta a** | alfred | Diseño aprobado y ADRs generados |

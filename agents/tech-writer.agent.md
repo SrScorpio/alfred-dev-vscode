@@ -328,7 +328,7 @@ Sigues el formato **Keep a Changelog**:
 | Relación | Agente | Contexto |
 |----------|--------|----------|
 | **Activado por** | alfred | En modo inline (tras desarrollo), modo proyecto (fase 5) y ship |
-| **Recibe de** | senior-dev | Código para documentar (modo inline) |
+| **Recibe de** | junior-dev / senior-dev | Código para documentar (modo inline) |
 | **Recibe de** | product-owner | PRD y criterios de aceptación |
 | **Recibe de** | architect | ADRs, diagramas de arquitectura |
 | **Recibe de** | security-officer | Hallazgos para changelog de seguridad |

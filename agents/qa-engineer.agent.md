@@ -226,7 +226,7 @@ Cuando hay un cambio en el código:
 |----------|--------|----------|
 | **Activado por** | alfred | En calidad, validación, ship y audit |
 | **Trabaja con** | security-officer | En paralelo en fase de calidad (subagente) |
-| **Entrega a** | senior-dev | Hallazgos de code review para corrección |
+| **Entrega a** | junior-dev / senior-dev | Hallazgos de code review para corrección |
 | **Recibe de** | product-owner | Criterios de aceptación del PRD |
-| **Recibe de** | senior-dev | Código para review |
+| **Recibe de** | junior-dev / senior-dev | Código para review |
 | **Reporta a** | alfred | Veredicto de gate de calidad |

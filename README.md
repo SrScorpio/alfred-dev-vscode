@@ -1,6 +1,6 @@
 # Alfred Dev for VS Code
 
-**Equipo de 10 agentes de ingeniería de software para VS Code.** Orquestación del ciclo de desarrollo con quality gates verificables, TDD estricto, seguridad y compliance europeo (RGPD, NIS2, CRA) integrados desde el diseño. Multi-modelo: cada agente declara una cadena de modelos preferidos (Grok → GPT → GLM → copilot) con **fallback automático**.
+**Equipo de 11 agentes de ingeniería de software para VS Code.** Orquestación del ciclo de desarrollo con quality gates verificables, TDD estricto, seguridad y compliance europeo (RGPD, NIS2, CRA) integrados desde el diseño. Multi-modelo con política de coste: **Luna para el 80% del trabajo** (junior-dev, escritura, producto), Terra para lo complicado y Sol solo para lo muy complicado.
 
 Port del plugin [alfred-dev](https://github.com/686f6c61/alfred-dev) para Claude Code, adaptado a los mecanismos nativos de VS Code: custom agents (`.agent.md`), handoffs entre agentes y subagentes.
 
@@ -14,7 +14,8 @@ Port del plugin [alfred-dev](https://github.com/686f6c61/alfred-dev) para Claude
 | `product-owner` | El Buscador de Problemas | PRDs, historias de usuario, criterios de aceptación | Luna → Grok 4.6 → GLM |
 | `selina` | La Estilista | Dirección de estilo visual (solo frontend) | Luna → Grok 4.6 → GLM |
 | `architect` | El Dibujante de Cajas | Diseño, ADRs, elección de stack, dependencias | Terra → Grok 4.6 → GLM |
-| `senior-dev` | El Artesano | Implementación TDD, diagnóstico de bugs, refactor | Sol → Grok 4.6 → GLM |
+| `junior-dev` | El Aprendiz | **Desarrollador del día a día**: historias, fixes acotados, refactors mecánicos. Escala a senior-dev tras 2 intentos | Luna → Grok 4.6 → GLM |
+| `senior-dev` | El Artesano | **MUY complicado**: bugs difíciles, refactors de riesgo, escaladas de junior-dev | Sol → Grok 4.6 → GLM |
 | `security-officer` | El Paranoico | OWASP, CVEs, RGPD/NIS2/CRA, threat model, SBOM | Terra → Grok 4.6 → GLM |
 | `qa-engineer` | El Rompe-cosas | Code review, test plans, exploratorio, regresión | Terra → Grok 4.6 → GLM |
 | `tech-writer` | El Escriba | Documentación de código y de proyecto | Luna → Grok 4.6 → GLM |
@@ -103,9 +104,11 @@ model: ['GPT-5.6 Terra (openai-codex)', 'GPT-5.6 Terra (copilot)', 'Grok 4.6 (xa
 
 **Política de modelos GPT-5.6** (prioridad de coste):
 
-- **Luna** (el más barato): máximo posible, para tareas normales → `product-owner`, `selina`, `tech-writer`, `devops-engineer`, `lucius`.
+- **Luna** (el más barato): máximo posible, para tareas normales → `junior-dev` (el desarrollador del día a día), `product-owner`, `selina`, `tech-writer`, `devops-engineer`, `lucius`.
 - **Terra**: tareas complicadas (razonamiento, auditoría) → `alfred`, `architect`, `security-officer`, `qa-engineer`.
-- **Sol**: solo tareas muy complicadas → `senior-dev`.
+- **Sol**: solo tareas muy complicadas → `senior-dev` (reservado a escaladas y bugs difíciles).
+
+**Patrón junior/senior**: `junior-dev` (Luna) implementa por defecto con TDD y escala a `senior-dev` (Sol) tras dos intentos fallidos, código que no entiende o tareas fuera de alcance. Así el coste de desarrollo cotidiano se mantiene en Luna y Sol solo entra cuando de verdad hace falta.
 
 La cadena prioriza tu cuenta de OpenAI (`openai-codex`), cae a las variantes
 incluidas con Copilot (`copilot`) si acaso, y después a Grok 4.6 y GLM como
@@ -126,8 +129,8 @@ flowchart LR
     PO -->|hay frontend| SE[selina]
     PO --> AR[architect]
     SE --> AR
-    AR --> SD[senior-dev]
-    SD --> QA[qa-engineer]
+    AR --> JD[junior-dev]
+    JD --> QA[qa-engineer]
     QA --> TW[tech-writer]
     TW --> DO[devops-engineer]
     DO --> A
@@ -156,6 +159,7 @@ Los gates de usuario nunca se autoaprueban: los handoffs usan `send: false` para
 | selina | ✓ | ✓ | ✓ | – | – |
 | architect | ✓ | ✓ | ✓ | ✓ | – |
 | senior-dev | ✓ | ✓ | ✓ | – | ✓ (security) |
+| junior-dev | ✓ | ✓ | ✓ | – | – |
 | security-officer | ✓ | ✓ | ✓ | ✓ | – |
 | qa-engineer | ✓ | ✓ | ✓ | – | ✓ (security) |
 | tech-writer | ✓ | ✓ | – | – | – |
@@ -193,9 +197,6 @@ alfred-dev-vscode/
 │   ├── tech-writer.agent.md
 │   ├── devops-engineer.agent.md
 │   └── lucius.agent.md
-├── .github/agents/            # Copia idéntica: descubrimiento workspace nativo
-│                              # (si abres este repo como workspace, los agentes
-│                              #  cargan sin necesidad del sistema de plugins)
 ├── instructions/
 │   └── global-instructions.md.instructions.md   # Copiar a .github/instructions/ del workspace
 ├── install.sh                 # Instalador macOS/Linux
@@ -204,10 +205,10 @@ alfred-dev-vscode/
 └── LICENSE                    # MIT
 ```
 
-Nota: si tienes el plugin instalado Y abres este repo como workspace a la vez,
-los agentes pueden aparecer duplicados (una copia del plugin, otra del
-workspace). Es el comportamiento esperado; desactiva el plugin o ignora la
-copia sobrante.
+> Alternativa sin plugin: si prefieres no usar el sistema de plugins, copia los
+> `.agent.md` que quieras a `.github/agents/` de tu proyecto o a
+> `~/.copilot/agents/` (usuario). Evita tener el plugin instalado y a la vez
+> los ficheros en `.github/agents/` del mismo repo: saldrían duplicados.
 
 ## Roadmap
 

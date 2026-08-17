@@ -5,6 +5,31 @@ Todos los cambios notables de este proyecto se documentan en este fichero.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-08-18
+
+### Added
+
+- Nuevo agente `junior-dev` (El Aprendiz): desarrollador del día a día con
+  modelos baratos (Luna). Implementa historias del PRD, fixes acotados y
+  refactors mecánicos con TDD estricto y protocolo de escalada (2 intentos
+  máximo, luego escala a senior-dev con contexto).
+- Handoffs de junior-dev: escalar a senior-dev y entregar a qa-engineer.
+- Handoff de delegación en senior-dev hacia junior-dev.
+
+### Changed
+
+- `senior-dev` re-escalado: reservado a tareas MUY complicadas (bugs
+  difíciles, refactors de riesgo) y a las escaladas de junior-dev. Modelo
+  Sol (solo muy complicado, según política de coste).
+- `alfred` actualizado: equipo de 9 de núcleo, junior-dev en subagentes y
+  routing (implementación por defecto = junior-dev; senior-dev para lo
+  difícil), nuevo handoff "Cambio acotado".
+- `architect` entrega ahora el diseño a junior-dev por defecto (con
+  instrucción de escalar a senior-dev si algo no encaja).
+- Política de modelos GPT-primero documentada en README: Luna máximo
+  posible, Terra complicado, Sol muy complicado; Grok 4.6 y GLM-5.3 como
+  cadena alternativa tras openai-codex y copilot.
+
 ## [0.1.0] - 2026-08-18
 
 ### Added
