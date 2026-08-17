@@ -182,6 +182,9 @@ alfred-dev-vscode/
 │   ├── tech-writer.agent.md
 │   ├── devops-engineer.agent.md
 │   └── lucius.agent.md
+├── .github/agents/            # Copia idéntica: descubrimiento workspace nativo
+│                              # (si abres este repo como workspace, los agentes
+│                              #  cargan sin necesidad del sistema de plugins)
 ├── instructions/
 │   └── global-instructions.md.instructions.md   # Copiar a .github/instructions/ del workspace
 ├── install.sh                 # Instalador macOS/Linux
@@ -189,6 +192,11 @@ alfred-dev-vscode/
 ├── CHANGELOG.md
 └── LICENSE                    # MIT
 ```
+
+Nota: si tienes el plugin instalado Y abres este repo como workspace a la vez,
+los agentes pueden aparecer duplicados (una copia del plugin, otra del
+workspace). Es el comportamiento esperado; desactiva el plugin o ignora la
+copia sobrante.
 
 ## Roadmap
 
