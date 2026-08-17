@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor
+*.swp
+*.swo
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Python (para generadores futuros)
+__pycache__/
+*.py[cod]
+.venv/
+
+# Node (para tooling futuro)
+node_modules/
+
+# Temporales de auditoría visual
+.style-options/
