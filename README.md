@@ -8,18 +8,18 @@ Port del plugin [alfred-dev](https://github.com/686f6c61/alfred-dev) para Claude
 
 ## El equipo
 
-| Agente | Alias | Rol | Modelos preferidos |
-|--------|-------|-----|--------------------|
-| `alfred` | Jefe de operaciones | Orquestador: decide qué agente actúa y evalúa gates | Grok → GLM → copilot |
-| `product-owner` | El Buscador de Problemas | PRDs, historias de usuario, criterios de aceptación | GPT → GLM → copilot |
-| `selina` | La Estilista | Dirección de estilo visual (solo frontend) | GLM → GPT → copilot |
-| `architect` | El Dibujante de Cajas | Diseño, ADRs, elección de stack, dependencias | Grok → GLM → copilot |
-| `senior-dev` | El Artesano | Implementación TDD, diagnóstico de bugs, refactor | GLM → Grok → copilot |
-| `security-officer` | El Paranoico | OWASP, CVEs, RGPD/NIS2/CRA, threat model, SBOM | Grok → GLM → copilot |
-| `qa-engineer` | El Rompe-cosas | Code review, test plans, exploratorio, regresión | Grok → GLM → copilot |
-| `tech-writer` | El Escriba | Documentación de código y de proyecto | GPT → GLM → copilot |
-| `devops-engineer` | El Fontanero | Docker, CI/CD, despliegue, monitoring | GPT → GLM → copilot |
-| `lucius` | El Director Técnico Externo | Segunda opinión vía Codex CLI (solo lectura) | copilot |
+| Agente | Alias | Rol | Modelo (perfil) |
+|--------|-------|-----|-----------------|
+| `alfred` | Jefe de operaciones | Orquestador: decide qué agente actúa y evalúa gates | Terra → Grok 4.6 → GLM |
+| `product-owner` | El Buscador de Problemas | PRDs, historias de usuario, criterios de aceptación | Luna → Grok 4.6 → GLM |
+| `selina` | La Estilista | Dirección de estilo visual (solo frontend) | Luna → Grok 4.6 → GLM |
+| `architect` | El Dibujante de Cajas | Diseño, ADRs, elección de stack, dependencias | Terra → Grok 4.6 → GLM |
+| `senior-dev` | El Artesano | Implementación TDD, diagnóstico de bugs, refactor | Sol → Grok 4.6 → GLM |
+| `security-officer` | El Paranoico | OWASP, CVEs, RGPD/NIS2/CRA, threat model, SBOM | Terra → Grok 4.6 → GLM |
+| `qa-engineer` | El Rompe-cosas | Code review, test plans, exploratorio, regresión | Terra → Grok 4.6 → GLM |
+| `tech-writer` | El Escriba | Documentación de código y de proyecto | Luna → Grok 4.6 → GLM |
+| `devops-engineer` | El Fontanero | Docker, CI/CD, despliegue, monitoring | Luna → Grok 4.6 → GLM |
+| `lucius` | El Director Técnico Externo | Segunda opinión vía Codex CLI (solo lectura) | Luna |
 
 Tres principios de diseño heredados de alfred-dev:
 
@@ -88,8 +88,8 @@ Los arrays por defecto asumen estas extensiones de proveedor (instala las que us
 
 | Proveedor | Vendor en el picker | Extensión |
 |-----------|--------------------|-----------|
-| xAI Grok | `(xai-grok)` | [Grok for GitHub Copilot Chat](https://marketplace.visualstudio.com/items?itemName=grikomsn.grok-copilot-chat) |
-| OpenAI GPT | `(openai-codex)` | [OpenAI OAuth Copilot Chat](https://marketplace.visualstudio.com/items?itemName=grikomsn.openai-oauth-copilot-chat) |
+| xAI Grok 4.6 | `(xai-grok)` | [Grok for GitHub Copilot Chat](https://marketplace.visualstudio.com/items?itemName=grikomsn.grok-copilot-chat) |
+| OpenAI GPT-5.6 (Luna/Sol/Terra) | `(openai-codex)` | [OpenAI OAuth Copilot Chat](https://marketplace.visualstudio.com/items?itemName=grikomsn.openai-oauth-copilot-chat) |
 | Z.ai GLM | `(glm)` | [GLM for VS Code Copilot](https://marketplace.visualstudio.com/items?itemName=ikaros.glm-for-vscode-copilot) |
 | GitHub Copilot | `(copilot)` | Incluido con Copilot (fallback garantizado) |
 
@@ -98,8 +98,19 @@ Los arrays por defecto asumen estas extensiones de proveedor (instala las que us
 Ejemplo de frontmatter de un agente:
 
 ```yaml
-model: ['Grok 4.1 (xai-grok)', 'GLM-5.3 (glm)', 'GPT-5.2 (copilot)']
+model: ['GPT-5.6 Terra (openai-codex)', 'GPT-5.6 Terra (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
 ```
+
+**Política de modelos GPT-5.6** (prioridad de coste):
+
+- **Luna** (el más barato): máximo posible, para tareas normales → `product-owner`, `selina`, `tech-writer`, `devops-engineer`, `lucius`.
+- **Terra**: tareas complicadas (razonamiento, auditoría) → `alfred`, `architect`, `security-officer`, `qa-engineer`.
+- **Sol**: solo tareas muy complicadas → `senior-dev`.
+
+La cadena prioriza tu cuenta de OpenAI (`openai-codex`), cae a las variantes
+incluidas con Copilot (`copilot`) si acaso, y después a Grok 4.6 y GLM como
+alternativas. Si un nombre no existe en tu catálogo, VS Code lo salta sin
+error y usa el siguiente: es una lista YAML, el orden es la prioridad.
 
 Si no quieres cadenas de modelos, borra la línea `model` y el agente usará el modelo que tengas seleccionado en el picker del chat.
 

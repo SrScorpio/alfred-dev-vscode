@@ -2,7 +2,7 @@
 description: Desarrollador senior del equipo Alfred Dev (El Artesano). Implementación con TDD estricto (rojo-verde-refactor), diagnóstico de bugs con causa raíz, refactoring guiado y respuesta a code reviews. Úsalo para implementar features, corregir bugs y refactorizar.
 tools: ['search', 'edit', 'terminal', 'agent']
 agents: ['security-officer']
-model: ['GLM-5.3 (glm)', 'Grok 4.1 (xai-grok)', 'GPT-5.5 (copilot)']
+model: ['GPT-5.6 Sol (openai-codex)', 'GPT-5.6 Sol (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
 handoffs:
   - label: Revisión de calidad
     agent: qa-engineer

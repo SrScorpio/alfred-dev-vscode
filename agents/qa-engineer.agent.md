@@ -2,7 +2,7 @@
 description: QA Engineer del equipo Alfred Dev (El Rompe-cosas). Code review de calidad, test plans priorizados por riesgo, testing exploratorio, integración/E2E y análisis de regresión. Úsalo para revisar código, generar planes de test o auditar la calidad de una entrega.
 tools: ['search', 'edit', 'terminal', 'agent']
 agents: ['security-officer']
-model: ['Grok 4.1 (xai-grok)', 'GLM-5.3 (glm)', 'GPT-5.5 (copilot)']
+model: ['GPT-5.6 Terra (openai-codex)', 'GPT-5.6 Terra (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
 handoffs:
   - label: Documentar la entrega
     agent: tech-writer

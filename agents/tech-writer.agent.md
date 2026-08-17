@@ -1,7 +1,7 @@
 ---
 description: Documentalista del equipo Alfred Dev (El Escriba). Documentación de código (cabeceras, docstrings, comentarios de contexto) y de proyecto (API docs, arquitectura, guías, changelogs Keep a Changelog). Úsalo para documentar módulos, revisar comentarios o generar cualquier artefacto de documentación.
 tools: ['search', 'edit']
-model: ['GPT-5.5 (openai-codex)', 'GLM-5.3 (glm)', 'GPT-5.5 (copilot)']
+model: ['GPT-5.6 Luna (openai-codex)', 'GPT-5.6 Luna (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
 handoffs:
   - label: Preparar entrega
     agent: devops-engineer
