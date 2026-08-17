@@ -44,20 +44,25 @@ fi
 
 # --- 3. Modo --local: registrar chat.pluginLocations --------------------------
 if [ "${1:-}" = "--local" ]; then
-  if [ -z "$CODE_BIN" ]; then
-    rojo "[error] El modo --local necesita el CLI 'code' para localizar settings.json."
-    exit 1
-  fi
-
-  SETTINGS="$("$CODE_BIN" --locate-shell-integration-dir >/dev/null 2>&1; true)"
-  # Ruta estándar de settings.json por plataforma
+  # Ruta estándar de settings.json por plataforma (no requiere el CLI 'code')
   case "$(uname -s)" in
     Darwin) USER_SETTINGS="$HOME/Library/Application Support/Code/User/settings.json" ;;
     *)      USER_SETTINGS="$HOME/.config/Code/User/settings.json" ;;
   esac
 
+  # Fallback: si hay CLI 'code' (insiders, variantes), intentar resolver la ruta
+  if [ ! -f "$USER_SETTINGS" ] && [ -n "$CODE_BIN" ]; then
+    CLI_DIR="$(dirname "$(dirname "$CODE_BIN")")"
+    for CAND in \
+      "$HOME/Library/Application Support/Code - Insiders/User/settings.json" \
+      "$HOME/.config/Code - Insiders/User/settings.json"; do
+      [ -f "$CAND" ] && USER_SETTINGS="$CAND" && break
+    done
+  fi
+
   if [ ! -f "$USER_SETTINGS" ]; then
     rojo "[error] No se encontró settings.json en: $USER_SETTINGS"
+    rojo "        Abre VS Code, ejecuta en la paleta 'Shell Command: Install code command in PATH' y reintenta."
     exit 1
   fi
 
