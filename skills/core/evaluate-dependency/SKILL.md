@@ -5,17 +5,15 @@ description: "Usar antes de aceptar una dependencia nueva. También: auditar paq
 
 # Evaluar una dependencia
 
-## Resumen
-
 Antes de añadir un paquete, evalúalo y deja el veredicto en
-`docs/project/dependencies.md`. El helper puede crear el esqueleto; tú
-escribes la fila.
+`docs/project/dependencies.md` (o en `plans/` si el proyecto ya documenta
+dependencias ahí).
 
 ## Proceso
 
-1. Confirma que el paquete no está ya en el registro.
+1. Confirma que el paquete no está ya en el manifiesto ni en el registro.
 
-2. Recoge datos verificables (lockfile, registro, advisory):
+2. Recoge datos verificables (lockfile, registro npm/pypi/crates, GitHub Advisory):
 
    - nombre y versión exacta
    - peso aproximado o impacto en el bundle
@@ -27,9 +25,10 @@ escribes la fila.
 
 3. Veredicto: `APROBAR`, `RECHAZAR` o `APROBAR CON CONDICIONES`.
 
-4. Añade o actualiza una fila en `docs/project/dependencies.md`. Si el
-   fichero era esqueleto y ya hay una evaluación real, sustituye
-   `<!-- alfred-doc:scaffold -->` por `<!-- alfred-doc:filled -->`.
+4. Añade o actualiza una fila en el registro. Crea el fichero si no existe:
+
+   | Paquete | Versión | Licencia | CVEs | Transitivas | Veredicto | Fecha |
+   |---------|---------|----------|------|-------------|-----------|-------|
 
 5. Si el veredicto no es `APROBAR`, no la instales. Propón alternativa.
 
@@ -41,6 +40,6 @@ escribes la fila.
 
 ## Qué NO hacer
 
-- No evalues de memoria sin mirar el lockfile o el manifiesto.
-- No apruebes una dependencia para «ya la usamos todos» sin dato.
+- No evalúes de memoria sin mirar el lockfile o el manifiesto.
+- No apruebes una dependencia por «ya la usamos todos» sin dato.
 - No dejes licencias como desconocidas sin decirlo.

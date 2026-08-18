@@ -5,6 +5,54 @@ Todos los cambios notables de este proyecto se documentan en este fichero.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.4] - 2026-08-18
+
+### Fixed
+
+- Instalador no interactivo (CI): ya no llama al menú; instala agentes +
+  instructions + templates sin preguntar.
+- `alfred` y README: plantilla de `status.md` en rutas instaladas, no en el
+  repo del plugin.
+- Comentario de cabecera de `install.ps1` alineado con el de `install.sh`.
+
+### Removed
+
+- Stubs `memory`, `style-direction` y `sonarqube` de `skills/core/` (el
+  instalador no las copiaba). La referencia Claude queda solo en
+  `skills/source-claude/`.
+
+## [0.6.3] - 2026-08-18
+
+### Fixed
+
+- Las instructions globales se instalan en `Code/User/instructions/`
+  (donde VS Code las descubre), no en `User/prompts/`. El
+  `templates/copilot-instructions.md` sigue siendo plantilla de
+  `AGENTS.md` por proyecto: no se copia al perfil.
+
+## [0.6.2] - 2026-08-18
+
+### Changed
+
+- El instalador es autónomo: al instalar se copian **instructions +
+  templates** al perfil (`Code/User/prompts` y
+  `~/.copilot/alfred-dev/templates/`) o al proyecto
+  (`.github/instructions/` y `.github/alfred-dev/templates/`). Tras
+  instalar no hace falta tener el repo abierto. Desinstalar los retira.
+- Plantillas de ADR / STRIDE / compliance / SBOM también van en
+  `skills/core/<skill>/references/` para que viajen con la skill.
+
+## [0.6.1] - 2026-08-18
+
+### Changed
+
+- Las 8 skills de proceso de `skills/core/` están adaptadas a VS Code: sin
+  `.claude/alfred-continuity.py`, sin MCP `alfred-memory`. Plantillas
+  `templates/adr.md`, `threat-model.md`, `compliance.md` y `sbom.md`.
+- El instalador (paquete Básicas) copia solo esas 8. `memory`,
+  `style-direction` y `sonarqube` no se instalan (runtime Claude); referencia
+  en `skills/source-claude/`.
+
 ## [0.6.0] - 2026-08-18
 
 ### Added

@@ -47,16 +47,26 @@ Requisitos: VS Code con GitHub Copilot Chat. Tras instalar, los agentes aparecen
 
 El instalador muestra un **menú sencillo**. Primero el alcance, luego el paquete:
 
-1. **Instalar a nivel usuario (global)** — `~/.copilot/agents/` y `~/.copilot/skills/`: disponibles en **todos tus proyectos**.
-2. **Instalar en un proyecto concreto** — `.github/agents/` y `.github/skills/` (viaja con el repo). Opcionalmente también las instrucciones. Avisa si ya tienes el global (duplicados).
-3. **Desinstalar** — global o proyecto (solo retira los ficheros de este repo).
+1. **Instalar a nivel usuario (global)** — perfil de Copilot/VS Code. Tras instalar **puedes cerrar o borrar el repo**: todo queda en tu usuario.
+2. **Instalar en un proyecto concreto** — `.github/` de ese repo (viaja con el equipo). Avisa si ya tienes el global (duplicados).
+3. **Desinstalar** — global o proyecto (solo retira lo que este instalador puso).
+
+**Qué se copia siempre** (además del paquete de agentes/skills):
+
+| Pieza | Global | Proyecto |
+|-------|--------|----------|
+| Instructions (reglas globales) | `Code/User/instructions/*.instructions.md` | `.github/instructions/` |
+| `AGENTS.md` / `copilot-instructions.md` | No se crea (es del proyecto) | No se crea; plantilla en `alfred-dev/templates/` |
+| Templates | `~/.copilot/alfred-dev/templates/` | `.github/alfred-dev/templates/` |
+
+Las skills de proceso también llevan su plantilla en `references/` (viaja con la skill). El agente no necesita el repo del plugin abierto.
 
 **Paquetes** (tras elegir 1 o 2):
 
 | Paquete | Qué instala |
 |---------|-------------|
 | **Solo agentes** | Los 12 `.agent.md` |
-| **Básicas** | Agentes + 11 skills de proceso (`skills/core/`: ADRs, threat-model, SBOM, PRs...) |
+| **Básicas** | Agentes + 8 skills de proceso (`skills/core/`: ADRs, threat-model, SBOM, PRs...) |
 | **Completas** | Básicas + 30 skills de stack (`skills/stack/`: Python, WordPress, React, Go...) |
 
 Para instalar en otro ordenador: clona el repo, ejecuta el instalador y elige. El mismo menú sirve para desinstalar.
@@ -97,7 +107,7 @@ mismo repo: saldrían duplicados.
 
 Las instrucciones globales (`instructions/global-instructions.md.instructions.md`) se copian a `.github/instructions/` del proyecto que quieras.
 
-Para las **instrucciones del propio proyecto** (stack, innegociables, reglas de modularización, comandos de validación) usa la plantilla `templates/copilot-instructions.md`: cópiala a la raíz como `AGENTS.md` y rellénala. Si el proyecto ya tiene documentación viva (`plans/`, `docs/`), esa documentación es la fuente de verdad y el equipo se adapta a ella — no crea estructuras paralelas.
+Para las **instrucciones del propio proyecto** (stack, innegociables) copia la plantilla instalada (`~/.copilot/alfred-dev/templates/copilot-instructions.md` o `.github/alfred-dev/templates/`) a la raíz como `AGENTS.md` y rellénala. El instalador **no** crea `AGENTS.md`. Si el proyecto ya tiene `plans/` o `docs/`, esa documentación manda.
 
 ## Configuración de modelos
 
@@ -182,7 +192,7 @@ El merge siempre lo decides tú. El contenido de las historias manda el PRD (`do
 El trabajo nunca depende de una sola persona ni de un chat que se pierde. El estado tiene dos capas, por orden de prioridad:
 
 1. **GitHub Issues + PRs — fuente de verdad colaborativa.** Cada historia es una issue con label de estado; cada gate pasa dejando comentario en la issue o PR. Si mañana quien llevaba el flujo no está, cualquiera reconstruye el estado desde el repo: issues abiertas con sus labels + PRs en revisión. Audit de gates incluido.
-2. **`docs/project/status.md` — snapshot local (fallback offline).** Flujo, fase, gate pendiente, siguiente acción y las issues con su estado, commiteado al repo tras cada gate. Sobrevive en el remoto que sea (GitHub, GitLab, git interno). Plantilla de referencia: `templates/status.md`.
+2. **`docs/project/status.md` — snapshot local (fallback offline).** Flujo, fase, gate pendiente, siguiente acción. Plantilla instalada en `~/.copilot/alfred-dev/templates/status.md` (global) o `.github/alfred-dev/templates/` (proyecto).
 
 **Labels de estado** (los crea `product-owner` la primera vez):
 
@@ -251,15 +261,20 @@ alfred-dev-vscode/
 │   ├── devops-engineer.agent.md
 │   ├── seo-specialist.agent.md
 │   └── lucius.agent.md
-├── templates/
-│   ├── status.md               # Plantilla del snapshot docs/project/status.md
-│   └── copilot-instructions.md # Plantilla de instrucciones por proyecto (AGENTS.md)
+├── templates/                  # Se copian al instalar (no hace falta el repo abierto)
+│   ├── adr.md
+│   ├── threat-model.md
+│   ├── compliance.md
+│   ├── sbom.md
+│   ├── status.md
+│   └── copilot-instructions.md # Plantilla de AGENTS.md (no se crea sola)
 ├── skills/
 │   ├── README.md               # Catálogo: básicas vs completas
-│   ├── core/                   # 11 skills de proceso (alfred-dev original, Fase 3)
+│   ├── core/                   # 8 skills de proceso adaptadas a VS Code
+│   ├── source-claude/          # memory / style-direction / sonarqube (no se instalan)
 │   └── stack/                  # 30 skills de stack MIT (lenguajes/frameworks)
 ├── instructions/
-│   └── global-instructions.md.instructions.md   # Copiar a .github/instructions/ del workspace
+│   └── global-instructions.md.instructions.md   # El instalador la pone en User/instructions o .github/instructions/
 ├── install.sh                 # Instalador macOS/Linux
 ├── install.ps1                # Instalador Windows
 ├── CHANGELOG.md
@@ -275,7 +290,8 @@ alfred-dev-vscode/
 
 - [x] **Fase 1** — Los 11 agentes con multi-modelo, handoffs y subagentes (junior/senior incluido).
 - [x] **Fase 2** — Flujo GitHub: issues desde las historias del PRD, ramas de feature, PRs y revisión como gate de calidad. Estado del trabajo en issues (labels) + snapshot local `status.md`.
-- [ ] **Fase 3** — Activar las 11 skills de proceso de `skills/core/` en VS Code (prioridad: write-adr, threat-model, evaluate-dependency, compliance-check, sbom-generate, incident-response). El catálogo de stack (`skills/stack/`) ya se instala con el paquete Completas. Memoria MCP y hooks después.
+- [x] **Fase 3a** — 8 skills de proceso en `skills/core/`. Archivo Claude (`memory`, `style-direction`, `sonarqube`) solo en `skills/source-claude/`, no se instala.
+- [ ] **Fase 3b** — Memoria MCP / companion visual / SonarQube si algún día hay equivalente nativo. Hooks de seguridad.
 - [ ] **Fase 4** — Extensión VSIX con UI de configuración de modelos y bootstrap.
 - [ ] **Fase 5** — Integración con Ralph Suite (kanban + runner).
 
@@ -290,7 +306,7 @@ alfred-dev-vscode/
 | Docs vivas (`docs/prd/`, `docs/adr/`, `docs/project/`...) | Arrays `model` multi-proveedor con política de coste |
 | Prompts base de los agentes | Agente `junior-dev` (patrón junior/senior) |
 | Instrucciones globales base | Agente `seo-specialist` |
-| 11 skills de proceso (`skills/core/`) | 30 skills de stack MIT (`skills/stack/`, autor [Jeffallan](https://github.com/Jeffallan)) |
+| 11 skills de proceso originales | 8 adaptadas a VS Code + 30 skills de stack MIT ([Jeffallan](https://github.com/Jeffallan)) |
 | | Flujo GitHub (issues con labels, ramas, PRs) e instaladores con paquetes |
 
 Las instrucciones globales provienen del archivo personal del autor original. Licencia [MIT](LICENSE) — la nota de copyright del autor original se conserva expresamente.

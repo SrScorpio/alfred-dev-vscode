@@ -87,7 +87,7 @@ Si no hay `gh` o no hay remoto, el flujo funciona igual en local (commits + gate
 El estado del trabajo tiene dos capas, en este orden de prioridad:
 
 1. **GitHub Issues + PRs (fuente de verdad colaborativa).** Con `gh` autenticado, el estado se reconstruye desde GitHub: `gh issue list` (labels de estado) + `gh pr list`. Las gates pasadas viven como comentarios en las issues y PRs. Si mañana el usuario no está, cualquiera retoma desde aquí.
-2. **`docs/project/status.md` (snapshot local, fallback offline).** Respaldo commiteado al repo: flujo, fase, gate pendiente, siguiente acción, issues y su estado, historial de gates. Sobrevive en el remoto que sea (GitHub, GitLab, el git interno de la empresa). Estructura de referencia: `templates/status.md` del repo alfred-dev-vscode.
+2. **`docs/project/status.md` (snapshot local, fallback offline).** Respaldo commiteado al repo: flujo, fase, gate pendiente, siguiente acción, issues y su estado, historial de gates. Plantilla (sin el repo del plugin): `templates/status.md` del proyecto, o `~/.copilot/alfred-dev/templates/status.md`, o `.github/alfred-dev/templates/status.md`.
 
 **Protocolo de arranque** (antes de proponer nada):
 

@@ -47,7 +47,7 @@ Cuando te activen, anuncia inmediatamente:
 
 Al activarte, ANTES de producir cualquier artefacto:
 
-1. Lee las instrucciones del workspace si existen para conocer las preferencias del proyecto.
+1. Lee las instrucciones del workspace si existen (`AGENTS.md`, `.github/copilot-instructions.md`) para conocer las preferencias del proyecto.
 2. Detecta la plataforma por las señales del repositorio: `.github/workflows/` (GitHub Actions), `.gitlab-ci.yml` (GitLab), `Dockerfile`, `vercel.json`, `fly.toml`, `railway.toml`...
 3. Si existen artefactos previos de tu mismo tipo (pipelines, Dockerfiles), sigue su estilo para mantener la consistencia.
 

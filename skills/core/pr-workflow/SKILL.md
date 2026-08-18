@@ -1,59 +1,50 @@
 ---
 name: pr-workflow
-description: "Crear pull requests completas con descripcion, labels y reviewers"
-disable-model-invocation: true
+description: "Usar para abrir o completar una pull request con descripción, labels y enlace a issue. También: gh pr create, Closes #N, rama feat/fix."
 ---
 
-# Crear pull requests completas
+# Crear pull requests
 
-## Resumen
+Una PR explica qué cambió, por qué y cómo verificarlo. Requiere `gh`
+autenticado y remoto. Si no hay `gh`, dilo y no finjas la PR.
 
-Este skill guia el proceso de creacion de una pull request bien documentada, desde la verificacion de cambios hasta la asignacion de reviewers. Una PR no es solo un mecanismo de merge: es una pieza de comunicacion que explica a los revisores que se ha cambiado, por que y como verificarlo.
-
-El objetivo es que cualquier miembro del equipo pueda entender la PR sin necesidad de leer cada linea de codigo antes de abrir el diff.
+Alineado con el flujo GitHub del equipo: rama `feat/<slug>` o `fix/<slug>`,
+issue en `in-review` al abrir, merge lo decide el usuario.
 
 ## Proceso
 
-1. **Verificar el estado de los cambios.** Ejecutar `git diff` y `git status` para confirmar que los cambios pendientes corresponden a lo que se quiere incluir en la PR. Si hay cambios sin commitear, confirmar con el usuario si deben incluirse o quedarse fuera.
+1. **Estado.** `git status` y `git diff`. Si hay cambios sin commitear,
+   confirma con el usuario.
 
-2. **Verificar la rama.** Asegurarse de que se trabaja en una rama feature o fix, no directamente en main. Si no existe rama, crearla con un nombre descriptivo: `feature/nombre-funcionalidad` o `fix/descripcion-bug`.
+2. **Rama.** Nunca `main`. Si no hay rama: `feat/issue-N-slug` o `fix/slug`.
 
-3. **Redactar el titulo.** El titulo debe tener menos de 70 caracteres y describir el cambio de forma clara. Formato recomendado: `tipo: descripcion breve`. Ejemplos:
+3. **Título** menor de 70 caracteres, `tipo: descripción`. Ejemplos:
+   `feat: add date search filter`, `fix: correct invoice VAT`.
 
-   - `feat: anadir filtro de busqueda por fecha`
-   - `fix: corregir calculo de IVA en facturas`
-   - `refactor: extraer logica de validacion a modulo propio`
+4. **Cuerpo** (sigue `.github/pull_request_template.md` si existe):
 
-4. **Redactar la descripcion.** Seguir esta estructura estandarizada:
-
-   ```markdown
    ## Resumen
-   - [1-3 puntos explicando que cambia y por que]
+   - qué cambia y por qué
 
-   ## Motivacion
-   [Por que es necesario este cambio. Enlazar al issue si existe.]
+   ## Motivación
+   Closes #N
 
    ## Plan de pruebas
-   - [ ] [Pasos concretos para verificar que el cambio funciona]
-   - [ ] [Comprobaciones de regresion]
+   - [ ] paso verificable
+   - [ ] regresión
 
    ## Notas para el revisor
-   [Contexto adicional, decisiones de diseno, areas que necesitan atencion especial]
-   ```
+   decisiones, zonas delicadas
 
-5. **Asignar labels.** Etiquetar la PR segun el tipo de cambio (`bug`, `feature`, `refactor`, `docs`) y la prioridad si aplica. Usar `gh pr edit --add-label` para asignarlas.
+5. **Abrir:** `gh pr create` con título, cuerpo y `Closes #N`. Labels
+   (`bug`, `feature`, `refactor`, `docs`) si el repo las tiene. Reviewers
+   solo si el usuario indica quién.
 
-6. **Enlazar issues.** Si la PR resuelve un issue, incluir `Closes #XX` en la descripcion para que GitHub lo cierre automaticamente al hacer merge.
+6. Marca la issue `in-review` (quita `in-progress`). Comprueba que CI arranca.
 
-7. **Asignar reviewers.** Seleccionar revisores relevantes segun el area del codigo afectada. Usar `gh pr create --reviewer usuario1,usuario2` o `gh pr edit --add-reviewer` si la PR ya existe.
+## Qué NO hacer
 
-8. **Crear la PR.** Ejecutar `gh pr create` con titulo, descripcion, labels y reviewers. Verificar que la PR aparece correctamente en GitHub y que los checks de CI arrancan.
-
-9. **Revisar el resultado.** Comprobar que la descripcion se renderiza bien, que los enlaces a issues funcionan y que los reviewers han sido notificados.
-
-## Que NO hacer
-
-- No incluir lineas `Co-Authored-By` ni menciones a asistentes o herramientas de IA en la PR.
-- No crear PRs sin descripcion: el titulo no es suficiente para comunicar el contexto.
-- No asignar reviewers de forma indiscriminada; elegir a quienes conocen el area afectada.
-- No mezclar cambios no relacionados en la misma PR.
+- No menciones asistentes ni herramientas de IA en la PR.
+- No abras PR sin cuerpo.
+- No mezcles cambios no relacionados.
+- No fusiones tú: el merge es del usuario (o de devops si el flujo de entrega lo dice).

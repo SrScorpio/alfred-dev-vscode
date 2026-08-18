@@ -1,0 +1,61 @@
+{
+  "name": "alfred-dev-vscode",
+  "displayName": "Alfred Dev for VS Code",
+  "description": "Equipo de 12 agentes de ingeniería de software para VS Code con orquestación, quality gates y flujo GitHub.",
+  "version": "0.6.4",
+  "publisher": "SrScorpio",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SrScorpio/alfred-dev-vscode"
+  },
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "alfred-dev.startFlow",
+        "title": "Alfred Dev: Iniciar Flujo (Feature, Fix, Audit, Ship)",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.refreshStatus",
+        "title": "Alfred Dev: Refrescar Estado",
+        "category": "Alfred Dev"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "alfred-dev-container",
+          "title": "Alfred Dev",
+          "icon": "$(robot)"
+        }
+      ]
+    },
+    "views": {
+      "alfred-dev-container": [
+        {
+          "id": "alfred-dev-status",
+          "name": "Estado del Proyecto (status.md)"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.3"
+  }
+}
