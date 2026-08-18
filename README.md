@@ -45,13 +45,21 @@ Requisitos: VS Code con GitHub Copilot Chat. Tras instalar, los agentes aparecen
 .\install.ps1
 ```
 
-El instalador muestra un **menú sencillo**:
+El instalador muestra un **menú sencillo**. Primero el alcance, luego el paquete:
 
-1. **Instalar a nivel usuario (global)** — copia los 12 agentes a `~/.copilot/agents/`, la carpeta oficial de Copilot: disponibles en **todos tus proyectos**, sin tocar ningún repo. Recarga la ventana (`Developer: Reload Window`) y listo.
-2. **Instalar en un proyecto concreto** — te pide la ruta y copia los agentes a `.github/agents/` de ese proyecto (viaja con el repo: quien lo clone los tendrá) y, si quieres, también las instrucciones a `.github/instructions/`. Avisa si ya tienes el global instalado (verías duplicados).
-3. **Desinstalar** — global o de un proyecto concreto (solo retira los ficheros de este repo, nada más).
+1. **Instalar a nivel usuario (global)** — `~/.copilot/agents/` y `~/.copilot/skills/`: disponibles en **todos tus proyectos**.
+2. **Instalar en un proyecto concreto** — `.github/agents/` y `.github/skills/` (viaja con el repo). Opcionalmente también las instrucciones. Avisa si ya tienes el global (duplicados).
+3. **Desinstalar** — global o proyecto (solo retira los ficheros de este repo).
 
-Para instalar en otro ordenador, este es el camino: clona (o descarga) el repo, ejecuta el instalador y elige. El mismo menú sirve para desinstalar.
+**Paquetes** (tras elegir 1 o 2):
+
+| Paquete | Qué instala |
+|---------|-------------|
+| **Solo agentes** | Los 12 `.agent.md` |
+| **Básicas** | Agentes + 11 skills de proceso (`skills/core/`: ADRs, threat-model, SBOM, PRs...) |
+| **Completas** | Básicas + 30 skills de stack (`skills/stack/`: Python, WordPress, React, Go...) |
+
+Para instalar en otro ordenador: clona el repo, ejecuta el instalador y elige. El mismo menú sirve para desinstalar.
 
 ### Opción B: sin descargar nada (desde GitHub)
 
@@ -246,6 +254,10 @@ alfred-dev-vscode/
 ├── templates/
 │   ├── status.md               # Plantilla del snapshot docs/project/status.md
 │   └── copilot-instructions.md # Plantilla de instrucciones por proyecto (AGENTS.md)
+├── skills/
+│   ├── README.md               # Catálogo: básicas vs completas
+│   ├── core/                   # 11 skills de proceso (alfred-dev original, Fase 3)
+│   └── stack/                  # 30 skills de stack MIT (lenguajes/frameworks)
 ├── instructions/
 │   └── global-instructions.md.instructions.md   # Copiar a .github/instructions/ del workspace
 ├── install.sh                 # Instalador macOS/Linux
@@ -263,7 +275,7 @@ alfred-dev-vscode/
 
 - [x] **Fase 1** — Los 11 agentes con multi-modelo, handoffs y subagentes (junior/senior incluido).
 - [x] **Fase 2** — Flujo GitHub: issues desde las historias del PRD, ramas de feature, PRs y revisión como gate de calidad. Estado del trabajo en issues (labels) + snapshot local `status.md`.
-- [ ] **Fase 3** — Skills de proceso (threat-model, write-adr, sbom-generate...), memoria MCP, hooks de seguridad.
+- [ ] **Fase 3** — Activar las 11 skills de proceso de `skills/core/` en VS Code (prioridad: write-adr, threat-model, evaluate-dependency, compliance-check, sbom-generate, incident-response). El catálogo de stack (`skills/stack/`) ya se instala con el paquete Completas. Memoria MCP y hooks después.
 - [ ] **Fase 4** — Extensión VSIX con UI de configuración de modelos y bootstrap.
 - [ ] **Fase 5** — Integración con Ralph Suite (kanban + runner).
 
@@ -278,6 +290,7 @@ alfred-dev-vscode/
 | Docs vivas (`docs/prd/`, `docs/adr/`, `docs/project/`...) | Arrays `model` multi-proveedor con política de coste |
 | Prompts base de los agentes | Agente `junior-dev` (patrón junior/senior) |
 | Instrucciones globales base | Agente `seo-specialist` |
-| | Flujo GitHub (issues con labels, ramas, PRs) e instaladores |
+| 11 skills de proceso (`skills/core/`) | 30 skills de stack MIT (`skills/stack/`, autor [Jeffallan](https://github.com/Jeffallan)) |
+| | Flujo GitHub (issues con labels, ramas, PRs) e instaladores con paquetes |
 
 Las instrucciones globales provienen del archivo personal del autor original. Licencia [MIT](LICENSE) — la nota de copyright del autor original se conserva expresamente.

@@ -3,11 +3,12 @@
 # Alfred Dev for VS Code — instalador (macOS / Linux)
 #
 # Ejecuta ./install.sh y elige en el menú:
-#   1) Global   -> copia los 12 agentes a ~/.copilot/agents/ (disponibles en TODOS los proyectos)
-#   2) Proyecto -> copia los agentes (y opcionalmente las instrucciones) a .github/ de un proyecto
-#   3) Desinstalar (global o proyecto)
+#   1) Global   -> todos los proyectos (~/.copilot/agents y ~/.copilot/skills)
+#   2) Proyecto -> solo un repo (.github/agents y .github/skills)
+#   3) Desinstalar
+# Tras 1 o 2 elige el paquete: solo agentes / básicas (proceso) / completas (proceso + stack).
 #
-# Sin terminal interactiva (scripts/CI) se instala global sin preguntar.
+# Sin terminal interactiva (scripts/CI) se instala global, solo agentes.
 #
 # Alternativa sin descargar nada (repo publicado en GitHub):
 #   Paleta de comandos -> "Chat: Install Plugin From Source" -> URL del repo
@@ -15,7 +16,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GLOBAL_DEST="$HOME/.copilot/agents"
+GLOBAL_AGENTS="$HOME/.copilot/agents"
+GLOBAL_SKILLS="$HOME/.copilot/skills"
 
 amarillo() { printf '\033[33m%s\033[0m\n' "$1"; }
 verde()    { printf '\033[32m%s\033[0m\n' "$1"; }
@@ -33,6 +35,30 @@ copiar_agentes() {  # $1 = destino
   verde "[ok] $n agentes instalados en $1"
 }
 
+copiar_skills() {  # $1 = destino  $2 = core|stack|ambas
+  local dest="$1" modo="$2" n=0 d name
+  mkdir -p "$dest"
+  if [ "$modo" = "core" ] || [ "$modo" = "ambas" ]; then
+    for d in "$SCRIPT_DIR"/skills/core/*/; do
+      [ -d "$d" ] || continue
+      name="$(basename "$d")"
+      rm -rf "$dest/$name"
+      cp -R "$d" "$dest/$name"
+      n=$((n+1))
+    done
+  fi
+  if [ "$modo" = "stack" ] || [ "$modo" = "ambas" ]; then
+    for d in "$SCRIPT_DIR"/skills/stack/*/; do
+      [ -d "$d" ] || continue
+      name="$(basename "$d")"
+      rm -rf "$dest/$name"
+      cp -R "$d" "$dest/$name"
+      n=$((n+1))
+    done
+  fi
+  verde "[ok] $n skills instaladas en $dest"
+}
+
 retirar_agentes() {  # $1 = destino (solo retira los 12 de este repo)
   local n=0 base
   for base in $AGENTES; do
@@ -41,8 +67,43 @@ retirar_agentes() {  # $1 = destino (solo retira los 12 de este repo)
   verde "[ok] $n agentes retirados de $1"
 }
 
+retirar_skills() {  # $1 = destino de skills
+  local n=0 d name dest="$1"
+  [ -d "$dest" ] || { verde "[ok] 0 skills (no había carpeta $dest)"; return 0; }
+  for d in "$SCRIPT_DIR"/skills/core/*/ "$SCRIPT_DIR"/skills/stack/*/; do
+    [ -d "$d" ] || continue
+    name="$(basename "$d")"
+    if [ -d "$dest/$name" ]; then rm -rf "$dest/$name"; n=$((n+1)); fi
+  done
+  verde "[ok] $n skills retiradas de $dest"
+}
+
+elegir_paquete() {
+  echo
+  echo "  Paquete:"
+  echo "    1) Solo agentes"
+  echo "    2) Básicas  — agentes + 11 skills de proceso"
+  echo "    3) Completas — básicas + 30 skills de stack (lenguajes/frameworks)"
+  printf 'Elige un paquete [1]: '
+  read -r paquete || true
+  case "${paquete:-1}" in
+    2) PAQUETE="basicas" ;;
+    3) PAQUETE="completas" ;;
+    *) PAQUETE="agentes" ;;
+  esac
+}
+
+aplicar_paquete() {  # $1 = dest agentes  $2 = dest skills
+  copiar_agentes "$1"
+  case "$PAQUETE" in
+    basicas)   copiar_skills "$2" core ;;
+    completas) copiar_skills "$2" ambas ;;
+  esac
+}
+
 instalar_global() {
-  copiar_agentes "$GLOBAL_DEST"
+  elegir_paquete
+  aplicar_paquete "$GLOBAL_AGENTS" "$GLOBAL_SKILLS"
   echo "      (nivel usuario: disponibles en todos tus proyectos)"
 }
 
@@ -55,9 +116,10 @@ instalar_proyecto() {
     rojo "[error] La ruta no existe: $ruta"
     return 1
   fi
-  copiar_agentes "$ruta/.github/agents"
-  echo "      (solo ese proyecto; commitea .github/agents/ para compartirlo con el equipo)"
-  if [ -f "$GLOBAL_DEST/alfred.agent.md" ]; then
+  elegir_paquete
+  aplicar_paquete "$ruta/.github/agents" "$ruta/.github/skills"
+  echo "      (solo ese proyecto; commitea .github/ para compartirlo con el equipo)"
+  if [ -f "$GLOBAL_AGENTS/alfred.agent.md" ]; then
     amarillo "[aviso] También tienes los agentes a nivel usuario: en este proyecto saldrán duplicados."
     echo "        Desinstala el global (opción 3) o borra .github/agents/ de este proyecto."
   fi
@@ -78,7 +140,10 @@ desinstalar() {
   printf 'Desinstalar de: 1) usuario (global)  2) un proyecto  [1]: '
   read -r opcion || true
   case "${opcion:-1}" in
-    1) retirar_agentes "$GLOBAL_DEST" ;;
+    1)
+      retirar_agentes "$GLOBAL_AGENTS"
+      retirar_skills "$GLOBAL_SKILLS"
+      ;;
     2)
       printf 'Ruta del proyecto: '
       read -r ruta || true
@@ -87,6 +152,7 @@ desinstalar() {
         return 1
       fi
       retirar_agentes "$ruta/.github/agents"
+      retirar_skills "$ruta/.github/skills"
       ;;
     *) rojo "[error] Opción no válida."; return 1 ;;
   esac

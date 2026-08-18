@@ -5,6 +5,32 @@ Todos los cambios notables de este proyecto se documentan en este fichero.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-08-18
+
+### Added
+
+- **Paquetes de instalación** (menú, sin flags): Solo agentes / Básicas
+  (agentes + 11 skills de proceso) / Completas (básicas + 30 skills de
+  stack). Alcance global (`~/.copilot/skills/`) o por proyecto
+  (`.github/skills/`).
+- Catálogo `skills/stack/` (30, MIT, autor Jeffallan): lenguajes,
+  frameworks e infra curados. No se copió el catálogo entero de Scolf
+  (78): se excluyen skills propietarias y las que duplican un agente
+  del equipo (`code-reviewer`, `security-reviewer`, `devops-engineer`...).
+- `skills/` reorganizado en `core/` (proceso del original) y `stack/`.
+
+## [0.5.2] - 2026-08-18
+
+### Added
+
+- Conservadas las 11 skills de proceso del original (`skills/`, fuente
+  `686f6c61/alfred-dev`) para no perder el procedimiento: write-adr,
+  threat-model, evaluate-dependency, compliance-check, sbom-generate,
+  sync-project-docs, pr-workflow, style-direction, incident-response,
+  sonarqube y memory. Aún no están activas en VS Code (formato Claude Code).
+  Inventario y plan de port en `skills/README.md`. Las fases del flujo no
+  dependen de ellas: viven en los agentes.
+
 ## [0.5.1] - 2026-08-18
 
 ### Changed

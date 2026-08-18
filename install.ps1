@@ -1,16 +1,19 @@
 # Alfred Dev for VS Code — instalador (Windows / PowerShell)
 #
 # Ejecuta .\install.ps1 y elige en el menú:
-#   1) Global   -> copia los 12 agentes a ~\.copilot\agents\ (disponibles en TODOS los proyectos)
-#   2) Proyecto -> copia los agentes (y opcionalmente las instrucciones) a .github\ de un proyecto
-#   3) Desinstalar (global o proyecto)
+#   1) Global   -> todos los proyectos (~/.copilot/agents y ~/.copilot/skills)
+#   2) Proyecto -> solo un repo (.github/agents y .github/skills)
+#   3) Desinstalar
+# Tras 1 o 2 elige el paquete: solo agentes / básicas (proceso) / completas (proceso + stack).
 #
 # Alternativa sin descargar nada (repo publicado en GitHub):
 #   Paleta de comandos -> "Chat: Install Plugin From Source" -> URL del repo
 
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$GlobalDest = "$env:USERPROFILE\.copilot\agents"
+$GlobalAgents = "$env:USERPROFILE\.copilot\agents"
+$GlobalSkills = "$env:USERPROFILE\.copilot\skills"
+$script:Paquete = "agentes"
 
 $Agentes = @("alfred","product-owner","selina","architect","junior-dev","senior-dev",
              "security-officer","qa-engineer","tech-writer","devops-engineer",
@@ -25,6 +28,25 @@ function Copy-Agentes($dest) {
     Write-Host "[ok] $n agentes instalados en $dest" -ForegroundColor Green
 }
 
+function Copy-Skills($dest, $modo) {
+    New-Item -ItemType Directory -Path $dest -Force | Out-Null
+    $n = 0
+    $dirs = @()
+    if ($modo -eq "core" -or $modo -eq "ambas") {
+        $dirs += Get-ChildItem "$ScriptDir\skills\core" -Directory -ErrorAction SilentlyContinue
+    }
+    if ($modo -eq "stack" -or $modo -eq "ambas") {
+        $dirs += Get-ChildItem "$ScriptDir\skills\stack" -Directory -ErrorAction SilentlyContinue
+    }
+    foreach ($d in $dirs) {
+        $target = Join-Path $dest $d.Name
+        if (Test-Path $target) { Remove-Item $target -Recurse -Force }
+        Copy-Item $d.FullName $target -Recurse
+        $n++
+    }
+    Write-Host "[ok] $n skills instaladas en $dest" -ForegroundColor Green
+}
+
 function Remove-Agentes($dest) {
     $n = 0
     foreach ($a in $Agentes) {
@@ -34,21 +56,62 @@ function Remove-Agentes($dest) {
     Write-Host "[ok] $n agentes retirados de $dest" -ForegroundColor Green
 }
 
+function Remove-Skills($dest) {
+    $n = 0
+    if (-not (Test-Path $dest)) {
+        Write-Host "[ok] 0 skills (no habia carpeta $dest)" -ForegroundColor Green
+        return
+    }
+    $known = @()
+    $known += Get-ChildItem "$ScriptDir\skills\core" -Directory -ErrorAction SilentlyContinue
+    $known += Get-ChildItem "$ScriptDir\skills\stack" -Directory -ErrorAction SilentlyContinue
+    foreach ($d in $known) {
+        $target = Join-Path $dest $d.Name
+        if (Test-Path $target) { Remove-Item $target -Recurse -Force; $n++ }
+    }
+    Write-Host "[ok] $n skills retiradas de $dest" -ForegroundColor Green
+}
+
+function Choose-Paquete {
+    Write-Host ""
+    Write-Host "  Paquete:"
+    Write-Host "    1) Solo agentes"
+    Write-Host "    2) Basicas  — agentes + 11 skills de proceso"
+    Write-Host "    3) Completas — basicas + 30 skills de stack (lenguajes/frameworks)"
+    $p = Read-Host "Elige un paquete [1]"
+    if ([string]::IsNullOrWhiteSpace($p)) { $p = "1" }
+    switch ($p) {
+        "2" { $script:Paquete = "basicas" }
+        "3" { $script:Paquete = "completas" }
+        default { $script:Paquete = "agentes" }
+    }
+}
+
+function Apply-Paquete($destAgents, $destSkills) {
+    Copy-Agentes $destAgents
+    switch ($script:Paquete) {
+        "basicas"   { Copy-Skills $destSkills "core" }
+        "completas" { Copy-Skills $destSkills "ambas" }
+    }
+}
+
 function Install-GlobalAlfred {
-    Copy-Agentes $GlobalDest
+    Choose-Paquete
+    Apply-Paquete $GlobalAgents $GlobalSkills
     Write-Host "      (nivel usuario: disponibles en todos tus proyectos)"
 }
 
 function Install-ProyectoAlfred {
-    $ruta = Read-Host "Ruta del proyecto (vacío = directorio actual)"
+    $ruta = Read-Host "Ruta del proyecto (vacio = directorio actual)"
     if ([string]::IsNullOrWhiteSpace($ruta)) { $ruta = (Get-Location).Path }
     if (-not (Test-Path $ruta)) {
         Write-Host "[error] La ruta no existe: $ruta" -ForegroundColor Red
         return $false
     }
-    Copy-Agentes "$ruta\.github\agents"
-    Write-Host "      (solo ese proyecto; commitea .github\agents\ para compartirlo con el equipo)"
-    if (Test-Path "$GlobalDest\alfred.agent.md") {
+    Choose-Paquete
+    Apply-Paquete "$ruta\.github\agents" "$ruta\.github\skills"
+    Write-Host "      (solo ese proyecto; commitea .github\ para compartirlo con el equipo)"
+    if (Test-Path "$GlobalAgents\alfred.agent.md") {
         Write-Host "[aviso] Tambien tienes los agentes a nivel usuario: en este proyecto saldran duplicados." -ForegroundColor Yellow
     }
     $resp = Read-Host "Copiar tambien las instrucciones globales a .github\instructions\? [s/N]"
@@ -64,7 +127,10 @@ function Uninstall-AlfredDev {
     $opcion = Read-Host "Desinstalar de: 1) usuario (global)  2) un proyecto  [1]"
     if ([string]::IsNullOrWhiteSpace($opcion)) { $opcion = "1" }
     switch ($opcion) {
-        "1" { Remove-Agentes $GlobalDest }
+        "1" {
+            Remove-Agentes $GlobalAgents
+            Remove-Skills $GlobalSkills
+        }
         "2" {
             $ruta = Read-Host "Ruta del proyecto"
             if (-not (Test-Path $ruta)) {
@@ -72,6 +138,7 @@ function Uninstall-AlfredDev {
                 return
             }
             Remove-Agentes "$ruta\.github\agents"
+            Remove-Skills "$ruta\.github\skills"
         }
         default { Write-Host "[error] Opcion no valida." -ForegroundColor Red; return }
     }
