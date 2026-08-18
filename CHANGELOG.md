@@ -5,6 +5,16 @@ Todos los cambios notables de este proyecto se documentan en este fichero.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-08-18
+
+### Changed
+
+- Atribución reforzada al autor original: cabecera del README con nota
+  destacada (repo `686f6c61/alfred-dev` + documentación en alfred-dev.com),
+  sección de créditos ampliada con desglose qué-viene-del-original /
+  qué-añade-el-port, y LICENSE con doble línea de copyright (el original se
+  conserva expresamente, como exige el MIT).
+
 ## [0.5.0] - 2026-08-18
 
 ### Changed

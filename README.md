@@ -1,8 +1,10 @@
 # Alfred Dev for VS Code
 
+> **Este proyecto es un port y no existiría sin el trabajo original de [alfred-dev](https://github.com/686f6c61/alfred-dev)**, el plugin de ingeniería de software para Claude Code creado por **[686f6c61](https://github.com/686f6c61)** ([documentación oficial](https://alfred-dev.com/), licencia MIT). El concepto del equipo de agentes, sus roles y personalidades, los flujos con quality gates y las docs vivas son obra suya. Este repo los adapta a VS Code — todo el mérito del diseño original es del autor.
+
 **Equipo de 12 agentes de ingeniería de software para VS Code.** Orquestación del ciclo de desarrollo con quality gates verificables, TDD estricto, seguridad y compliance europeo (RGPD, NIS2, CRA) integrados desde el diseño. Multi-modelo con política de coste: **Luna para el 80% del trabajo** (junior-dev, escritura, producto), Terra para lo complicado y Sol solo para lo muy complicado. Flujo GitHub nativo: issues desde el PRD, ramas de feature y revisión de PRs como gate de calidad.
 
-Port del plugin [alfred-dev](https://github.com/686f6c61/alfred-dev) para Claude Code, adaptado a los mecanismos nativos de VS Code: custom agents (`.agent.md`), handoffs entre agentes y subagentes.
+Adaptación a los mecanismos nativos de VS Code: custom agents (`.agent.md`), handoffs entre agentes y subagentes.
 
 ---
 
@@ -267,4 +269,15 @@ alfred-dev-vscode/
 
 ## Créditos y licencia
 
-Port de [alfred-dev](https://github.com/686f6c61/alfred-dev) (MIT). Las instrucciones globales provienen del archivo personal del autor. Licencia [MIT](LICENSE).
+**Basado en [alfred-dev](https://github.com/686f6c61/alfred-dev)** — plugin de ingeniería de software automatizada para Claude Code, creado por **[686f6c61](https://github.com/686f6c61)** bajo licencia MIT. [Documentación completa del proyecto original](https://alfred-dev.com/).
+
+| Viene del trabajo original (todo el crédito a su autor) | Añadido en este port a VS Code |
+|---|---|
+| Concepto del equipo de agentes y sus 10 roles con personalidad | Adaptación a custom agents de VS Code (`.agent.md`) |
+| Flujos feature/fix/spike/ship/audit con quality gates | Handoffs con `send: false` y subagentes |
+| Docs vivas (`docs/prd/`, `docs/adr/`, `docs/project/`...) | Arrays `model` multi-proveedor con política de coste |
+| Prompts base de los agentes | Agente `junior-dev` (patrón junior/senior) |
+| Instrucciones globales base | Agente `seo-specialist` |
+| | Flujo GitHub (issues con labels, ramas, PRs) e instaladores |
+
+Las instrucciones globales provienen del archivo personal del autor original. Licencia [MIT](LICENSE) — la nota de copyright del autor original se conserva expresamente.
