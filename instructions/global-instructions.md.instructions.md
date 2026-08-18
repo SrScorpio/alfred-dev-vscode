@@ -24,6 +24,12 @@ description: 'Reglas globales de desarrollo. Cargar siempre: estilo, seguridad, 
 - File and folder names must be lowercase and use hyphens.
 - Assets (images, scripts, styles) must be placed in separate, well-organized folders.
 
+## Documentación del proyecto (fuente de verdad)
+- Si el proyecto ya tiene convención de documentación propia (`plans/`, `docs/` u otra), respétala como fuente de verdad: no se crean estructuras paralelas ni se duplica contenido.
+- Antes de trabajar en un proyecto existente, leer su documentación viva (índice, arquitectura, decisiones/ADRs, seguridad) si existe.
+- Si estas instrucciones chocan con la documentación del proyecto, gana el proyecto — salvo en seguridad y secretos, que no se negocian.
+- Equivalencias habituales: `decisiones.md` ≈ ADRs (`docs/adr/`), `arquitectura.md` ≈ `docs/project/architecture.md`, `seguridad.md` ≈ threat-model + compliance.
+
 ## Estilo de Trabajo
 - Planes completos pero precisos: orientados a implementación real, no mock ni placeholders.
 - NO sobredimensionar: arquitectura simple para el scope actual, extensible después.
@@ -33,6 +39,7 @@ description: 'Reglas globales de desarrollo. Cargar siempre: estilo, seguridad, 
 - Si hay varias opciones, presentar pros/contras breves y dar recomendación.
 - Explicar el PORQUÉ de las decisiones técnicas, no solo el CÓMO.
 - Ante errores, investigar causa raíz antes de parchear síntomas.
+- Antes de mover o refactorizar código: localizar todos sus usos (callers, handlers inline, globales). Después: validar lo afectado y documentar fallos preexistentes en lugar de mezclar fixes.
 
 ## Tecnología
 - Priorizar tecnologías empresariales, estables y bien testeadas (LTS, maduras).
@@ -41,7 +48,8 @@ description: 'Reglas globales de desarrollo. Cargar siempre: estilo, seguridad, 
 
 ## Calidad de Código
 - Funciones pequeñas con responsabilidad única. Si tiene >30 líneas, probablemente necesita dividirse.
-- Manejo de errores explícito: no silenciar excepciones, mensajes claros.
+- Manejo de errores explícito: capturar excepciones específicas (no genéricas), no silenciarlas, y registrar contexto con logging estructurado en vez de prints sueltos.
+- Nada de magic numbers ni magic strings: valores con nombre en constantes.
 - Type hints/annotations donde el lenguaje lo soporte.
 - NO hardcoded secrets, API keys, ni credenciales. Variables de entorno siempre.
 - Priorizar conciseness, simplicity, scalability en código y lógica.
@@ -65,6 +73,7 @@ description: 'Reglas globales de desarrollo. Cargar siempre: estilo, seguridad, 
 ## Control y Transparencia
 - Siempre explicar QUÉ se va a cambiar y POR QUÉ antes de editar archivos.
 - Mostrar rutas completas de archivos modificados.
+- No eliminar ficheros ni ramas sin confirmación explícita.
 - Si algo no se puede hacer, decirlo directamente y explicar por qué.
 
 ## Proyectos PHP/WordPress

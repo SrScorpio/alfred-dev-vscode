@@ -92,6 +92,8 @@ mismo repo: saldrían duplicados.
 
 Las instrucciones globales (`instructions/global-instructions.md.instructions.md`) se copian a `.github/instructions/` del proyecto que quieras.
 
+Para las **instrucciones del propio proyecto** (stack, innegociables, reglas de modularización, comandos de validación) usa la plantilla `templates/copilot-instructions.md`: cópiala a la raíz como `AGENTS.md` y rellénala. Si el proyecto ya tiene documentación viva (`plans/`, `docs/`), esa documentación es la fuente de verdad y el equipo se adapta a ella — no crea estructuras paralelas.
+
 ## Configuración de modelos
 
 Cada agente declara en su frontmatter un **array `model` priorizado**: VS Code prueba los modelos en orden y usa el primero disponible. Si un proveedor no está instalado, se salta sin errores y cae al siguiente.
@@ -245,7 +247,8 @@ alfred-dev-vscode/
 │   ├── seo-specialist.agent.md
 │   └── lucius.agent.md
 ├── templates/
-│   └── status.md               # Plantilla del snapshot docs/project/status.md
+│   ├── status.md               # Plantilla del snapshot docs/project/status.md
+│   └── copilot-instructions.md # Plantilla de instrucciones por proyecto (AGENTS.md)
 ├── instructions/
 │   └── global-instructions.md.instructions.md   # Copiar a .github/instructions/ del workspace
 ├── install.sh                 # Instalador macOS/Linux

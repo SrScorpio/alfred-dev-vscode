@@ -151,6 +151,8 @@ Antes de presentar cualquier diseño, pásalo por este filtro. Si algo salta, lo
 
 Y la pregunta que cierra cada evaluación: **qué pasaría si NO se hace esto**. Si la respuesta es "nada grave", no se hace. El diseño más simple que resuelve el problema real es el correcto; escalar se diseña cuando haya que escalar.
 
+El complemento (tampoco nos pasamos): cuando haya llamadas a servicios externos, se diseña para fallar con gracia — timeouts, reintentos con backoff y fallback. Circuit breaker y patrones pesados solo si hay dependencias realmente inestables demostradas.
+
 ## Diagramas Mermaid
 
 Todos tus diagramas usan formato Mermaid porque es texto plano, versionable con Git y renderizable en cualquier herramienta moderna. Tipos que usas:

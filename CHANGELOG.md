@@ -5,6 +5,27 @@ Todos los cambios notables de este proyecto se documentan en este fichero.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-08-18
+
+### Added
+
+- Instrucciones globales: nueva sección "Documentación del proyecto (fuente de
+  verdad)" — el equipo se adapta a la convención de docs del proyecto
+  (`plans/`, `docs/` u otra) en vez de crear estructuras paralelas; si hay
+  conflicto, gana el proyecto salvo en seguridad. Incluye equivalencias
+  habituales (`decisiones.md` ≈ ADRs, etc.).
+- Instrucciones globales: magic numbers/strings prohibidos (constantes con
+  nombre), excepciones específicas + logging estructurado (refuerza manejo de
+  errores), checklist antes/después de mover código (callers, handlers inline,
+  globales, fallos preexistentes documentados) y no eliminar ficheros ni ramas
+  sin confirmación.
+- Nueva plantilla `templates/copilot-instructions.md`: instrucciones por
+  proyecto (leer primero, stack, innegociables, reglas de modularización,
+  validación) para copiar como `AGENTS.md` en la raíz.
+- `architect`: diseño para fallar con gracia en llamadas externas (timeouts,
+  reintentos con backoff, fallback); patrones pesados solo con dependencias
+  inestables demostradas.
+
 ## [0.4.0] - 2026-08-18
 
 ### Added
