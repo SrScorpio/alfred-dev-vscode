@@ -9,6 +9,7 @@
 .idea/
 .vscode/*
 !.vscode/extensions.json
+*.code-workspace
 
 # Python (para generadores futuros)
 __pycache__/
