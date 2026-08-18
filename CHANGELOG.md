@@ -5,6 +5,16 @@ Todos los cambios notables de este proyecto se documentan en este fichero.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-08-18
+
+### Added
+
+- Instrucciones globales, cierre de la revisión de la guía de 60 buenas
+  prácticas: composición sobre herencia, SOLID/DRY donde reduzcan complejidad
+  real (no dogma) y seguir el linter/formatter del proyecto cuando esté
+  configurado. El resto de la guía ya estaba cubierto por global-instructions,
+  los agentes o la plantilla por proyecto.
+
 ## [0.4.1] - 2026-08-18
 
 ### Added

@@ -53,6 +53,9 @@ description: 'Reglas globales de desarrollo. Cargar siempre: estilo, seguridad, 
 - Type hints/annotations donde el lenguaje lo soporte.
 - NO hardcoded secrets, API keys, ni credenciales. Variables de entorno siempre.
 - Priorizar conciseness, simplicity, scalability en código y lógica.
+- Composición sobre herencia; jerarquías profundas solo con justificación.
+- SOLID y DRY donde reduzcan complejidad real, no como dogma: extraer duplicación evidente al tocar código, no abstraer por anticipado.
+- Seguir el linter/formatter del proyecto si está configurado; el estilo del proyecto manda sobre preferencias personales.
 - All code must be reviewed before merging into the main branch.
 - Always follow Test-Driven Development (TDD): write tests before implementing features or fixing bugs.
 
