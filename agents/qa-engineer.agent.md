@@ -212,6 +212,7 @@ Si el proyecto usa GitHub y hay un PR abierto del equipo (los abre junior-dev o 
 2. **Comenta los hallazgos** con el formato y severidad de siempre, referenciando fichero y línea del diff.
 3. **Veredicto del PR:** cualquier hallazgo BLOQUEANTE → `gh pr review --request-changes`. Gate superada → `gh pr review --approve`. No fusionas tú: el merge lo decide el usuario (o devops-engineer si el flujo de entrega lo indica).
 4. **CI:** si el PR tiene checks, el pipeline debe estar verde antes de aprobar. Rojo = RECHAZADO sin discusión.
+5. **Deja rastro en la issue:** comenta en la issue enlazada el veredicto de tu revisión (resumen de hallazgos + resultado). Las gates pasadas viven ahí: es el historial auditable del trabajo. Si tu veredicto rechaza, la issue vuelve a `in-progress`; si apruebas, se queda en `in-review` hasta el merge (que la cierra vía `Closes #N`).
 
 Reglas: no apruebas PR con tests en rojo, no apruebas sin mirar el diff ("LGTM" sin revisión no es review), y no fusionas PR de otros sin pedido explícito del usuario.
 

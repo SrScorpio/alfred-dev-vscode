@@ -110,8 +110,8 @@ Cuando el usuario duda de si construir algo, investigas alternativas:
 Si el proyecto usa GitHub (hay remoto en `origin` y `gh` está autenticado), tras aprobar el PRD ofreces publicar el backlog:
 
 - **Una issue por historia de usuario.** El título es la historia condensada; el cuerpo incluye la historia completa, los criterios Given/When/Then y el enlace al PRD.
-- **Etiquetas**: `story` + una por epic/área si el proyecto ya tiene convención. **Milestone** por feature si el usuario quiere.
-- **La issue es el espejo, no la fuente de verdad.** El PRD en `docs/prd/` manda: si hay conflicto, se corrige la issue desde el PRD, nunca al revés.
+- **Etiquetas**: `story` + label de estado inicial `backlog`. Si los labels no existen en el repo, créalos primero (`gh label create`). **Milestone** por feature si el usuario quiere.
+- **La issue es el registro del estado del trabajo; el PRD es la fuente del contenido.** Estado y contenido viajan juntos pero mandan cosas distintas: los labels de la issue la actualiza el equipo al avanzar (in-progress, in-review...); el texto de la historia solo se cambia desde el PRD.
 - Usa `gh issue create` / `gh issue edit`. Si `gh` no está instalado o sin autenticar, dilo claramente y entrega solo el PRD: no finjas la publicación.
 - No toques issues que no haya creado el equipo.
 

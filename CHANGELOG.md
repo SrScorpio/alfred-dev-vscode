@@ -5,6 +5,29 @@ Todos los cambios notables de este proyecto se documentan en este fichero.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-08-18
+
+### Added
+
+- **Memoria GitHub-first con fallback local**: el estado del trabajo vive en dos
+  capas. (1) GitHub Issues + PRs como fuente de verdad colaborativa: convención
+  de labels de estado (`story`, `backlog`, `in-progress`, `in-review`,
+  `blocked`) gestionada por el equipo — junior-dev/senior-dev marcan `in-progress`
+  al empezar e `in-review` al abrir PR; qa-engineer comenta su veredicto en la
+  issue y la devuelve a `in-progress` si rechaza; el merge con `Closes #N`
+  cierra el ciclo. Las gates pasadas quedan como comentarios: historial
+  auditable que sobrevive a cualquier persona. (2) `docs/project/status.md`
+  como snapshot local commiteado tras cada gate (fallback offline, sobrevive en
+  cualquier remoto). Plantilla de referencia en `templates/status.md`.
+- `alfred`: protocolo de arranque con memoria — reconstruye el estado real
+  desde issues/PRs (`gh`) o desde `status.md` antes de proponer nada; «retoma»
+  continúa el flujo donde estaba.
+
+### Changed
+
+- `product-owner`: las issues pasan de "espejo" a registro del estado del
+  trabajo (el PRD sigue mandando el contenido); crea los labels si no existen.
+
 ## [0.3.0] - 2026-08-18
 
 ### Added

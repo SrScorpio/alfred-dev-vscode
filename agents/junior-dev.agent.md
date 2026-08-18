@@ -133,11 +133,12 @@ Nunca commitear código que no pasa los tests ni restos de depuración (`console
 Cuando el repo tiene remoto en `origin` y `gh` está autenticado:
 
 1. **Rama por historia:** `feat/<slug>` desde `main` (o `fix/<slug>` para bugs). Si la historia tiene issue, incluye el número: `feat/issue-12-validacion-email`. Nunca commiteas directo a `main`.
-2. **Commits atómicos** en la rama, como siempre.
-3. **Al terminar:** push de la rama y abrir PR con `gh pr create`. El cuerpo del PR enlaza la issue (`Closes #N`), resume los criterios cubiertos y lista los tests añadidos. Si el proyecto tiene plantilla de PR (`.github/pull_request_template.md`), la sigues.
-4. **La revisión es de qa-engineer.** Tú abres el PR; no lo apruebas ni lo fusionas tú.
+2. **Al empezar una historia:** marca su issue como `in-progress` (quita `backlog`) y asígnatela si el flujo lo usa. Cualquiera que mire el repo ve qué está en curso.
+3. **Commits atómicos** en la rama, como siempre.
+4. **Al terminar:** push de la rama y abrir PR con `gh pr create`. El cuerpo del PR enlaza la issue (`Closes #N`), resume los criterios cubiertos y lista los tests añadidos. Si el proyecto tiene plantilla de PR (`.github/pull_request_template.md`), la sigues. La issue pasa a `in-review`.
+5. **La revisión es de qa-engineer.** Tú abres el PR; no lo apruebas ni lo fusionas tú.
 
-Si no hay remoto o `gh` no está disponible: commits locales y lo dices en el reporte. No finjas un PR que no existe.
+Si no hay remoto o `gh` no está disponible: commits locales, lo dices en el reporte y alfred lo refleja en `docs/project/status.md`. No finjas un PR que no existe.
 
 ## Qué NO hacer
 

@@ -168,7 +168,27 @@ Si tu proyecto usa GitHub (con `gh` CLI autenticado), el flujo feature se apoya 
 | Calidad | `qa-engineer` | Revisa el PR como gate: hallazgos bloqueantes → request-changes; gate superada → approve. CI rojo = rechazado |
 | Entrega | `devops-engineer` | CI en cada PR, `main` protegida, releases |
 
-El merge siempre lo decides tú. Las issues son **espejo del PRD** (la fuente de verdad sigue en `docs/prd/`), y si no hay `gh` o no hay remoto, el flujo funciona igual en local.
+El merge siempre lo decides tú. El contenido de las historias manda el PRD (`docs/prd/`); **el estado del trabajo vive en las issues**, y si no hay `gh` o no hay remoto, el flujo funciona igual en local (commits + gates).
+
+### Memoria y continuidad (dónde vive el estado)
+
+El trabajo nunca depende de una sola persona ni de un chat que se pierde. El estado tiene dos capas, por orden de prioridad:
+
+1. **GitHub Issues + PRs — fuente de verdad colaborativa.** Cada historia es una issue con label de estado; cada gate pasa dejando comentario en la issue o PR. Si mañana quien llevaba el flujo no está, cualquiera reconstruye el estado desde el repo: issues abiertas con sus labels + PRs en revisión. Audit de gates incluido.
+2. **`docs/project/status.md` — snapshot local (fallback offline).** Flujo, fase, gate pendiente, siguiente acción y las issues con su estado, commiteado al repo tras cada gate. Sobrevive en el remoto que sea (GitHub, GitLab, git interno). Plantilla de referencia: `templates/status.md`.
+
+**Labels de estado** (los crea `product-owner` la primera vez):
+
+| Label | Significado |
+|-------|-------------|
+| `story` | Historia publicada desde el PRD |
+| `backlog` | Publicada, sin empezar |
+| `in-progress` | El equipo está en ella |
+| `in-review` | PR abierto esperando gate de QA |
+| `blocked` | Bloqueada (con comentario del porqué) |
+| (cerrada) | Hecha — el merge con `Closes #N` la cierra |
+
+**Para retomar** tras un corte: habla con `alfred` y dile «retoma». Su protocolo de arranque reconstruye el estado real (issues → PRs → `status.md`) y continúa exactamente donde estaba: fase, gate pendiente y siguiente acción.
 
 ### Subagentes
 
@@ -224,6 +244,8 @@ alfred-dev-vscode/
 │   ├── devops-engineer.agent.md
 │   ├── seo-specialist.agent.md
 │   └── lucius.agent.md
+├── templates/
+│   └── status.md               # Plantilla del snapshot docs/project/status.md
 ├── instructions/
 │   └── global-instructions.md.instructions.md   # Copiar a .github/instructions/ del workspace
 ├── install.sh                 # Instalador macOS/Linux
@@ -240,7 +262,7 @@ alfred-dev-vscode/
 ## Roadmap
 
 - [x] **Fase 1** — Los 11 agentes con multi-modelo, handoffs y subagentes (junior/senior incluido).
-- [x] **Fase 2** — Flujo GitHub: issues desde las historias del PRD, ramas de feature, PRs y revisión como gate de calidad.
+- [x] **Fase 2** — Flujo GitHub: issues desde las historias del PRD, ramas de feature, PRs y revisión como gate de calidad. Estado del trabajo en issues (labels) + snapshot local `status.md`.
 - [ ] **Fase 3** — Skills de proceso (threat-model, write-adr, sbom-generate...), memoria MCP, hooks de seguridad.
 - [ ] **Fase 4** — Extensión VSIX con UI de configuración de modelos y bootstrap.
 - [ ] **Fase 5** — Integración con Ralph Suite (kanban + runner).
