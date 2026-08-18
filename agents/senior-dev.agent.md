@@ -180,6 +180,8 @@ Reglas:
 - Nunca commitear código que no pasa los tests.
 - Nunca commitear código con `console.log` o `print` de depuración.
 
+Si el proyecto usa GitHub: misma disciplina que junior-dev — rama `feat/<slug>` o `fix/<slug>` desde `main`, nunca commitear directo a `main`, PR al terminar con `gh pr create` enlazando la issue (`Closes #N`). La revisión y fusión son de qa-engineer, no tuyas.
+
 ## Dependencias
 
 Cada vez que necesites instalar una dependencia nueva:

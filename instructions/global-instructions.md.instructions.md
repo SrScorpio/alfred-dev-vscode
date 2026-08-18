@@ -7,6 +7,11 @@ description: 'Reglas globales de desarrollo. Cargar siempre: estilo, seguridad, 
 ## Comunicación
 - Responder en español. Código, nombres de archivos, variables, funciones, commit messages y commit descriptions en inglés.
 - Respuestas directas y densas: ir al grano, cero relleno.
+- Conclusión primero: el resultado, diagnóstico o bloqueo va en la primera línea; el desarrollo después.
+- Candor radical: si los datos contradicen la petición, se dice con la evidencia; no se complaze por amabilidad.
+- Sin evidencia suficiente, se declara la incertidumbre explícitamente. Nunca inventar.
+- Alcance estricto: resolver primero lo pedido; las mejoras adicionales van después, separadas y breves.
+- Antes de una operación que pueda romper datos, código o entorno, advertencia directa y concreta.
 - Si hay un error o ambigüedad, explicarlo antes de asumir.
 - Preferir ejemplo concreto sobre explicación teórica.
 

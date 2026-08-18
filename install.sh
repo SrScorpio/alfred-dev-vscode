@@ -3,7 +3,7 @@
 # Alfred Dev for VS Code — instalador (macOS / Linux)
 #
 # Uso:
-#   ./install.sh              -> copia los 11 agentes a ~/.copilot/agents/ (nivel usuario:
+#   ./install.sh              -> copia los 12 agentes a ~/.copilot/agents/ (nivel usuario:
 #                                disponibles en TODOS los proyectos, sin más configuración)
 #   ./install.sh --plugin     -> además registra este directorio como plugin local
 #                                (chat.pluginLocations, con backup de settings)
@@ -79,9 +79,9 @@ echo
 verde "Listo. Pasos finales:"
 echo "  1. Recarga VS Code: paleta (Mayús+Cmd+P) -> 'Developer: Reload Window'"
 echo "  2. Abre el Chat de Copilot y pulsa el selector de agente (abajo-izquierda del input)"
-echo "  3. Deben aparecer los 11 agentes: alfred, product-owner, selina, architect,"
+echo "  3. Deben aparecer los 12 agentes: alfred, product-owner, selina, architect,"
 echo "     junior-dev, senior-dev, security-officer, qa-engineer, tech-writer,"
-echo "     devops-engineer y lucius"
+echo "     devops-engineer, seo-specialist y lucius"
 echo
 echo "Instrucciones globales (opcional, por proyecto):"
 echo "  cp instructions/global-instructions.md.instructions.md <tu-proyecto>/.github/instructions/"

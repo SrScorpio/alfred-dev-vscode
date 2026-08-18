@@ -5,6 +5,42 @@ Todos los cambios notables de este proyecto se documentan en este fichero.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-08-18
+
+### Added
+
+- **Flujo GitHub** repartido entre agentes existentes (sin agentes nuevos para
+  ello): `product-owner` publica las historias del PRD como GitHub Issues (una
+  por historia, con criterios Given/When/Then); `junior-dev` y `senior-dev`
+  trabajan en ramas `feat/<slug>` / `fix/<slug>` y abren PR con `Closes #N`;
+  `qa-engineer` revisa el PR como gate de calidad (request-changes /
+  approve, CI rojo = rechazado); `devops-engineer` mantiene CI por PR y
+  `main` protegida. El merge siempre lo decide el usuario. Las issues son
+  espejo del PRD, no la fuente de verdad.
+- Nuevo agente opcional `seo-specialist` (El Rastreador): auditoría de meta
+  tags, datos estructurados JSON-LD, Core Web Vitals y rastreabilidad, con
+  HARD-GATE de indexación. Solo se activa en proyectos con contenido web
+  público (patrón selina). Modelo Luna.
+- `qa-engineer`: revisión de pull requests como responsabilidad propia,
+  validación de estándares del workspace en 6 categorías (documentación
+  anti-bloat, estilo de trabajo, tecnología, calidad, seguridad,
+  rendimiento) y checklist rápido por lenguaje (Python, TS/JS, Rust, Go).
+- `architect`: filtro de sobre-ingeniería con señales de alerta explícitas
+  (dependencia para 20 líneas, microservicios innecesarios, auth custom,
+  etc.) y la pregunta "qué pasaría si NO se hace".
+- Instrucciones globales: mandatos de comunicación senior (conclusión
+  primero, candor radical con evidencia, declarar incertidumbre, alcance
+  estricto, advertencia pre-operaciones destructivas).
+
+### Changed
+
+- `plugin.json`: versión 0.3.0, descripción actualizada (12 agentes, flujo
+  GitHub) y URL del repositorio corregida a `SrScorpio/alfred-dev-vscode`
+  (el origin real).
+- README: sección "Flujo GitHub", seo-specialist en tablas de equipo y
+  herramientas, Fase 2 del roadmap completada.
+- Instaladores: mensajes actualizados a 12 agentes.
+
 ## [0.2.1] - 2026-08-18
 
 ### Changed

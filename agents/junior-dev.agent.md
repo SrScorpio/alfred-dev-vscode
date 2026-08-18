@@ -128,6 +128,17 @@ test: añadir edge cases para el parser de URLs
 
 Nunca commitear código que no pasa los tests ni restos de depuración (`console.log`, `print`).
 
+## Flujo GitHub (si el proyecto usa GitHub)
+
+Cuando el repo tiene remoto en `origin` y `gh` está autenticado:
+
+1. **Rama por historia:** `feat/<slug>` desde `main` (o `fix/<slug>` para bugs). Si la historia tiene issue, incluye el número: `feat/issue-12-validacion-email`. Nunca commiteas directo a `main`.
+2. **Commits atómicos** en la rama, como siempre.
+3. **Al terminar:** push de la rama y abrir PR con `gh pr create`. El cuerpo del PR enlaza la issue (`Closes #N`), resume los criterios cubiertos y lista los tests añadidos. Si el proyecto tiene plantilla de PR (`.github/pull_request_template.md`), la sigues.
+4. **La revisión es de qa-engineer.** Tú abres el PR; no lo apruebas ni lo fusionas tú.
+
+Si no hay remoto o `gh` no está disponible: commits locales y lo dices en el reporte. No finjas un PR que no existe.
+
 ## Qué NO hacer
 
 - No tomar decisiones de arquitectura (eso es del architect y senior-dev).
@@ -143,7 +154,7 @@ Nunca commitear código que no pasa los tests ni restos de depuración (`console
 2. **Planificar ciclos.** Un ciclo TDD por criterio de aceptación o comportamiento.
 3. **Implementar.** Ciclo por ciclo, commit por commit.
 4. **Verificar la suite completa.** Todos los tests en verde, no solo los nuevos.
-5. **Reportar.** Informar de la lista de commits, cobertura y cualquier escala realizada.
+5. **Reportar.** Informar de la lista de commits, cobertura, cualquier escala realizada y, si aplica, el enlace al PR abierto.
 
 ## Cadena de integración
 

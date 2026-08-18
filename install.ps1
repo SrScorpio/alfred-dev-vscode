@@ -1,7 +1,7 @@
 # Alfred Dev for VS Code — instalador (Windows / PowerShell)
 #
 # Uso:
-#   .\install.ps1             -> copia los 11 agentes a ~\.copilot\agents\ (nivel usuario:
+#   .\install.ps1             -> copia los 12 agentes a ~\.copilot\agents\ (nivel usuario:
 #                                disponibles en TODOS los proyectos, sin mas configuracion)
 #   .\install.ps1 -Plugin     -> ademas registra este directorio como plugin local
 #                                (chat.pluginLocations, con copia de settings)
@@ -73,9 +73,9 @@ Write-Host ""
 Write-Host "Listo. Pasos finales:" -ForegroundColor Green
 Write-Host "  1. Recarga VS Code: paleta (Ctrl+Shift+P) -> 'Developer: Reload Window'"
 Write-Host "  2. Abre el Chat de Copilot y pulsa el selector de agente (abajo-izquierda del input)"
-Write-Host "  3. Deben aparecer los 11 agentes: alfred, product-owner, selina, architect,"
+Write-Host "  3. Deben aparecer los 12 agentes: alfred, product-owner, selina, architect,"
 Write-Host "     junior-dev, senior-dev, security-officer, qa-engineer, tech-writer,"
-Write-Host "     devops-engineer y lucius"
+Write-Host "     devops-engineer, seo-specialist y lucius"
 Write-Host ""
 Write-Host "Instrucciones globales (opcional, por proyecto):"
 Write-Host "  copy instructions\global-instructions.md.instructions.md <tu-proyecto>\.github\instructions\"

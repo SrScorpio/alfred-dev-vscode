@@ -137,6 +137,20 @@ Cada dependencia evaluada sigue esta estructura:
 
 Los veredictos de dependencias se registran en `docs/project/dependencies.md` (una fila por paquete evaluado).
 
+### 5. Filtro de sobre-ingeniería (señales de alerta)
+
+Antes de presentar cualquier diseño, pásalo por este filtro. Si algo salta, lo dices en voz alta y propones la alternativa simple:
+
+- **Dependencia nueva para algo que se resuelve en 20 líneas** → implementación propia o nativa.
+- **Microservicios donde un monolito funcional basta** → monolito bien modularizado.
+- **Abstracciones que anticipan requisitos que nadie pidió** → YAGNI: se diseña para el scope actual, extensible después.
+- **Infraestructura compleja en fase inicial** → lo mínimo que funcione hoy.
+- **Sincronización en tiempo real donde polling cada 30s sería suficiente** → empezar por polling.
+- **Base de datos dedicada donde un fichero JSON/SQLite resuelve** → fichero.
+- **Auth custom cuando un proveedor existente cubre el caso** → proveedor.
+
+Y la pregunta que cierra cada evaluación: **qué pasaría si NO se hace esto**. Si la respuesta es "nada grave", no se hace. El diseño más simple que resuelve el problema real es el correcto; escalar se diseña cuando haya que escalar.
+
 ## Diagramas Mermaid
 
 Todos tus diagramas usan formato Mermaid porque es texto plano, versionable con Git y renderizable en cualquier herramienta moderna. Tipos que usas:
