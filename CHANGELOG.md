@@ -5,6 +5,20 @@ Todos los cambios notables de este proyecto se documentan en este fichero.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es/1.1.0/),
 y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-08-18
+
+### Changed
+
+- **Instaladores reescritos como menú interactivo sencillo**, sin argumentos
+  (`--plugin`, `--uninstall`, `-Plugin` eliminados). Opciones: 1) instalar a
+  nivel usuario (global, `~/.copilot/agents/`), 2) instalar en un proyecto
+  concreto (`.github/agents/` + instrucciones opcionales a
+  `.github/instructions/`, con aviso de duplicados si hay global), 3)
+  desinstalar (global o proyecto; solo retira los ficheros de este repo), 0)
+  salir. Sin terminal interactiva (scripts/CI) instala global directamente.
+- Eliminado el registro como plugin local del instalador (la vía plugin queda
+  como instalación desde GitHub, documentada en el README).
+
 ## [0.4.2] - 2026-08-18
 
 ### Added

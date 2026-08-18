@@ -43,9 +43,13 @@ Requisitos: VS Code con GitHub Copilot Chat. Tras instalar, los agentes aparecen
 .\install.ps1
 ```
 
-El instalador copia los 12 agentes a `~/.copilot/agents/`, la carpeta oficial de
-usuario de Copilot. Recarga la ventana de VS Code (`Developer: Reload Window`) y
-listo. Para desinstalar: `./install.sh --uninstall` (o `.\install.ps1 -Uninstall`).
+El instalador muestra un **menú sencillo**:
+
+1. **Instalar a nivel usuario (global)** — copia los 12 agentes a `~/.copilot/agents/`, la carpeta oficial de Copilot: disponibles en **todos tus proyectos**, sin tocar ningún repo. Recarga la ventana (`Developer: Reload Window`) y listo.
+2. **Instalar en un proyecto concreto** — te pide la ruta y copia los agentes a `.github/agents/` de ese proyecto (viaja con el repo: quien lo clone los tendrá) y, si quieres, también las instrucciones a `.github/instructions/`. Avisa si ya tienes el global instalado (verías duplicados).
+3. **Desinstalar** — global o de un proyecto concreto (solo retira los ficheros de este repo, nada más).
+
+Para instalar en otro ordenador, este es el camino: clona (o descarga) el repo, ejecuta el instalador y elige. El mismo menú sirve para desinstalar.
 
 ### Opción B: sin descargar nada (desde GitHub)
 
@@ -72,15 +76,6 @@ Añade el marketplace en los settings del usuario y recomienda el plugin en el w
   },
   "enabledPlugins": { "alfred-dev-vscode@alfred-dev-vscode": true }
 }
-```
-
-### Registro alternativo como plugin local (desarrollo)
-
-Con `./install.sh --plugin` (o `.\install.ps1 -Plugin`) se registra además este
-directorio en `chat.pluginLocations` de tu settings, con copia de seguridad:
-
-```json
-"chat.pluginLocations": { "/ruta/absoluta/a/alfred-dev-vscode": true }
 ```
 
 ### Copia manual

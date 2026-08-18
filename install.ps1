@@ -1,26 +1,90 @@
 # Alfred Dev for VS Code — instalador (Windows / PowerShell)
 #
-# Uso:
-#   .\install.ps1             -> copia los 12 agentes a ~\.copilot\agents\ (nivel usuario:
-#                                disponibles en TODOS los proyectos, sin mas configuracion)
-#   .\install.ps1 -Plugin     -> ademas registra este directorio como plugin local
-#                                (chat.pluginLocations, con copia de settings)
-#   .\install.ps1 -Uninstall  -> retira los agentes de ~\.copilot\agents\
+# Ejecuta .\install.ps1 y elige en el menú:
+#   1) Global   -> copia los 12 agentes a ~\.copilot\agents\ (disponibles en TODOS los proyectos)
+#   2) Proyecto -> copia los agentes (y opcionalmente las instrucciones) a .github\ de un proyecto
+#   3) Desinstalar (global o proyecto)
 #
 # Alternativa sin descargar nada (repo publicado en GitHub):
 #   Paleta de comandos -> "Chat: Install Plugin From Source" -> URL del repo
 
-param(
-    [switch]$Plugin,
-    [switch]$Uninstall
-)
-
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$Dest = "$env:USERPROFILE\.copilot\agents"
+$GlobalDest = "$env:USERPROFILE\.copilot\agents"
 
-Write-Host "Alfred Dev for VS Code — instalador" -ForegroundColor Green
-Write-Host "------------------------------------"
+$Agentes = @("alfred","product-owner","selina","architect","junior-dev","senior-dev",
+             "security-officer","qa-engineer","tech-writer","devops-engineer",
+             "seo-specialist","lucius")
+
+function Copy-Agentes($dest) {
+    New-Item -ItemType Directory -Path $dest -Force | Out-Null
+    $n = 0
+    Get-ChildItem "$ScriptDir\agents\*.agent.md" | ForEach-Object {
+        Copy-Item $_.FullName $dest -Force; $n++
+    }
+    Write-Host "[ok] $n agentes instalados en $dest" -ForegroundColor Green
+}
+
+function Remove-Agentes($dest) {
+    $n = 0
+    foreach ($a in $Agentes) {
+        $target = Join-Path $dest "$a.agent.md"
+        if (Test-Path $target) { Remove-Item $target; $n++ }
+    }
+    Write-Host "[ok] $n agentes retirados de $dest" -ForegroundColor Green
+}
+
+function Install-GlobalAlfred {
+    Copy-Agentes $GlobalDest
+    Write-Host "      (nivel usuario: disponibles en todos tus proyectos)"
+}
+
+function Install-ProyectoAlfred {
+    $ruta = Read-Host "Ruta del proyecto (vacío = directorio actual)"
+    if ([string]::IsNullOrWhiteSpace($ruta)) { $ruta = (Get-Location).Path }
+    if (-not (Test-Path $ruta)) {
+        Write-Host "[error] La ruta no existe: $ruta" -ForegroundColor Red
+        return $false
+    }
+    Copy-Agentes "$ruta\.github\agents"
+    Write-Host "      (solo ese proyecto; commitea .github\agents\ para compartirlo con el equipo)"
+    if (Test-Path "$GlobalDest\alfred.agent.md") {
+        Write-Host "[aviso] Tambien tienes los agentes a nivel usuario: en este proyecto saldran duplicados." -ForegroundColor Yellow
+    }
+    $resp = Read-Host "Copiar tambien las instrucciones globales a .github\instructions\? [s/N]"
+    if ($resp -match '^[sS]') {
+        New-Item -ItemType Directory -Path "$ruta\.github\instructions" -Force | Out-Null
+        Copy-Item "$ScriptDir\instructions\global-instructions.md.instructions.md" "$ruta\.github\instructions\"
+        Write-Host "[ok] Instrucciones copiadas a $ruta\.github\instructions\" -ForegroundColor Green
+    }
+    return $true
+}
+
+function Uninstall-AlfredDev {
+    $opcion = Read-Host "Desinstalar de: 1) usuario (global)  2) un proyecto  [1]"
+    if ([string]::IsNullOrWhiteSpace($opcion)) { $opcion = "1" }
+    switch ($opcion) {
+        "1" { Remove-Agentes $GlobalDest }
+        "2" {
+            $ruta = Read-Host "Ruta del proyecto"
+            if (-not (Test-Path $ruta)) {
+                Write-Host "[error] Ruta no valida." -ForegroundColor Red
+                return
+            }
+            Remove-Agentes "$ruta\.github\agents"
+        }
+        default { Write-Host "[error] Opcion no valida." -ForegroundColor Red; return }
+    }
+    Write-Host "Recarga la ventana de VS Code para que desaparezcan del selector."
+}
+
+function Show-PasosFinales {
+    Write-Host ""
+    Write-Host "Listo. Pasos finales:" -ForegroundColor Green
+    Write-Host "  1. Recarga VS Code: paleta (Ctrl+Shift+P) -> 'Developer: Reload Window'"
+    Write-Host "  2. Abre el Chat de Copilot y pulsa el selector de agente (abajo-izquierda del input)"
+    Write-Host "  3. Deben aparecer los agentes: $($Agentes -join ', ')"
+}
 
 # --- Verificar estructura del repo -------------------------------------------
 if (-not ((Test-Path "$ScriptDir\plugin.json") -and (Test-Path "$ScriptDir\agents"))) {
@@ -28,56 +92,22 @@ if (-not ((Test-Path "$ScriptDir\plugin.json") -and (Test-Path "$ScriptDir\agent
     exit 1
 }
 
-# --- Desinstalacion -----------------------------------------------------------
-if ($Uninstall) {
-    $n = 0
-    Get-ChildItem "$ScriptDir\agents\*.agent.md" | ForEach-Object {
-        $target = Join-Path $Dest $_.Name
-        if (Test-Path $target) { Remove-Item $target; $n++ }
-    }
-    Write-Host "[ok] $n agentes retirados de $Dest" -ForegroundColor Green
-    Write-Host "Recarga la ventana de VS Code para que desaparezcan del selector."
-    exit 0
-}
+Write-Host "Alfred Dev for VS Code — instalador" -ForegroundColor Green
+Write-Host "------------------------------------"
 
-# --- 1. Copiar agentes a la carpeta oficial de usuario de Copilot -------------
-New-Item -ItemType Directory -Path $Dest -Force | Out-Null
-$n = 0
-Get-ChildItem "$ScriptDir\agents\*.agent.md" | ForEach-Object {
-    Copy-Item $_.FullName $Dest -Force
-    $n++
-}
-Write-Host "[ok] $n agentes instalados en $Dest" -ForegroundColor Green
-Write-Host "      (nivel usuario: disponibles en todos tus proyectos)"
-
-# --- 2. Registro opcional como plugin local ------------------------------------
-if ($Plugin) {
-    $userSettings = "$env:APPDATA\Code\User\settings.json"
-    if (Test-Path $userSettings) {
-        Copy-Item $userSettings "$userSettings.bak-alfred-dev"
-        $raw = Get-Content $userSettings -Raw
-        $settings = if ($raw.Trim()) { $raw | ConvertFrom-Json } else { New-Object PSObject }
-        if (-not $settings.'chat.pluginLocations') {
-            $settings | Add-Member -MemberType NoteProperty -Name 'chat.pluginLocations' -Value (New-Object PSObject)
-        }
-        Add-Member -InputObject $settings.'chat.pluginLocations' -MemberType NoteProperty -Name $ScriptDir -Value $true -Force
-        $settings | ConvertTo-Json -Depth 10 | Set-Content $userSettings -Encoding UTF8
-        Write-Host "[ok] Plugin local registrado en chat.pluginLocations (backup: settings.json.bak-alfred-dev)" -ForegroundColor Green
-    } else {
-        Write-Host "[aviso] No se encontro settings.json ($userSettings); se omite el registro del plugin." -ForegroundColor Yellow
+:menu while ($true) {
+    Write-Host ""
+    Write-Host "  1) Instalar a nivel usuario (global — todos los proyectos)"
+    Write-Host "  2) Instalar en un proyecto concreto"
+    Write-Host "  3) Desinstalar (global o proyecto)"
+    Write-Host "  0) Salir"
+    $opcion = Read-Host "Elige una opcion"
+    switch ($opcion) {
+        "1" { Install-GlobalAlfred; Show-PasosFinales; break menu }
+        "2" { $ok = Install-ProyectoAlfred; if ($ok) { Show-PasosFinales; break menu } }
+        "3" { Uninstall-AlfredDev; break menu }
+        "0" { break menu }
+        default { Write-Host "Opcion no valida." -ForegroundColor Yellow }
     }
 }
 
-# --- 3. Pasos finales ----------------------------------------------------------
-Write-Host ""
-Write-Host "Listo. Pasos finales:" -ForegroundColor Green
-Write-Host "  1. Recarga VS Code: paleta (Ctrl+Shift+P) -> 'Developer: Reload Window'"
-Write-Host "  2. Abre el Chat de Copilot y pulsa el selector de agente (abajo-izquierda del input)"
-Write-Host "  3. Deben aparecer los 12 agentes: alfred, product-owner, selina, architect,"
-Write-Host "     junior-dev, senior-dev, security-officer, qa-engineer, tech-writer,"
-Write-Host "     devops-engineer, seo-specialist y lucius"
-Write-Host ""
-Write-Host "Instrucciones globales (opcional, por proyecto):"
-Write-Host "  copy instructions\global-instructions.md.instructions.md <tu-proyecto>\.github\instructions\"
-Write-Host ""
-Write-Host "Desinstalar:  .\install.ps1 -Uninstall"
