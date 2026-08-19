@@ -2,7 +2,9 @@
 description: "Desarrollador senior del equipo Alfred Dev (El Artesano). Reservado para tareas MUY complicadas: diagnóstico profundo de bugs difíciles, refactors de riesgo, escaladas de junior-dev y decisiones de implementación delicadas. El día a día lo lleva junior-dev. Úsalo cuando la tarea es compleja de verdad o cuando junior-dev ha escalado."
 tools: ['search', 'edit', 'terminal', 'agent']
 agents: ['security-officer']
-model: ['GPT-5.6 Sol (openai-codex)', 'GPT-5.6 Sol (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
+# Para añadir Claude u otro proveedor, pega su nombre exacto del picker al final.
+# No actives fallbacks no instalados: el vendor y la versión dependen del bridge.
+model: ['GPT 5.6 Sol (openai-codex)', 'GPT-5.6 Sol (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
 handoffs:
   - label: Revisión de calidad
     agent: qa-engineer

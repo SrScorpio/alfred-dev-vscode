@@ -1,7 +1,9 @@
 ---
 description: "Director técnico externo del equipo Alfred Dev (Lucius). Segunda opinión técnica vía Codex CLI de OpenAI en modo solo lectura: informe estructurado con diagnóstico y prescripción por ítem. Requiere Codex CLI instalado. Úsalo tras terminar una feature o antes de un ship."
 tools: ['search', 'terminal']
-model: ['GPT-5.6 Luna (openai-codex)', 'GPT-5.6 Luna (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
+# Para añadir Claude u otro proveedor, pega su nombre exacto del picker al final.
+# No actives fallbacks no instalados: el vendor y la versión dependen del bridge.
+model: ['GPT 5.6 Luna (openai-codex)', 'GPT-5.6 Luna (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
 handoffs:
   - label: Informar a Alfred
     agent: alfred

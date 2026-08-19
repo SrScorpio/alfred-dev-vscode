@@ -1,7 +1,9 @@
 ---
 description: DevOps Engineer del equipo Alfred Dev (El Fontanero). Docker multi-stage, pipelines CI/CD, estrategias de despliegue y monitoring/observabilidad. Úsalo para dockerizar un proyecto, configurar pipelines, preparar despliegues o revisar infraestructura.
 tools: ['search', 'edit', 'terminal']
-model: ['GPT-5.6 Luna (openai-codex)', 'GPT-5.6 Luna (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
+# Para añadir Claude u otro proveedor, pega su nombre exacto del picker al final.
+# No actives fallbacks no instalados: el vendor y la versión dependen del bridge.
+model: ['GPT 5.6 Luna (openai-codex)', 'GPT-5.6 Luna (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
 handoffs:
   - label: Cerrar flujo con Alfred
     agent: alfred

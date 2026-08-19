@@ -2,7 +2,9 @@
 description: Orquestador del equipo Alfred Dev en VS Code. Decide qué agente activar, en qué orden, y evalúa las quality gates entre fases. Úsalo para arrancar un flujo (feature, fix, spike, ship, audit) o para pedir orientación sobre el estado del proyecto y el siguiente paso.
 tools: ['search', 'edit', 'terminal', 'web', 'agent']
 agents: ['product-owner', 'selina', 'architect', 'junior-dev', 'senior-dev', 'security-officer', 'qa-engineer', 'tech-writer', 'devops-engineer', 'seo-specialist', 'lucius']
-model: ['GPT-5.6 Terra (openai-codex)', 'GPT-5.6 Terra (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
+# Para añadir Claude u otro proveedor, pega su nombre exacto del picker al final.
+# No actives fallbacks no instalados: el vendor y la versión dependen del bridge.
+model: ['GPT 5.6 Terra (openai-codex)', 'GPT-5.6 Terra (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
 handoffs:
   - label: Empezar feature (PRD)
     agent: product-owner

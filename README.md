@@ -118,16 +118,29 @@ Los arrays por defecto asumen estas extensiones de proveedor (instala las que us
 | Proveedor | Vendor en el picker | Extensión |
 |-----------|--------------------|-----------|
 | xAI Grok 4.6 | `(xai-grok)` | [Grok for GitHub Copilot Chat](https://marketplace.visualstudio.com/items?itemName=grikomsn.grok-copilot-chat) |
-| OpenAI GPT-5.6 (Luna/Sol/Terra) | `(openai-codex)` | [OpenAI OAuth Copilot Chat](https://marketplace.visualstudio.com/items?itemName=grikomsn.openai-oauth-copilot-chat) |
-| Z.ai GLM | `(glm)` | [GLM for VS Code Copilot](https://marketplace.visualstudio.com/items?itemName=ikaros.glm-for-vscode-copilot) |
+| OpenAI GPT 5.6 (Luna/Sol/Terra) | `(openai-codex)` | [Codex Bridge for Copilot Chat](https://marketplace.visualstudio.com/items?itemName=grikomsn.openai-oauth-copilot-chat) |
+| Z.ai GLM | `(glm)` | [GLM Models for GitHub Copilot Chat](https://marketplace.visualstudio.com/items?itemName=yijiazhen-qi.glm-for-github-copilot-chat) |
 | GitHub Copilot | `(copilot)` | Incluido con Copilot (fallback garantizado) |
 
-**Cómo ver los nombres exactos de tus modelos:** abre el picker de modelos en el chat de Copilot; el nombre cualificado tiene el formato `Nombre del modelo (vendor)`. Si un nombre del array no coincide con el de tu instalación (p. ej. tu catálogo de xAI expone otra versión de Grok), edita el campo `model` del `.agent.md` correspondiente: es una lista YAML, el orden es la prioridad.
+### Bridges instalados en el entorno de desarrollo
+
+Esta es una nota informativa: estos bridges están instalados en el entorno que
+mantiene este repositorio, pero no son requisitos del plugin.
+
+| Bridge o proveedor | Uso |
+|--------------------|-----|
+| [Codex Bridge for Copilot Chat](https://marketplace.visualstudio.com/items?itemName=grikomsn.openai-oauth-copilot-chat) | Catálogo autenticado de modelos Codex de OpenAI mediante ChatGPT OAuth. Registra `(openai-codex)`. |
+| [Grok for GitHub Copilot Chat](https://marketplace.visualstudio.com/items?itemName=grikomsn.grok-copilot-chat) | Modelos xAI Grok mediante OAuth. Registra `(xai-grok)`. |
+| [GLM Models for GitHub Copilot Chat](https://marketplace.visualstudio.com/items?itemName=yijiazhen-qi.glm-for-github-copilot-chat) | Modelos Z.ai / GLM. Registra `(glm)`. |
+| [OpenCode for Copilot Chat](https://marketplace.visualstudio.com/items?itemName=grikomsn.opencode-bridge-copilot-chat) | Modelos OpenCode Zen, Go y Console; sus vendors son `(opencodezen)`, `(opencodego)` y `(opencodeconsole)`. |
+| GitHub Copilot LLM Gateway y LM Studio for Copilot Chat | Proveedores locales opcionales; sus modelos no forman parte de las cadenas por defecto. |
+
+**Cómo ver los nombres exactos de tus modelos:** abre el picker de modelos en el chat de Copilot; el nombre cualificado tiene el formato `Nombre del modelo (vendor)`. El catálogo autenticado de Codex Bridge es autoritativo: por ejemplo, la extensión muestra `GPT 5.6 Luna (openai-codex)`, con espacios. Si un nombre del array no coincide con tu instalación, edita el campo `model` del `.agent.md` correspondiente: es una lista YAML y el orden es la prioridad.
 
 Ejemplo de frontmatter de un agente:
 
 ```yaml
-model: ['GPT-5.6 Terra (openai-codex)', 'GPT-5.6 Terra (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
+model: ['GPT 5.6 Terra (openai-codex)', 'GPT-5.6 Terra (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
 ```
 
 **Política de modelos GPT-5.6** (prioridad de coste):
@@ -142,6 +155,26 @@ La cadena prioriza tu cuenta de OpenAI (`openai-codex`), cae a las variantes
 incluidas con Copilot (`copilot`) si acaso, y después a Grok 4.6 y GLM como
 alternativas. Si un nombre no existe en tu catálogo, VS Code lo salta sin
 error y usa el siguiente: es una lista YAML, el orden es la prioridad.
+
+### Añadir proveedores adicionales
+
+Para añadir otro proveedor, instala primero una extensión que implemente un
+proveedor de modelos para Copilot Chat. Después habilítala en **Manage Models**
+y copia el literal exacto del picker. Añádelo siempre al final de la lista
+`model`, detrás de los fallbacks existentes.
+
+Claude no está configurado en este repositorio. Si instalas un bridge de
+Anthropic compatible, añade sus modelos en este orden como últimos fallbacks:
+Opus, Sonnet y Haiku. Conserva el vendor que muestre tu extensión; no inventes
+`(anthropic)` ni versiones, porque dependen del bridge y del catálogo de tu
+cuenta.
+
+```yaml
+# Añade solo nombres que aparezcan en tu selector de modelos.
+# model: [..., 'Claude Opus <versión> (<vendor>)',
+#             'Claude Sonnet <versión> (<vendor>)',
+#             'Claude Haiku <versión> (<vendor>)']
+```
 
 Si no quieres cadenas de modelos, borra la línea `model` y el agente usará el modelo que tengas seleccionado en el picker del chat.
 
