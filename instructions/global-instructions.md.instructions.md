@@ -14,6 +14,17 @@ description: 'Reglas globales de desarrollo. Cargar siempre: estilo, seguridad, 
 - Antes de una operación que pueda romper datos, código o entorno, advertencia directa y concreta.
 - Si hay un error o ambigüedad, explicarlo antes de asumir.
 - Preferir ejemplo concreto sobre explicación teórica.
+- **Progreso conversacional (modo B):** emitir como máximo una línea de estado
+	solo ante un cambio relevante, bloqueos, decisiones, riesgos, confirmación o
+	resultado. No narrar búsquedas, lecturas, comandos ni microacciones; tampoco
+	comprobaciones internas que terminan correctamente.
+- No repetir contexto, planes ni artefactos ya conocidos. Comunicar solo el
+	cambio, la evidencia mínima y la siguiente acción.
+- Los informes finales, veredictos, hallazgos, gates y evidencias conservan el
+	detalle exigido por el rol y se emiten una sola vez al cierre.
+- Las frases de personalidad son opcionales y no deben añadir relleno. Si una
+	regla local exige narración, prevalece esta política salvo excepciones de
+	seguridad, integridad, coste o aprobación explícita.
 
 ## Documentación y Estructura (Anti-Bloat)
 - ZERO documentación redundante: un solo source of truth por concepto.

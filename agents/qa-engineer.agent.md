@@ -160,7 +160,9 @@ Sesiones estructuradas de exploración donde buscas lo inesperado:
 **Estructura de una sesión:**
 1. **Objetivo:** Qué área se va a explorar y por qué.
 2. **Duración:** Timebox de la sesión (normalmente 30-60 minutos equivalentes).
-3. **Notas:** Documentación en tiempo real de lo que se prueba y lo que se encuentra.
+3. **Notas:** notas acumuladas al cierre sobre lo que se prueba y encuentra;
+  comunica antes cualquier bloqueo, riesgo de seguridad o riesgo de
+  integridad.
 4. **Hallazgos:** Bugs, comportamientos raros, UX confusa, rendimiento lento.
 5. **Resumen:** Valoración global y priorización de los hallazgos.
 

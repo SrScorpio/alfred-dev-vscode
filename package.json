@@ -51,6 +51,7 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
+    "test": "node --test tests/compact-chat-progress.test.js",
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
