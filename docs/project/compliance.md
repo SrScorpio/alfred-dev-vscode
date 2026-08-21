@@ -11,7 +11,7 @@ No es un dictamen juridico. Es un registro tecnico con evidencia de la revision 
 |-------|--------|--------|
 | RGPD | parcial | El codigo revisado lee un Markdown del workspace y guarda una preferencia global (`alfred-dev.modelProfile`) en VS Code. No hay llamadas de red, base de datos ni telemetria propias en `src/`, pero no hay evidencia sobre la base juridica, informacion al usuario, retencion o tratamiento realizado por el marketplace, VS Code y Copilot. |
 | NIS2 | pendiente | La condicion de entidad esencial/importante o proveedor sujeto a NIS2 depende del titular y del despliegue; no existe clasificacion del servicio ni evidencia de protocolo de incidentes. |
-| CRA | parcial | Una extension VSIX distribuida puede ser un producto con elementos digitales si se comercializa o distribuye en la UE. Hay SBOM CycloneDX y audit de dependencias, pero no existe politica de divulgacion de vulnerabilidades ni proceso de actualizaciones de seguridad documentado. |
+| CRA | parcial | Una extension VSIX distribuida puede ser un producto con elementos digitales si se comercializa o distribuye en la UE. Hay SBOM CycloneDX, audit de dependencias y un canal publico de reporte en `SECURITY.md`, pero SLA, versiones soportadas formales y proceso de actualizaciones de seguridad siguen pendientes. |
 
 ## Controles
 
@@ -25,8 +25,8 @@ No es un dictamen juridico. Es un registro tecnico con evidencia de la revision 
 | Derechos de acceso, supresion y portabilidad | RGPD arts. 15, 17 y 20 | pendiente | No hay evidencia de flujo para datos que pudieran tratar el publicador, marketplace o Copilot; el codigo revisado no implementa almacenamiento propio fuera de la configuracion gestionada por VS Code. |
 | Seguridad del tratamiento | RGPD art. 32 | parcial | No hay trafico ni almacenamiento propio en el codigo revisado. El cifrado y controles del almacenamiento de configuracion de VS Code no se han verificado; no se marca como cumple sin esa evidencia. |
 | Gestion de riesgos y cadena de suministro | NIS2 arts. 20 y 21 | parcial | Audit, lockfile y modelo STRIDE presentes. Faltan propietario de riesgo, clasificacion NIS2, politica de proveedores y procedimiento de respuesta. |
-| Notificacion de incidentes | NIS2 art. 23 | pendiente | No existe `SECURITY.md` ni protocolo que cubra alerta temprana en 24 h, informe en 72 h e informe final. |
-| Gestion y divulgacion de vulnerabilidades | CRA | pendiente | No existe politica publica de reporte ni SLA de correccion de vulnerabilidades. |
+| Notificacion de incidentes | NIS2 art. 23 | parcial | `SECURITY.md` documenta un canal de reporte privado recomendado y una alternativa de contacto; faltan protocolo de alerta temprana en 24 h, informe en 72 h e informe final. |
+| Gestion y divulgacion de vulnerabilidades | CRA | parcial | `SECURITY.md` publica el canal y la coordinacion de divulgacion; no hay SLA de acuse, analisis o correccion, ni matriz formal de versiones soportadas. |
 | Actualizaciones de seguridad | CRA | pendiente | No hay evidencia de politica de soporte, canal de actualizacion ni periodo de correcciones para VSIX publicados. |
 
 ## Hallazgos activos
@@ -53,5 +53,5 @@ Ninguno con severidad critica, alta o media en el alcance de esta revision.
 
 ## Condiciones pendientes
 
-- La divulgacion y correccion coordinada de vulnerabilidades CRA sigue pendiente: no hay politica publica de reporte ni SLA de correccion. Severidad MEDIA de proceso, no bloqueante para esta PR de UI.
+- La divulgacion y correccion coordinada de vulnerabilidades CRA tiene un canal publico en `SECURITY.md`, pero faltan SLA de acuse, analisis y correccion, y una matriz formal de versiones soportadas. Severidad MEDIA de proceso, no bloqueante para esta PR de documentacion.
 - La politica de actualizaciones de seguridad CRA sigue pendiente de evidencia del publicador.
