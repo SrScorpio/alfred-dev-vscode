@@ -31,6 +31,8 @@ Tres principios de diseño heredados de alfred-dev:
 - **Herramientas restringidas.** No todos los agentes pueden editar ficheros o ejecutar terminal (ver tabla de tools abajo).
 - **Quality gates entre fases.** Ningún artefacto pasa de fase sin veredicto: APROBADO, APROBADO CON CONDICIONES o RECHAZADO.
 
+Durante el trabajo, los agentes siguen una política de progreso muy compacto: no narran búsquedas, lecturas ni comandos correctos. Interrumpen el silencio ante un bloqueo, una decisión, un riesgo o una confirmación, y entregan el detalle en el informe o la gate final.
+
 ## Instalación
 
 Requisitos: VS Code con GitHub Copilot Chat. Tras instalar, los agentes aparecen en el selector de agente del chat (abajo-izquierda del input) y quedan disponibles **en todos tus proyectos**.
@@ -306,6 +308,8 @@ alfred-dev-vscode/
 │   ├── core/                   # 8 skills de proceso adaptadas a VS Code
 │   ├── source-claude/          # memory / style-direction / sonarqube (no se instalan)
 │   └── stack/                  # 30 skills de stack MIT (lenguajes/frameworks)
+├── docs/                      # PRDs, ADRs y snapshot de estado del flujo
+├── tests/                     # Contratos de instrucciones (node:test)
 ├── instructions/
 │   └── global-instructions.md.instructions.md   # El instalador la pone en User/instructions o .github/instructions/
 ├── install.sh                 # Instalador macOS/Linux
