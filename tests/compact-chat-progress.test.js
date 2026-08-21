@@ -18,6 +18,11 @@ test('global instructions define compact progress and mandatory exceptions', () 
   assert.match(instructions, /bloqueos.*decisiones.*riesgos/s);
   assert.match(instructions, /informes.*gates.*detalle/s);
   assert.match(instructions, /seguridad.*integridad.*coste.*aprobación explícita/s);
+  assert.match(instructions, /skills instaladas que encajen/);
+  assert.match(instructions, /no uses la ruta del plugin/);
+  assert.doesNotMatch(instructions, /## Proyectos PHP\/WordPress/);
+  assert.doesNotMatch(instructions, /Incluir readme\.txt/);
+  assert.doesNotMatch(instructions, /Cargar la skill de `skills\/stack\/`/);
 });
 
 test('Alfred uses compact phase updates without removing gate reporting', () => {

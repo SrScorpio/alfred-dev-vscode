@@ -41,6 +41,9 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
   `terminal` por el tool set oficial `execute` (`execute/runInTerminal`).
 - Issues y PRs usan GitHub MCP (`github/*`) como canal de VS Code; `gh`
   queda como fallback si el MCP no está disponible.
+- Las instrucciones globales dejan de imponer convenciones PHP/WordPress.
+  El estándar de cada plataforma sale de las skills instaladas (stack y
+  proceso), no de una ruta del plugin.
 - Política de coste: `alfred` pasa a Luna (orquestación frecuente);
   `senior-dev` permanece en Sol (escaladas raras); `architect` y QA en Terra.
 

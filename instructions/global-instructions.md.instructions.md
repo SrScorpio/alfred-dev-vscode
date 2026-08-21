@@ -52,7 +52,7 @@ description: 'Reglas globales de desarrollo. Cargar siempre: estilo, seguridad, 
 - Si un documento existe y cubre el tema, NO crear otro que repita lo mismo.
 - Nombres de archivos y funciones descriptivos que se auto-documenten.
 - Comentarios solo para el PORQUÉ, nunca para el QUÉ (el código lo explica).
-- NO crear README, CHANGELOG, CONTRIBUTING ni archivos de proceso salvo que se pida explícitamente. Excepción: proyectos WordPress requieren readme.txt (ver sección PHP/WordPress).
+- NO crear README, CHANGELOG, CONTRIBUTING ni archivos de proceso salvo que se pida explícitamente. Si una skill de stack exige un artefacto de plataforma, sigue esa skill; no lo inventes desde estas reglas.
 - File and folder names must be lowercase and use hyphens.
 - Assets (images, scripts, styles) must be placed in separate, well-organized folders.
 
@@ -111,9 +111,8 @@ description: 'Reglas globales de desarrollo. Cargar siempre: estilo, seguridad, 
 - No eliminar ficheros ni ramas sin confirmación explícita.
 - Si algo no se puede hacer, decirlo directamente y explicar por qué.
 
-## Proyectos PHP/WordPress
-- Seguir los estándares de código de WordPress para PHP, JS y Python. Comentarios y documentación de código en inglés según requiera la plataforma.
-- Incluir readme.txt con metadatos del plugin (reemplaza al README genérico en este contexto).
-- Crear archivo .distignore.
-- Crear scripts build.ps1 y build.sh.
-- El .gitignore NO debe excluir .distignore, build.ps1 ni build.sh.
+## Stack y convenciones de plataforma
+- Detectar el stack por señales del repo (manifiestos, lockfiles, frameworks, `AGENTS.md`).
+- Usar las skills instaladas que encajen: las de stack para el lenguaje o framework, y las de proceso para ADRs, PRs, threat-model, SBOM u otros ritos. Se descubren por nombre y `description`; no uses la ruta del plugin (`skills/stack/`).
+- Si hay varias skills de stack aplicables, usa la más específica (p. ej. WordPress → `wordpress-pro`, no `php-pro` genérico).
+- El estándar de código, empaquetado y artefactos de esa plataforma salen de la skill, no de estas reglas. Si no hay skill para el stack, sigue el linter/formatter del proyecto y no inventes convenciones de otra plataforma.
