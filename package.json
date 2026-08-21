@@ -28,8 +28,34 @@
         "command": "alfred-dev.refreshStatus",
         "title": "Alfred Dev: Refrescar Estado",
         "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.openChat",
+        "title": "Alfred Dev: Hablar con Alfred",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.selectModelProfile",
+        "title": "Alfred Dev: Seleccionar perfil de modelo",
+        "category": "Alfred Dev"
       }
     ],
+    "configuration": {
+      "title": "Alfred Dev",
+      "properties": {
+        "alfred-dev.modelProfile": {
+          "type": "string",
+          "enum": ["luna", "terra", "sol"],
+          "enumDescriptions": [
+            "Trabajo frecuente y de protocolo",
+            "Razonamiento y auditoría",
+            "Solo para lo muy complicado"
+          ],
+          "default": "luna",
+          "description": "Perfil visual de coste preferido para los agentes de Alfred Dev."
+        }
+      }
+    },
     "viewsContainers": {
       "activitybar": [
         {
@@ -51,10 +77,12 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "test": "node --test tests/compact-chat-progress.test.js",
+    "package": "vsce package",
+    "test": "node --test tests/*.test.js",
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
+    "@vscode/vsce": "3.9.2",
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
     "typescript": "^5.3.3"

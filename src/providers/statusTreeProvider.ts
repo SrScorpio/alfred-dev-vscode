@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ProjectStatus } from '../types';
+import { parseProjectStatus } from './parseStatus';
 
 export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<StatusItem | undefined | null | void> = new vscode.EventEmitter<StatusItem | undefined | null | void>();
@@ -27,30 +27,50 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
 
     const rootPath = workspaceFolders[0].uri.fsPath;
     const statusPath = path.join(rootPath, 'docs', 'project', 'status.md');
+    const actionItems = [
+      new StatusItem(
+        'Refrescar estado',
+        vscode.TreeItemCollapsibleState.None,
+        'refresh',
+        { command: 'alfred-dev.refreshStatus', title: 'Refrescar estado' },
+      ),
+      new StatusItem(
+        'Hablar con Alfred',
+        vscode.TreeItemCollapsibleState.None,
+        'comment-discussion',
+        { command: 'alfred-dev.openChat', title: 'Hablar con Alfred' },
+      ),
+      new StatusItem(
+        'Seleccionar perfil de modelo',
+        vscode.TreeItemCollapsibleState.None,
+        'symbol-misc',
+        { command: 'alfred-dev.selectModelProfile', title: 'Seleccionar perfil de modelo' },
+      ),
+    ];
 
     if (!fs.existsSync(statusPath)) {
       return Promise.resolve([
-        new StatusItem('Sin snapshot local (docs/project/status.md). El estado vive en GitHub Issues.', vscode.TreeItemCollapsibleState.None)
+        ...actionItems,
+        new StatusItem('Sin snapshot local. El estado vive en GitHub Issues.', vscode.TreeItemCollapsibleState.None, 'info'),
       ]);
     }
 
     try {
       const content = fs.readFileSync(statusPath, 'utf8');
-      const items: StatusItem[] = [];
+      const status = parseProjectStatus(content);
+      const items: StatusItem[] = [...actionItems];
 
-      const flowMatch = content.match(/\*\*Flujo:\*\*\s*(.*)/i);
-      const phaseMatch = content.match(/\*\*Fase actual:\*\*\s*(.*)/i);
-      const gateMatch = content.match(/\*\*Gate pendiente:\*\*\s*(.*)/i);
-      const actionMatch = content.match(/\*\*(?:Siguiente|Próxima) acción(?: recomendada)?:\*\*\s*(.*)/i);
-
-      if (flowMatch) items.push(new StatusItem(`Flujo: ${flowMatch[1].trim()}`, vscode.TreeItemCollapsibleState.None, '$(sync)'));
-      if (phaseMatch) items.push(new StatusItem(`Fase: ${phaseMatch[1].trim()}`, vscode.TreeItemCollapsibleState.None, '$(play)'));
-      if (gateMatch) items.push(new StatusItem(`Gate: ${gateMatch[1].trim()}`, vscode.TreeItemCollapsibleState.None, '$(shield)'));
-      if (actionMatch) items.push(new StatusItem(`Acción: ${actionMatch[1].trim()}`, vscode.TreeItemCollapsibleState.None, '$(arrow-right)'));
+      if (status.flow) items.push(new StatusItem(`Flujo: ${status.flow}`, vscode.TreeItemCollapsibleState.None, 'sync'));
+      if (status.phase) items.push(new StatusItem(`Fase: ${status.phase}`, vscode.TreeItemCollapsibleState.None, 'play'));
+      if (status.pendingGate) items.push(new StatusItem(`Gate: ${status.pendingGate}`, vscode.TreeItemCollapsibleState.None, 'shield'));
+      if (status.nextAction) items.push(new StatusItem(`Acción: ${status.nextAction}`, vscode.TreeItemCollapsibleState.None, 'arrow-right'));
 
       return Promise.resolve(items);
     } catch (err) {
-      return Promise.resolve([new StatusItem('Error al leer status.md', vscode.TreeItemCollapsibleState.None)]);
+      return Promise.resolve([
+        ...actionItems,
+        new StatusItem('Error al leer status.md', vscode.TreeItemCollapsibleState.None, 'error'),
+      ]);
     }
   }
 }
@@ -59,11 +79,14 @@ export class StatusItem extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-    icon?: string
+    icon?: string,
+    command?: vscode.Command,
   ) {
     super(label, collapsibleState);
     if (icon) {
       this.iconPath = new vscode.ThemeIcon(icon.replace(/\$|\(|\)/g, ''));
     }
+    this.command = command;
+    this.tooltip = label;
   }
 }

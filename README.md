@@ -163,6 +163,13 @@ incluidas con Copilot (`copilot`) si acaso, y después a Grok 4.6 y GLM como
 alternativas. Si un nombre no existe en tu catálogo, VS Code lo salta sin
 error y usa el siguiente: es una lista YAML, el orden es la prioridad.
 
+La extensión nativa ofrece **Alfred Dev: Seleccionar perfil de modelo** para
+guardar `alfred-dev.modelProfile` como preferencia global (`luna`, `terra` o
+`sol`). Es una preferencia de UI y no reescribe los arrays `model` de los
+agentes: VS Code no expone una API estable para cambiar ese frontmatter desde
+una extensión. La selección queda guardada como referencia visible de la
+política de coste al trabajar con Alfred.
+
 ### Añadir proveedores adicionales
 
 Para añadir otro proveedor, instala primero una extensión que implemente un
