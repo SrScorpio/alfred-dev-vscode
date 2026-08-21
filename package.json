@@ -80,6 +80,7 @@
     "package": "vsce package",
     "pretest": "npm run compile",
     "test": "node --test tests/*.test.js",
+    "verify-package": "node tests/package-contract.test.js",
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
