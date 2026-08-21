@@ -9,6 +9,8 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
+- Índice público de documentación, guía del catálogo, guía de la extensión
+  VS Code y políticas de contribución y seguridad.
 - TreeView nativo en la Activity Bar para leer el snapshot local
   `docs/project/status.md`, con límite de lectura de 64 KiB y campos visibles
   limitados a 200 caracteres.
