@@ -9,8 +9,8 @@
 - **Flujo:** feature
 - **Feature / descripción:** mensajes de chat muy compactos (modo B)
 - **Fase actual:** 6 — entrega
-- **Gate pendiente:** pipeline verde + firma de security-officer
-- **Siguiente acción:** devops-engineer empaqueta y valida CI; security-officer firma. Compilación TypeScript pendiente de `npm install` local.
+- **Gate pendiente:** primera ejecución verde de GitHub Actions + firma de security-officer
+- **Siguiente acción:** comprobar el workflow `CI` en GitHub; security-officer firma. Compilación local sigue pendiente de `npm install`.
 
 ## Issues
 
@@ -31,8 +31,9 @@
 | 2026-08-20 | Desarrollo (TDD) | APROBADO CON CONDICIONES | `5cdb5a1`; `npm test` 4/4; compile pendiente (sin `node_modules`) |
 | 2026-08-20 | Seguridad de la feature | APROBADO | Condiciones de QA/Lucius incorporadas al contrato |
 | 2026-08-21 | Documentación | APROBADO | CHANGELOG Unreleased, ADRs Aceptado, `status.md` |
+| 2026-08-21 | Entrega (CI) | APROBADO CON CONDICIONES | Añadido `.github/workflows/ci.yml`; falta la primera ejecución verde en GitHub |
 
 ## Bloqueos
 
-- Compilación `npm run compile` no ejecutada: el entorno no tiene `node_modules` ni `tsc`. No se instalaron dependencias.
+- Compilación local `npm run compile` no ejecutada: el entorno no tiene `node_modules` ni `tsc`. El workflow de CI instalará dependencias en GitHub Actions.
 - El `.gitignore` local no commiteado ignora `docs/*`. Esta documentación se versiona a propósito; ese ignore no forma parte de la feature.
