@@ -12,7 +12,7 @@ Adaptación a los mecanismos nativos de VS Code: custom agents (`.agent.md`), ha
 
 | Agente | Alias | Rol | Modelo (perfil) |
 |--------|-------|-----|-----------------|
-| `alfred` | Jefe de operaciones | Orquestador: decide qué agente actúa y evalúa gates | Terra → Grok 4.6 → GLM |
+| `alfred` | Jefe de operaciones | Orquestador: decide qué agente actúa y evalúa gates | Luna → Grok 4.6 → GLM |
 | `product-owner` | El Buscador de Problemas | PRDs, historias de usuario, criterios de aceptación | Luna → Grok 4.6 → GLM |
 | `selina` | La Estilista | Dirección de estilo visual (solo frontend) | Luna → Grok 4.6 → GLM |
 | `architect` | El Dibujante de Cajas | Diseño, ADRs, elección de stack, dependencias | Terra → Grok 4.6 → GLM |
@@ -152,11 +152,11 @@ model: ['GPT 5.6 Terra (openai-codex)', 'GPT-5.6 Terra (copilot)', 'Grok 4.6 (xa
 
 **Política de modelos GPT-5.6** (prioridad de coste):
 
-- **Luna** (el más barato): máximo posible, para tareas normales → `junior-dev` (el desarrollador del día a día), `product-owner`, `selina`, `tech-writer`, `devops-engineer`, `seo-specialist`, `lucius`.
-- **Terra**: tareas complicadas (razonamiento, auditoría) → `alfred`, `architect`, `security-officer`, `qa-engineer`.
-- **Sol**: solo tareas muy complicadas → `senior-dev` (reservado a escaladas y bugs difíciles).
+- **Luna** (el más barato): trabajo frecuente o de protocolo → `alfred` (orquestación), `junior-dev`, `product-owner`, `selina`, `tech-writer`, `devops-engineer`, `seo-specialist`, `lucius`.
+- **Terra**: razonamiento o auditoría de fase → `architect`, `security-officer`, `qa-engineer`.
+- **Sol**: solo lo muy complicado y poco frecuente → `senior-dev` (escaladas y bugs difíciles).
 
-**Patrón junior/senior**: `junior-dev` (Luna) implementa por defecto con TDD y escala a `senior-dev` (Sol) tras dos intentos fallidos, código que no entiende o tareas fuera de alcance. Así el coste de desarrollo cotidiano se mantiene en Luna y Sol solo entra cuando de verdad hace falta.
+El coste sigue a la **dificultad × frecuencia**, no al rango del rol. Alfred orquesta en Luna porque enruta y comprueba evidencia; el análisis duro lo pagan `architect`, QA y seguridad (Terra) o `senior-dev` (Sol). `product-owner` permanece en Luna: el PRD y las issues son protocolo, no diagnóstico. `junior-dev` abre los PRs cotidianos en Luna; `senior-dev` solo entra cuando junior se atasca dos veces. `qa-engineer` (Terra) revisa esos PRs.
 
 La cadena prioriza tu cuenta de OpenAI (`openai-codex`), cae a las variantes
 incluidas con Copilot (`copilot`) si acaso, y después a Grok 4.6 y GLM como

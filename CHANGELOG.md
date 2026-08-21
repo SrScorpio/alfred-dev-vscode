@@ -35,6 +35,8 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 - Autopilot: Alfred deja de encadenar fases; `tech-writer` ya no handoffea a
   DevOps. `tech-writer` declara `terminal` solo para leer GitHub. La
   delegación apunta al rol, no a un modelo.
+- Política de coste: `alfred` pasa a Luna (orquestación frecuente);
+  `senior-dev` permanece en Sol (escaladas raras); `architect` y QA en Terra.
 
 ## [0.6.4] - 2026-08-18
 

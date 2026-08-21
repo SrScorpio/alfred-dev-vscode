@@ -7,7 +7,7 @@ tools: ['search', 'terminal', 'web', 'agent']
 agents: ['product-owner', 'selina', 'architect', 'junior-dev', 'senior-dev', 'security-officer', 'qa-engineer', 'tech-writer', 'devops-engineer', 'seo-specialist', 'lucius']
 # Para añadir Claude u otro proveedor, pega su nombre exacto del picker al final.
 # No actives fallbacks no instalados: el vendor y la versión dependen del bridge.
-model: ['GPT 5.6 Terra (openai-codex)', 'GPT-5.6 Terra (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
+model: ['GPT 5.6 Luna (openai-codex)', 'GPT-5.6 Luna (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']
 handoffs:
   - label: Empezar feature (PRD)
     agent: product-owner

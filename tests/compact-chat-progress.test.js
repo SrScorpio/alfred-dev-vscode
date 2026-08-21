@@ -123,6 +123,26 @@ test('each agent declares the exact tool set for its role', () => {
   assert.doesNotMatch(alfredFrontmatter, /^[ \t]+model:/m);
 });
 
+test('model cost follows task difficulty, not job title', () => {
+  const alfredFrontmatter = readRepositoryFile('agents/alfred.agent.md').split('---')[1];
+  const seniorFrontmatter = readRepositoryFile('agents/senior-dev.agent.md').split('---')[1];
+  const architectFrontmatter = readRepositoryFile('agents/architect.agent.md').split('---')[1];
+  const productOwnerFrontmatter = readRepositoryFile('agents/product-owner.agent.md').split('---')[1];
+  const qaFrontmatter = readRepositoryFile('agents/qa-engineer.agent.md').split('---')[1];
+  const juniorFrontmatter = readRepositoryFile('agents/junior-dev.agent.md').split('---')[1];
+  const readme = readRepositoryFile('README.md');
+
+  assert.match(alfredFrontmatter, /GPT 5\.6 Luna \(openai-codex\)/);
+  assert.doesNotMatch(alfredFrontmatter, /GPT 5\.6 Terra|GPT 5\.6 Sol/);
+  assert.match(seniorFrontmatter, /GPT 5\.6 Sol \(openai-codex\)/);
+  assert.match(architectFrontmatter, /GPT 5\.6 Terra \(openai-codex\)/);
+  assert.match(productOwnerFrontmatter, /GPT 5\.6 Luna \(openai-codex\)/);
+  assert.match(qaFrontmatter, /GPT 5\.6 Terra \(openai-codex\)/);
+  assert.match(juniorFrontmatter, /GPT 5\.6 Luna \(openai-codex\)/);
+  assert.match(readme, /Alfred orquesta en Luna/);
+  assert.match(readme, /senior-dev.*Sol/s);
+});
+
 test('tech-writer duplicates GitHub state into status.md and Alfred only reads it', () => {
   const alfred = readRepositoryFile('agents/alfred.agent.md');
   const techWriter = readRepositoryFile('agents/tech-writer.agent.md');
