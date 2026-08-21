@@ -29,5 +29,23 @@ test('el VSIX excluye fuentes, tests, dependencias y skills de stack', () => {
   assert.match(vscodeignore, /^tests\//m);
   assert.match(vscodeignore, /^node_modules\//m);
   assert.match(vscodeignore, /^skills\//m);
+  assert.match(vscodeignore, /^agents\//m);
+  assert.match(vscodeignore, /^instructions\//m);
+  assert.match(vscodeignore, /^templates\//m);
+  assert.match(vscodeignore, /^docs\//m);
+  assert.match(vscodeignore, /^\.vscode\//m);
+  assert.match(vscodeignore, /^\.github\//m);
+  assert.match(vscodeignore, /^\*-out\/$/m);
+  assert.match(vscodeignore, /^\*\*\/\*\.map$/m);
+  assert.match(vscodeignore, /^\*\*\/\*\.ts$/m);
+  assert.match(vscodeignore, /^!out\/\*\*\/\*\.js$/m);
+  assert.doesNotMatch(vscodeignore, /^!out\/\*\*$/m);
   assert.doesNotMatch(vscodeignore, /^out\//m);
+});
+
+test('el proveedor carga status.md de forma asíncrona', () => {
+  const provider = readRepositoryFile('src/providers/statusTreeProvider.ts');
+
+  assert.match(provider, /async getChildren\(/);
+  assert.doesNotMatch(provider, /existsSync|readFileSync/);
 });

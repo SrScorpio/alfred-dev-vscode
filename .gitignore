@@ -19,6 +19,7 @@ __pycache__/
 # Node (para tooling futuro)
 node_modules/
 out/
+*-out/
 *.vsix
 
 # Temporales de auditoría visual
