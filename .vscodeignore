@@ -1,0 +1,13 @@
+src/
+tests/
+node_modules/
+skills/
+agents/
+instructions/
+templates/
+install.ps1
+install.sh
+plugin.json
+CHANGELOG.md
+*.ts
+*.map
