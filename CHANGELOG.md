@@ -25,7 +25,7 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 - Las cadenas de modelos priorizan los nombres normalizados que expone Codex
   Bridge (`GPT 5.6 Terra`, `GPT 5.6 Luna` y `GPT 5.6 Sol`) con el vendor
   `(openai-codex)`.
-- README ampliado con nota informativa sobre los bridges instalados y una guía
+- README ampliado con nota informativa sobre los bridges instalados y una gía
   para añadir proveedores adicionales, incluidos fallbacks opcionales de
   Claude al final de la cadena.
 
@@ -131,10 +131,10 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
-- Instrucciones globales, cierre de la revisión de la guía de 60 buenas
+- Instrucciones globales, cierre de la revisión de la gía de 60 buenas
   prácticas: composición sobre herencia, SOLID/DRY donde reduzcan complejidad
   real (no dogma) y seguir el linter/formatter del proyecto cuando esté
-  configurado. El resto de la guía ya estaba cubierto por global-instructions,
+  configurado. El resto de la gía ya estaba cubierto por global-instructions,
   los agentes o la plantilla por proyecto.
 
 ## [0.4.1] - 2026-08-18
