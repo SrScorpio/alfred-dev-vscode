@@ -9,7 +9,7 @@ Validar la extensión VSIX de la issue #1: TreeView de estado, comandos de chat 
 | Área | Tipo | Evidencia actual | Estado |
 | --- | --- | --- | --- |
 | Parser de `status.md` | Unitario | `tests/status-parser.test.js` cubre `Siguiente acción`, `Próxima acción` y snapshot ausente | Parcial |
-| Perfiles Luna/Terra/Sol | Unitario | `tests/model-profile.test.js` comprueba catálogo, orden y textos; no ejercita la API de configuración ni el estado seleccionado | Parcial |
+| Perfiles Luna/Terra/Sol | Unitario | `tests/model-profile.test.js` comprueba catálogo, orden, textos y que el perfil global recibido se marca como seleccionado | Parcial |
 | Contribuciones de extensión | Contrato | `tests/extension-contract.test.js` comprueba comandos, configuración y exclusiones básicas | Parcial |
 | Compatibilidad de instrucciones existente | Regresión | `tests/compact-chat-progress.test.js` | Cubierto |
 | Compilación y suite | Integración ligera | `npm test`: 21 de 21 pruebas en verde | Cubierto |
@@ -34,7 +34,7 @@ Validar la extensión VSIX de la issue #1: TreeView de estado, comandos de chat 
 
 ## Huecos que deben automatizarse
 
-1. Mock de `vscode.window.showQuickPick` y `workspace.getConfiguration().update` para cubrir selección, cancelación y que el perfil global guardado se presenta como seleccionado al reabrir.
+1. Mock de `vscode.window.showQuickPick` y `workspace.getConfiguration().update` para cubrir selección y cancelación contra la API de VS Code.
 2. Pruebas de `StatusTreeProvider` con workspace vacío, archivo ausente, lectura fallida y contenido malformado.
 3. Pruebas de fallo de `workbench.action.chat.open` para ambos comandos de chat.
 4. Automatizar en CI la comprobación de contenido del VSIX con `vsce ls --tree`, ejecutada en un árbol con salidas generadas no permitidas.
@@ -48,15 +48,15 @@ Validar la extensión VSIX de la issue #1: TreeView de estado, comandos de chat 
 
 **Notas acumuladas:**
 
-- El selector persiste únicamente `alfred-dev.modelProfile` en `ConfigurationTarget.Global`, como exige el alcance vigente. Al reabrirlo, no lee esa preferencia ni identifica visualmente el perfil guardado.
+- El selector persiste únicamente `alfred-dev.modelProfile` en `ConfigurationTarget.Global`, como exige el alcance vigente. Al reabrirlo, lee esa preferencia y marca visualmente el perfil guardado.
 - El código de chat delega directamente en `workbench.action.chat.open` y no captura un rechazo ni verifica que Copilot Chat esté disponible.
 - `npm run package` genera el VSIX y `npx vsce ls --tree` confirma que no se incluyen `1260721182603-out/`, fuentes, tests, dependencias ni documentación ajena al runtime.
 - `npm test` pasa 21 pruebas, pero ninguna prueba integra la API `vscode`, el host de extensiones ni el contenido real del VSIX en CI.
 
-**Resumen:** la regresión unitaria básica, la compilación y el empaquetado están en verde. Falta implementar y cubrir la identificación visual del perfil global guardado al reabrir el selector; la persistencia y el alcance global sí están verificados.
+**Resumen:** la regresión unitaria básica, la compilación y el empaquetado están en verde. La identificación visual del perfil global guardado al reabrir el selector está implementada y cubierta unitariamente; la persistencia y el alcance global sí están verificados.
 
 ## Evidencia de ejecución
 
-- CI del PR #9: check `test` completado con `success` en el commit `29b1dbc897758a5ced3082623cffe7278cc971cb`.
+- CI del PR #9: check `test` completado con `success` en el commit `56985403bf1bcfcf518585b714617e0d8b727124`.
 - Local: `npm test` completó 21 de 21 pruebas sin fallos.
 - Local: `npm run package` generó `alfred-dev-vscode-0.6.5.vsix` y `npx vsce ls --tree` devolvió 10 archivos permitidos, sin mapas ni salidas locales.
