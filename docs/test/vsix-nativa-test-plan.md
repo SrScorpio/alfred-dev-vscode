@@ -58,5 +58,5 @@ Validar la extensión VSIX de la issue #1: TreeView de estado, comandos de chat 
 ## Evidencia de ejecución
 
 - CI del PR #9: check `test` completado con `success` en el commit `084e64eaf1b51656a5149cb0b5a22021c90f56d2`.
-- Local: `npm test` completó 16 de 16 pruebas sin fallos.
-- Local: `npm run package` generó `alfred-dev-vscode-0.6.5.vsix`.
+- Local: `npm test` completó 20 de 20 pruebas sin fallos.
+- Local: `npx vsce ls` devolvió 10 archivos permitidos, sin mapas ni salidas locales.
