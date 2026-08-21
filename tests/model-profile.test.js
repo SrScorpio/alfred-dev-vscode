@@ -11,4 +11,15 @@ test('expone los tres perfiles con la política de coste del README', () => {
   assert.match(items[0].description, /frecuente/i);
   assert.match(items[1].description, /razonamiento|auditoría/i);
   assert.match(items[2].description, /complicado/i);
+  assert.equal(items[0].picked, true);
+  assert.equal(items[1].picked, false);
+  assert.equal(items[2].picked, false);
+});
+
+test('marca como seleccionado el perfil global guardado', () => {
+  const items = getModelProfileItems('terra');
+
+  assert.equal(items[0].picked, false);
+  assert.equal(items[1].picked, true);
+  assert.equal(items[2].picked, false);
 });

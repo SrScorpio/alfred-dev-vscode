@@ -19,14 +19,18 @@ export interface ModelProfileQuickPickItem {
   label: string;
   description: string;
   profile: ModelProfile;
+  picked?: boolean;
 }
 
-export function getModelProfileItems(): ModelProfileQuickPickItem[] {
+export function getModelProfileItems(selectedProfile?: ModelProfile): ModelProfileQuickPickItem[] {
+  const activeProfile = selectedProfile ?? 'luna';
+
   return (Object.entries(MODEL_PROFILES) as [ModelProfile, (typeof MODEL_PROFILES)[ModelProfile]][]).map(
     ([profile, details]) => ({
       label: details.label,
       description: details.description,
       profile,
+      picked: profile === activeProfile,
     }),
   );
 }

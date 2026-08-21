@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { StatusTreeProvider } from '../providers/statusTreeProvider';
 import { getModelProfileItems } from './modelProfiles';
+import type { ModelProfile } from './modelProfiles';
 
 export function registerCommands(context: vscode.ExtensionContext, statusProvider: StatusTreeProvider) {
   const startFlowCommand = vscode.commands.registerCommand('alfred-dev.startFlow', async () => {
@@ -25,7 +26,9 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
   });
 
   const selectModelProfileCommand = vscode.commands.registerCommand('alfred-dev.selectModelProfile', async () => {
-    const selected = await vscode.window.showQuickPick(getModelProfileItems(), {
+    const configuration = vscode.workspace.getConfiguration('alfred-dev');
+    const selectedProfile = configuration.get<ModelProfile>('modelProfile', 'luna');
+    const selected = await vscode.window.showQuickPick(getModelProfileItems(selectedProfile), {
       placeHolder: 'Selecciona el perfil de modelo para Alfred Dev',
       title: 'Perfil de modelo',
     });
@@ -34,7 +37,6 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
       return;
     }
 
-    const configuration = vscode.workspace.getConfiguration('alfred-dev');
     await configuration.update('modelProfile', selected.profile, vscode.ConfigurationTarget.Global);
     vscode.window.showInformationMessage(`Perfil de modelo guardado: ${selected.label}.`);
   });
