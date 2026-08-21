@@ -7,8 +7,21 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+### Added
+
+- Contrato `tests/compact-chat-progress.test.js` y script `npm test` para
+  bloquear regresiones de la política de progreso compacto y de las
+  excepciones de seguridad, integridad, coste y aprobación.
+
 ### Changed
 
+- Política de progreso conversacional muy compacto (modo B): los agentes no
+  narran búsquedas, lecturas, comandos ni microacciones; emiten como máximo
+  una línea de estado ante un cambio relevante, bloqueo, decisión, riesgo o
+  resultado; y conservan el detalle de informes, veredictos y gates.
+- `alfred`, `qa-engineer` y `lucius` adaptan activación y notas exploratorias
+  a esa política. Lucius mantiene confirmación explícita, sandbox de solo
+  lectura y comparación Git; las HARD-GATE de Alfred no se relajan.
 - Las cadenas de modelos priorizan los nombres normalizados que expone Codex
   Bridge (`GPT 5.6 Terra`, `GPT 5.6 Luna` y `GPT 5.6 Sol`) con el vendor
   `(openai-codex)`.
@@ -96,7 +109,7 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 - Atribución reforzada al autor original: cabecera del README con nota
   destacada (repo `686f6c61/alfred-dev` + documentación en alfred-dev.com),
-  sección de créditos ampliada con desglose qué-viene-del-original /
+  sección de créditos extraída con desglose qué-viene-del-original /
   qué-añade-el-port, y LICENSE con doble línea de copyright (el original se
   conserva expresamente, como exige el MIT).
 
@@ -250,7 +263,7 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
   (`.agent.md`): `alfred`, `product-owner`, `selina`, `architect`,
   `senior-dev`, `security-officer`, `qa-engineer`, `tech-writer`,
   `devops-engineer` y `lucius`.
-- Arrays `model` multi-proveedor con fallback automático en cada agente
+- Arrays `model` trans-proveedor con fallback automático en cada agente
   (Grok / GPT / GLM / copilot).
 - Campo `agents` (subagentes) en `alfred`, `senior-dev` y `qa-engineer` para
   delegación en fases paralelas.
