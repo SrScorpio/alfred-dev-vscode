@@ -116,6 +116,14 @@ Las instrucciones globales (`instructions/global-instructions.md.instructions.md
 
 Para las **instrucciones del propio proyecto** (stack, innegociables) copia la plantilla instalada (`~/.copilot/alfred-dev/templates/copilot-instructions.md` o `.github/alfred-dev/templates/`) a la raíz como `AGENTS.md` y rellénala. El instalador **no** crea `AGENTS.md`. Si el proyecto ya tiene `plans/` o `docs/`, esa documentación manda.
 
+## Rutas de documentación
+
+- [Catálogo de agentes y skills](docs/catalog.md).
+- [Guía de la extensión VS Code y la VSIX](docs/vsix.md).
+- [Cómo contribuir](CONTRIBUTING.md).
+- [Política de seguridad](SECURITY.md).
+- [Índice de documentación pública](docs/README.md).
+
 ## Configuración de modelos
 
 Cada agente declara en su frontmatter un **array `model` priorizado**: VS Code prueba los modelos en orden y usa el primero disponible. Si un proveedor no está instalado, se salta sin errores y cae al siguiente.
