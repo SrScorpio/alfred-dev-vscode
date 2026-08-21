@@ -44,6 +44,12 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 - Las instrucciones globales dejan de imponer convenciones PHP/WordPress.
   El estándar de cada plataforma sale de las skills instaladas (stack y
   proceso), no de una ruta del plugin.
+
+### Removed
+
+- `docs/` de este plugin (PRD/ADR/status de la prueba compact-chat). El estado
+  del repo vive en GitHub Issues; las plantillas de docs vivas siguen en
+  `templates/` para los proyectos destino.
 - Política de coste: `alfred` pasa a Luna (orquestación frecuente);
   `senior-dev` permanece en Sol (escaladas raras); `architect` y QA en Terra.
 

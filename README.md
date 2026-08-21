@@ -325,7 +325,6 @@ alfred-dev-vscode/
 │   ├── core/                   # 8 skills de proceso adaptadas a VS Code
 │   ├── source-claude/          # memory / style-direction / sonarqube (no se instalan)
 │   └── stack/                  # 30 skills de stack MIT (lenguajes/frameworks)
-├── docs/                      # PRDs, ADRs y snapshot de estado del flujo
 ├── tests/                     # Contratos de instrucciones (node:test)
 ├── instructions/
 │   └── global-instructions.md.instructions.md   # El instalador la pone en User/instructions o .github/instructions/
