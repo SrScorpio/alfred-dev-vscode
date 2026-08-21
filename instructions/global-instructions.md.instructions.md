@@ -29,6 +29,10 @@ description: 'Reglas globales de desarrollo. Cargar siempre: estilo, seguridad, 
   Copilot el tool set de comandos es `execute` (`execute/runInTerminal`). No
   existe la tool `terminal`. Un subagente sin `execute` no puede correr
   comandos aunque el orquestador sí los tenga.
+- **GitHub:** Issues y PRs van por GitHub MCP (`github/*`), el estándar de
+  VS Code. `gh` por `execute` es fallback si el MCP no está disponible. Git
+  local (rama, commit, push) sigue siendo `execute`. Si no hay MCP ni `gh`,
+  el flujo queda en local y se dice. No se instala `gh` para cubrir el hueco.
 - **Autopilot:** completar la petición actual y parar. No arrancar la fase
   siguiente, no reintentar el mismo paso en bucle, no improvisar tools que el
 	rol no declara. No iniciar fases nuevas sin una petición explícita del usuario

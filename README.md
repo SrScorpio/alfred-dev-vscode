@@ -220,13 +220,13 @@ El plugin no omite las confirmaciones de VS Code. Autopilot es un permiso de ses
 
 - Deja los handoffs en `send: false`.
 - No uses **Bypass Approvals** ni Autopilot global para saltar gates.
-- Si auto-apruebas terminal, limítalo a comandos de lectura (`gh issue list`, `gh pr list`, `npm test`) y nunca a `git push`, `gh pr merge` o despliegues.
+- Si auto-apruebas terminal, limítalo a comandos de lectura (`npm test`, `git status`) y nunca a `git push`, merge de PRs o despliegues. Issues y PRs van por GitHub MCP.
 - Tras cambiar un `.agent.md`, reselecciona el agente o abre un chat nuevo.
 - El agente destino usa su propio array `model`; no hace falta activar un setting extra para la subdelegación.
 
 ### Flujo GitHub (issues, ramas y PRs)
 
-Si tu proyecto usa GitHub (con `gh` CLI autenticado), el flujo feature se apoya en Issues y Pull Requests **sin necesidad de agentes extra** — cada fase hace su parte:
+Si tu proyecto usa GitHub, el flujo feature se apoya en Issues y Pull Requests **sin necesidad de agentes extra** — cada fase hace su parte. Canal por defecto: GitHub MCP de VS Code (`github/*`). `gh` es fallback si el MCP no está:
 
 | Fase | Quién | Qué hace en GitHub |
 |---|---|---|
@@ -235,7 +235,7 @@ Si tu proyecto usa GitHub (con `gh` CLI autenticado), el flujo feature se apoya 
 | Calidad | `qa-engineer` | Revisa el PR como gate: hallazgos bloqueantes → request-changes; gate superada → approve. CI rojo = rechazado |
 | Entrega | `devops-engineer` | CI en cada PR, `main` protegida, releases |
 
-El merge siempre lo decides tú. El contenido de las historias manda el PRD (`docs/prd/`); **el estado del trabajo vive en las issues**, y si no hay `gh` o no hay remoto, el flujo funciona igual en local (commits + gates).
+El merge siempre lo decides tú. El contenido de las historias manda el PRD (`docs/prd/`); **el estado del trabajo vive en las issues**. Si no hay MCP, ni `gh`, ni remoto, el flujo funciona igual en local (commits + gates).
 
 ### Memoria y continuidad (dónde vive el estado)
 
@@ -263,22 +263,22 @@ El trabajo nunca depende de una sola persona ni de un chat que se pierde. El est
 
 ### Herramientas por agente
 
-| Agente | search | edit | execute | web | agent (subagentes) |
-|--------|:-----:|:----:|:--------:|:---:|:------------------:|
-| alfred | ✓ | – | ✓ | ✓ | ✓ (el equipo) |
-| product-owner | ✓ | ✓ | ✓ | ✓ | – |
-| selina | ✓ | ✓ | ✓ | – | – |
-| architect | ✓ | ✓ | ✓ | ✓ | – |
-| senior-dev | ✓ | ✓ | ✓ | – | ✓ (security) |
-| junior-dev | ✓ | ✓ | ✓ | – | – |
-| security-officer | ✓ | ✓ | ✓ | ✓ | – |
-| qa-engineer | ✓ | ✓ | ✓ | – | ✓ (security) |
-| tech-writer | ✓ | ✓ | ✓ | – | – |
-| devops-engineer | ✓ | ✓ | ✓ | – | – |
-| lucius | ✓ | – | ✓ | – | – |
-| seo-specialist | ✓ | ✓ | ✓ | – | – |
+| Agente | search | edit | github/* | execute | web | agent (subagentes) |
+|--------|:-----:|:----:|:--------:|:-------:|:---:|:------------------:|
+| alfred | ✓ | – | ✓ | ✓ | ✓ | ✓ (el equipo) |
+| product-owner | ✓ | ✓ | ✓ | ✓ | ✓ | – |
+| selina | ✓ | ✓ | – | ✓ | – | – |
+| architect | ✓ | ✓ | – | ✓ | ✓ | – |
+| senior-dev | ✓ | ✓ | ✓ | ✓ | – | ✓ (security) |
+| junior-dev | ✓ | ✓ | ✓ | ✓ | – | – |
+| security-officer | ✓ | ✓ | – | ✓ | ✓ | – |
+| qa-engineer | ✓ | ✓ | ✓ | ✓ | – | ✓ (security) |
+| tech-writer | ✓ | ✓ | ✓ | ✓ | – | – |
+| devops-engineer | ✓ | ✓ | – | ✓ | – | – |
+| lucius | ✓ | – | – | ✓ | – | – |
+| seo-specialist | ✓ | ✓ | – | ✓ | – | – |
 
-Restricción deliberada: `tech-writer` usa `execute` solo para leer GitHub y duplicar `status.md`; lucius audita con `search` y no tiene `edit`. `product-owner` declara `execute` para `gh issue`. El tool set oficial de comandos es `execute` (`execute/runInTerminal`); no existe la tool `terminal`. Los subagentes no heredan las tools de Alfred. La delegación apunta al agente; el receptor usa su propio array `model`. No se pone `handoffs.model`.
+Restricción deliberada: Issues y PRs van por GitHub MCP (`github/*`); `gh` por `execute` es fallback. `tech-writer` usa MCP para leer GitHub y `execute` para persistir `status.md`. lucius audita con `search` y no tiene `edit`. El tool set de comandos es `execute` (`execute/runInTerminal`); no existe la tool `terminal`. Los subagentes no heredan las tools de Alfred. La delegación apunta al agente; el receptor usa su propio array `model`. No se pone `handoffs.model`.
 
 ### Lucius (segunda opinión externa)
 

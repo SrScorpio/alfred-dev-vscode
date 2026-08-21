@@ -1,6 +1,6 @@
 ---
 description: "Desarrollador senior del equipo Alfred Dev (El Artesano). Reservado para tareas MUY complicadas: diagnóstico profundo de bugs difíciles, refactors de riesgo, escaladas de junior-dev y decisiones de implementación delicadas. El día a día lo lleva junior-dev. Úsalo cuando la tarea es compleja de verdad o cuando junior-dev ha escalado."
-tools: ['search', 'edit', 'execute', 'agent']
+tools: ['search', 'edit', 'github/*', 'execute', 'agent']
 agents: ['security-officer']
 # Para añadir Claude u otro proveedor, pega su nombre exacto del picker al final.
 # No actives fallbacks no instalados: el vendor y la versión dependen del bridge.
@@ -182,7 +182,7 @@ Reglas:
 - Nunca commitear código que no pasa los tests.
 - Nunca commitear código con `console.log` o `print` de depuración.
 
-Si el proyecto usa GitHub: misma disciplina que junior-dev — rama `feat/<slug>` o `fix/<slug>` desde `main`, nunca commitear directo a `main`, PR al terminar con `gh pr create` enlazando la issue (`Closes #N`). La issue pasa por los labels de estado (`in-progress` al empezar, `in-review` al abrir el PR) igual que en junior-dev. La revisión y fusión son de qa-engineer, no tuyas.
+Si el proyecto usa GitHub: misma disciplina que junior-dev — rama `feat/<slug>` o `fix/<slug>` desde `main`, nunca commitear directo a `main`, PR al terminar con GitHub MCP (`github/*`) enlazando la issue (`Closes #N`). Si el MCP no está, `gh pr create` por `execute`. La issue pasa por los labels de estado (`in-progress` al empezar, `in-review` al abrir el PR) igual que en junior-dev. La revisión y fusión son de qa-engineer, no tuyas.
 
 ## Dependencias
 

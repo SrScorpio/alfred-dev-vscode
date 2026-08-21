@@ -89,7 +89,7 @@ test('Alfred has only the tools needed to orchestrate and reconstruct state', ()
   const alfred = readRepositoryFile('agents/alfred.agent.md');
   const frontmatter = alfred.split('---')[1];
 
-  assert.match(frontmatter, /tools: \['search', 'execute', 'web', 'agent'\]/);
+  assert.match(frontmatter, /tools: \['search', 'github\/\*', 'execute', 'web', 'agent'\]/);
   assert.doesNotMatch(frontmatter, /tools: \[[^\]]*'edit'/);
   assert.doesNotMatch(frontmatter, /['"]terminal['"]/);
   assert.doesNotMatch(frontmatter, /['"]read['"]/);
@@ -97,15 +97,15 @@ test('Alfred has only the tools needed to orchestrate and reconstruct state', ()
 
 test('each agent declares the exact tool set for its role', () => {
   const expectedTools = {
-    'alfred.agent.md': "tools: ['search', 'execute', 'web', 'agent']",
-    'product-owner.agent.md': "tools: ['search', 'edit', 'execute', 'web']",
+    'alfred.agent.md': "tools: ['search', 'github/*', 'execute', 'web', 'agent']",
+    'product-owner.agent.md': "tools: ['search', 'edit', 'github/*', 'execute', 'web']",
     'selina.agent.md': "tools: ['search', 'edit', 'execute']",
     'architect.agent.md': "tools: ['search', 'edit', 'web', 'execute']",
-    'junior-dev.agent.md': "tools: ['search', 'edit', 'execute']",
-    'senior-dev.agent.md': "tools: ['search', 'edit', 'execute', 'agent']",
+    'junior-dev.agent.md': "tools: ['search', 'edit', 'github/*', 'execute']",
+    'senior-dev.agent.md': "tools: ['search', 'edit', 'github/*', 'execute', 'agent']",
     'security-officer.agent.md': "tools: ['search', 'edit', 'execute', 'web']",
-    'qa-engineer.agent.md': "tools: ['search', 'edit', 'execute', 'agent']",
-    'tech-writer.agent.md': "tools: ['search', 'edit', 'execute']",
+    'qa-engineer.agent.md': "tools: ['search', 'edit', 'github/*', 'execute', 'agent']",
+    'tech-writer.agent.md': "tools: ['search', 'edit', 'github/*', 'execute']",
     'devops-engineer.agent.md': "tools: ['search', 'edit', 'execute']",
     'lucius.agent.md': "tools: ['search', 'execute']",
     'seo-specialist.agent.md': "tools: ['search', 'edit', 'execute']",
@@ -113,7 +113,7 @@ test('each agent declares the exact tool set for its role', () => {
 
   for (const [agentFile, toolsLine] of Object.entries(expectedTools)) {
     const frontmatter = readRepositoryFile(path.join('agents', agentFile)).split('---')[1];
-    assert.match(frontmatter, new RegExp(toolsLine.replace(/[[\]]/g, '\\$&')));
+    assert.match(frontmatter, new RegExp(toolsLine.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     assert.doesNotMatch(frontmatter, /['"]terminal['"]/);
     assert.doesNotMatch(frontmatter, /tools: \[[^\]]*'read'/);
   }
@@ -164,7 +164,9 @@ test('tech-writer duplicates GitHub state into status.md and Alfred only reads i
   assert.match(alfred, /No lo editas/);
   assert.doesNotMatch(alfred, /El agente que cierra la gate actualiza/);
   assert.doesNotMatch(alfred, /y commitealo \(`chore: update flow status`\)/);
-  assert.match(alfred, /execute.*reconstruir estado|consultar el estado/s);
+  assert.match(alfred, /GitHub MCP \(`github\/\*`\)/);
+  assert.match(instructions, /GitHub MCP \(`github\/\*`\)/);
+  assert.match(techWriter, /GitHub MCP/);
   assert.match(alfred, /reseleccionar el agente|chat nuevo/);
   assert.match(techWriter, /único agente que lo escribe/);
   assert.match(techWriter, /duplicado local de GitHub/);

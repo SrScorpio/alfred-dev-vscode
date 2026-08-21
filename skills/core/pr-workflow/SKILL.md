@@ -1,12 +1,13 @@
 ---
 name: pr-workflow
-description: "Usar para abrir o completar una pull request con descripción, labels y enlace a issue. También: gh pr create, Closes #N, rama feat/fix."
+description: "Usar para abrir o completar una pull request con descripción, labels y enlace a issue. También: GitHub MCP, gh pr create, Closes #N, rama feat/fix."
 ---
 
 # Crear pull requests
 
-Una PR explica qué cambió, por qué y cómo verificarlo. Requiere `gh`
-autenticado y remoto. Si no hay `gh`, dilo y no finjas la PR.
+Una PR explica qué cambió, por qué y cómo verificarlo. Canal por defecto:
+GitHub MCP (`github/*`). `gh` es fallback. Si no hay MCP ni `gh`, dilo y
+no finjas la PR.
 
 Alineado con el flujo GitHub del equipo: rama `feat/<slug>` o `fix/<slug>`,
 issue en `in-review` al abrir, merge lo decide el usuario.
@@ -36,9 +37,9 @@ issue en `in-review` al abrir, merge lo decide el usuario.
    ## Notas para el revisor
    decisiones, zonas delicadas
 
-5. **Abrir:** `gh pr create` con título, cuerpo y `Closes #N`. Labels
-   (`bug`, `feature`, `refactor`, `docs`) si el repo las tiene. Reviewers
-   solo si el usuario indica quién.
+5. **Abrir:** GitHub MCP con título, cuerpo y `Closes #N`. Si el MCP no
+   está, `gh pr create`. Labels (`bug`, `feature`, `refactor`, `docs`) si
+   el repo las tiene. Reviewers solo si el usuario indica quién.
 
 6. Marca la issue `in-review` (quita `in-progress`). Comprueba que CI arranca.
 

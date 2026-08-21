@@ -26,7 +26,7 @@ en `~/.copilot/alfred-dev/templates/` o `.github/alfred-dev/templates/`.
 | `threat-model` | STRIDE sobre arquitectura real | `security-officer` |
 | `compliance-check` | RGPD / NIS2 / CRA con evidencia | `security-officer` |
 | `sbom-generate` | Inventario (syft/cyclonedx o markdown) | `security-officer` |
-| `pr-workflow` | PR con `gh` y `Closes #N` | `junior-dev` / `senior-dev` |
+| `pr-workflow` | PR con GitHub MCP (`gh` fallback) y `Closes #N` | `junior-dev` / `senior-dev` |
 | `sync-project-docs` | Docs vivas / `plans/` / `status.md` | `tech-writer` |
 | `incident-response` | Triaje → mitigación → postmortem | `qa-engineer`, `senior-dev` |
 
