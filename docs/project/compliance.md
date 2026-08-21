@@ -54,4 +54,5 @@ Ninguno con severidad critica, alta o media en el alcance de esta revision.
 ## Condiciones pendientes
 
 - La divulgacion y correccion coordinada de vulnerabilidades CRA tiene un canal publico en `SECURITY.md`, pero faltan SLA de acuse, analisis y correccion, y una matriz formal de versiones soportadas. Severidad MEDIA de proceso, no bloqueante para esta PR de documentacion.
+- `SECURITY.md` no establece un contacto directo ni un SLA aprobado; la evidencia disponible se limita al canal publico recomendado y a la coordinacion posible de la divulgacion.
 - La politica de actualizaciones de seguridad CRA sigue pendiente de evidencia del publicador.
