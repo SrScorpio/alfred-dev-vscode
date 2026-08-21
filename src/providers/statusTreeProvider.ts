@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import * as path from 'path';
 import { parseProjectStatus } from './parseStatus';
+import { readStatusFile } from './readStatusFile';
 
 export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<StatusItem | undefined | null | void> = new vscode.EventEmitter<StatusItem | undefined | null | void>();
@@ -15,14 +15,14 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
     return element;
   }
 
-  getChildren(element?: StatusItem): Thenable<StatusItem[]> {
+  async getChildren(element?: StatusItem): Promise<StatusItem[]> {
     if (element) {
-      return Promise.resolve([]);
+      return [];
     }
 
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
-      return Promise.resolve([new StatusItem('Sin Workspace abierto', vscode.TreeItemCollapsibleState.None)]);
+      return [new StatusItem('Sin Workspace abierto', vscode.TreeItemCollapsibleState.None)];
     }
 
     const rootPath = workspaceFolders[0].uri.fsPath;
@@ -48,15 +48,8 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
       ),
     ];
 
-    if (!fs.existsSync(statusPath)) {
-      return Promise.resolve([
-        ...actionItems,
-        new StatusItem('Sin snapshot local. El estado vive en GitHub Issues.', vscode.TreeItemCollapsibleState.None, 'info'),
-      ]);
-    }
-
     try {
-      const content = fs.readFileSync(statusPath, 'utf8');
+      const content = await readStatusFile(statusPath);
       const status = parseProjectStatus(content);
       const items: StatusItem[] = [...actionItems];
 
@@ -65,14 +58,25 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
       if (status.pendingGate) items.push(new StatusItem(`Gate: ${status.pendingGate}`, vscode.TreeItemCollapsibleState.None, 'shield'));
       if (status.nextAction) items.push(new StatusItem(`Acción: ${status.nextAction}`, vscode.TreeItemCollapsibleState.None, 'arrow-right'));
 
-      return Promise.resolve(items);
-    } catch (err) {
-      return Promise.resolve([
+      return items;
+    } catch (error: unknown) {
+      if (isFileNotFoundError(error)) {
+        return [
+          ...actionItems,
+          new StatusItem('Sin snapshot local. El estado vive en GitHub Issues.', vscode.TreeItemCollapsibleState.None, 'info'),
+        ];
+      }
+
+      return [
         ...actionItems,
         new StatusItem('Error al leer status.md', vscode.TreeItemCollapsibleState.None, 'error'),
-      ]);
+      ];
     }
   }
+}
+
+function isFileNotFoundError(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
 }
 
 export class StatusItem extends vscode.TreeItem {
