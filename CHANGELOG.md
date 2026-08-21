@@ -13,7 +13,7 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
   bloquear regresiones de la política de progreso compacto y de las
   excepciones de seguridad, integridad, coste y aprobación.
 - Workflow GitHub Actions (`.github/workflows/ci.yml`) que ejecuta `npm test`
-  y `npm run compile` en `push` y `pull_request`.
+  y `npm run compile` en `push` y `pull_request`, con `permissions: contents: read`.
 
 ### Changed
 
@@ -30,6 +30,11 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 - README ampliado con nota informativa sobre los bridges instalados y una guía
   para añadir proveedores adicionales, incluidos fallbacks opcionales de
   Claude al final de la cadena.
+- Ownership de `status.md`: GitHub Issues + PRs son la fuente de verdad;
+  `tech-writer` duplica el snapshot local; Alfred solo lee y verifica.
+- Autopilot: Alfred deja de encadenar fases; `tech-writer` ya no handoffea a
+  DevOps. `tech-writer` declara `terminal` solo para leer GitHub. La
+  delegación apunta al rol, no a un modelo.
 
 ## [0.6.4] - 2026-08-18
 

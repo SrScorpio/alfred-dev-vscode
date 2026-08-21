@@ -5,6 +5,8 @@ description: "Usar para sincronizar la documentación viva después de una fase.
 
 # Sincronizar documentación viva
 
+Esta skill la usa `tech-writer`. Alfred no la ejecuta: no tiene `edit`.
+
 Tras una fase, actualiza **solo lo que ha cambiado**. Si el proyecto usa
 `plans/` u otra convención, respétala: no crees `docs/` en paralelo.
 
@@ -25,8 +27,10 @@ Tras una fase, actualiza **solo lo que ha cambiado**. Si el proyecto usa
 
 3. **No toques** guías de API, changelogs o arquitectura si no hubo cambio real.
 
-4. **status.md** es el snapshot offline. Tras cada gate superada, commitea
-   `chore: update flow status` si el usuario quiere persistirlo.
+4. **status.md** es el snapshot offline, duplicado desde GitHub. Solo
+   `tech-writer` lo escribe. Tras cada gate superada, commitea `chore: update
+   flow status` si el usuario quiere persistirlo. No copies el chat al snapshot:
+   replica Issues, PRs y veredictos.
 
 ## Criterios de éxito
 

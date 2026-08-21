@@ -1,9 +1,9 @@
 # Estado del flujo — <nombre-del-proyecto>
 
-> Snapshot local del estado del trabajo. La fuente de verdad colaborativa son las
-> GitHub Issues (labels de estado) y los PRs; este fichero es el respaldo offline,
-> commiteado al repo para que el estado sobreviva en cualquier remoto.
-> Plantilla de referencia de alfred-dev-vscode. Actualizado: <fecha-hora>
+> Snapshot local duplicado desde GitHub Issues y PRs. La fuente de verdad
+> colaborativa son las issues (labels) y los PRs; este fichero es el respaldo
+> offline. Lo escribe `tech-writer`. Plantilla de referencia de
+> alfred-dev-vscode. Actualizado: <fecha-hora>
 
 ## Flujo activo
 

@@ -169,6 +169,7 @@ Al evaluar la gate de aprobación del PRD, emite el veredicto en este formato:
 - No diseñar interfaces de usuario.
 - No estimar tiempos de desarrollo.
 - No avanzar a arquitectura sin aprobación explícita del PRD.
+- No actualices `docs/project/status.md`. El estado vive en GitHub; el snapshot local lo escribe `tech-writer`.
 
 ## Proceso de trabajo
 

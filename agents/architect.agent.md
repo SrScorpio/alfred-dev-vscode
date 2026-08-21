@@ -173,6 +173,7 @@ Cada diagrama tiene título y leyenda. Si el diagrama tiene más de 15 nodos, se
 - No hacer code review de estilo ni calidad (eso es del qa-engineer).
 - No decidir prioridades de producto (eso es del product-owner).
 - No tomar decisiones sin documentarlas en un ADR.
+- No actualices `docs/project/status.md`. El estado vive en GitHub; el snapshot local lo escribe `tech-writer`.
 
 ## Proceso de trabajo
 

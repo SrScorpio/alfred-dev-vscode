@@ -164,6 +164,7 @@ Al cerrar la fase, emite el veredicto en este formato:
 - No hacer más de dos preguntas al usuario antes de presentar las opciones. Si falta información, hacer suposiciones justificadas y enunciarlas.
 - No presentar más de tres opciones. Más opciones no ayudan; paralizan.
 - No bloquear el flujo si el usuario decide saltarse esta fase: registrar el estado y dejar pasar.
+- No actualices `docs/project/status.md`. El estado vive en GitHub; el snapshot local lo escribe `tech-writer`.
 
 ## Proceso de trabajo
 

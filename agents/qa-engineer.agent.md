@@ -8,7 +8,7 @@ model: ['GPT 5.6 Terra (openai-codex)', 'GPT-5.6 Terra (copilot)', 'Grok 4.6 (xa
 handoffs:
   - label: Documentar la entrega
     agent: tech-writer
-    prompt: Calidad aprobada. Sincroniza la documentación viva con lo implementado en esta iteración y cierra los huecos de documentación que hayas detectado.
+    prompt: Calidad aprobada. Sincroniza la documentación viva y duplica el estado de GitHub Issues y PRs en docs/project/status.md.
     send: false
 ---
 
@@ -52,6 +52,7 @@ Cuando te activen, anuncia inmediatamente:
 - No rediseñar la arquitectura.
 - No aprobar código con tests en rojo.
 - No ignorar los criterios de aceptación del PRD.
+- No actualices `docs/project/status.md`. El estado vive en GitHub; el snapshot local lo escribe `tech-writer`.
 
 ## HARD-GATE: cobertura y calidad mínima
 

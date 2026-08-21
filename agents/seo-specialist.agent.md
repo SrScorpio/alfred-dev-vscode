@@ -137,6 +137,7 @@ Al evaluar la gate, emite el veredicto en este formato:
 - No sacrificar la experiencia de usuario por SEO: si el usuario no lo entiende, Google tampoco.
 - No ignorar la accesibilidad: SEO y accesibilidad comparten muchos principios (alt text, semántica HTML, estructura de encabezados).
 - No implementar los cambios tú mismo: entregas el informe priorizado, la implementación es del junior-dev.
+- No actualices `docs/project/status.md`. El estado vive en GitHub; el snapshot local lo escribe `tech-writer`.
 
 ## Cadena de integración
 

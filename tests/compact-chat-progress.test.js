@@ -49,3 +49,129 @@ test('Lucius keeps confirmation and reports only failures or relevant results', 
   assert.match(lucius, /--sandbox read-only/);
   assert.match(lucius, /cmp -s/);
 });
+
+test('Autopilot closes the requested work instead of chaining phases', () => {
+  const instructions = readRepositoryFile('instructions/global-instructions.md.instructions.md');
+  const alfred = readRepositoryFile('agents/alfred.agent.md');
+  const techWriter = readRepositoryFile('agents/tech-writer.agent.md');
+
+  assert.match(instructions, /No iniciar fases nuevas sin una petición explícita/);
+  assert.match(alfred, /Delega solo el trabajo imprescindible para la petición actual/);
+  assert.match(alfred, /Una gate rechazada se informa y cierra la ejecución actual/);
+  assert.doesNotMatch(alfred, /la fase se repite o se corrige/);
+  assert.doesNotMatch(techWriter, /agent: devops-engineer/);
+});
+
+test('every agent handoff requires explicit user confirmation', () => {
+  const agentsDirectory = path.join(repositoryRoot, 'agents');
+  const agentFiles = fs.readdirSync(agentsDirectory).filter((fileName) => fileName.endsWith('.agent.md'));
+
+  for (const agentFile of agentFiles) {
+    const frontmatter = fs.readFileSync(path.join(agentsDirectory, agentFile), 'utf8').split('---')[1];
+    const handoffCount = (frontmatter.match(/^\s*-\s+label:/gm) ?? []).length;
+    const confirmationCount = (frontmatter.match(/^\s+send:\s*false\s*$/gm) ?? []).length;
+
+    assert.equal(
+      confirmationCount,
+      handoffCount,
+      `${agentFile} must declare send: false for every handoff`,
+    );
+  }
+});
+
+test('Alfred has only the tools needed to orchestrate and reconstruct state', () => {
+  const alfred = readRepositoryFile('agents/alfred.agent.md');
+  const frontmatter = alfred.split('---')[1];
+
+  assert.match(frontmatter, /tools: \['search', 'terminal', 'web', 'agent'\]/);
+  assert.doesNotMatch(frontmatter, /tools: \[[^\]]*'edit'/);
+  assert.doesNotMatch(frontmatter, /['"]execute['"]/);
+  assert.doesNotMatch(frontmatter, /['"]read['"]/);
+});
+
+test('each agent declares the exact tool set for its role', () => {
+  const expectedTools = {
+    'alfred.agent.md': "tools: ['search', 'terminal', 'web', 'agent']",
+    'product-owner.agent.md': "tools: ['search', 'edit', 'terminal', 'web']",
+    'selina.agent.md': "tools: ['search', 'edit', 'terminal']",
+    'architect.agent.md': "tools: ['search', 'edit', 'web', 'terminal']",
+    'junior-dev.agent.md': "tools: ['search', 'edit', 'terminal']",
+    'senior-dev.agent.md': "tools: ['search', 'edit', 'terminal', 'agent']",
+    'security-officer.agent.md': "tools: ['search', 'edit', 'terminal', 'web']",
+    'qa-engineer.agent.md': "tools: ['search', 'edit', 'terminal', 'agent']",
+    'tech-writer.agent.md': "tools: ['search', 'edit', 'terminal']",
+    'devops-engineer.agent.md': "tools: ['search', 'edit', 'terminal']",
+    'lucius.agent.md': "tools: ['search', 'terminal']",
+    'seo-specialist.agent.md': "tools: ['search', 'edit', 'terminal']",
+  };
+
+  for (const [agentFile, toolsLine] of Object.entries(expectedTools)) {
+    const frontmatter = readRepositoryFile(path.join('agents', agentFile)).split('---')[1];
+    assert.match(frontmatter, new RegExp(toolsLine.replace(/[[\]]/g, '\\$&')));
+    assert.doesNotMatch(frontmatter, /['"]execute['"]/);
+    assert.doesNotMatch(frontmatter, /tools: \[[^\]]*'read'/);
+  }
+
+  const seniorFrontmatter = readRepositoryFile('agents/senior-dev.agent.md').split('---')[1];
+  const qaFrontmatter = readRepositoryFile('agents/qa-engineer.agent.md').split('---')[1];
+  const alfred = readRepositoryFile('agents/alfred.agent.md');
+  const alfredFrontmatter = alfred.split('---')[1];
+
+  assert.match(seniorFrontmatter, /agents: \['security-officer'\]/);
+  assert.match(qaFrontmatter, /agents: \['security-officer'\]/);
+  assert.match(alfred, /Delegas al rol, no al modelo/);
+  assert.doesNotMatch(alfredFrontmatter, /^[ \t]+model:/m);
+});
+
+test('tech-writer duplicates GitHub state into status.md and Alfred only reads it', () => {
+  const alfred = readRepositoryFile('agents/alfred.agent.md');
+  const techWriter = readRepositoryFile('agents/tech-writer.agent.md');
+  const instructions = readRepositoryFile('instructions/global-instructions.md.instructions.md');
+  const docsSkill = readRepositoryFile('skills/core/sync-project-docs/SKILL.md');
+  const skillsIndex = readRepositoryFile('skills/README.md');
+  const readme = readRepositoryFile('README.md');
+  const statusTemplate = readRepositoryFile('templates/status.md');
+  const agentsDirectory = path.join(repositoryRoot, 'agents');
+  const agentFiles = fs.readdirSync(agentsDirectory).filter((fileName) => fileName.endsWith('.agent.md'));
+
+  assert.match(alfred, /solo lo escribe `tech-writer`/);
+  assert.match(alfred, /No lo editas/);
+  assert.doesNotMatch(alfred, /El agente que cierra la gate actualiza/);
+  assert.doesNotMatch(alfred, /y commitealo \(`chore: update flow status`\)/);
+  assert.match(alfred, /terminal.*reconstruir estado|consultar el estado/s);
+  assert.match(alfred, /reseleccionar el agente|chat nuevo/);
+  assert.match(techWriter, /único agente que lo escribe/);
+  assert.match(techWriter, /duplicado local de GitHub/);
+  assert.match(instructions, /`tech-writer` duplica ese estado/);
+  assert.match(docsSkill, /Solo\s*`tech-writer`\s*lo escribe/s);
+  assert.doesNotMatch(docsSkill, /el agente que cierra la gate/);
+  assert.match(skillsIndex, /`sync-project-docs` \| Docs vivas \/ `plans\/` \/ `status\.md` \| `tech-writer`/);
+  assert.doesNotMatch(skillsIndex, /`tech-writer`, `alfred`/);
+  assert.match(readme, /Lo escribe `tech-writer`/);
+  assert.match(readme, /Alfred lee el snapshot; no lo edita/);
+  assert.match(statusTemplate, /Lo escribe `tech-writer`/);
+
+  for (const agentFile of agentFiles) {
+    const content = fs.readFileSync(path.join(agentsDirectory, agentFile), 'utf8');
+
+    if (agentFile === 'tech-writer.agent.md') {
+      continue;
+    }
+
+    if (agentFile === 'alfred.agent.md') {
+      assert.match(content, /No lo editas/);
+      continue;
+    }
+
+    if (agentFile === 'lucius.agent.md') {
+      assert.match(content, /nunca modificas ficheros/);
+      continue;
+    }
+
+    assert.match(
+      content,
+      /No actualices `docs\/project\/status\.md`/,
+      `${agentFile} must not write status.md`,
+    );
+  }
+});

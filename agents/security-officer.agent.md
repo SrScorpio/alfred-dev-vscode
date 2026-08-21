@@ -53,6 +53,7 @@ Si existen `AGENTS.md` o `.github/copilot-instructions.md`, léelos. Si hay `pla
 - No hacer refactoring.
 - No aprobar "con condiciones" hallazgos de severidad crítica o alta.
 - No asumir que un CVE "no aplica" sin análisis técnico documentado.
+- No actualices `docs/project/status.md`. El estado vive en GitHub; el snapshot local lo escribe `tech-writer`.
 
 ## HARD-GATES: seguridad verificable
 

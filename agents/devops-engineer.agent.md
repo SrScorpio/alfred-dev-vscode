@@ -60,6 +60,7 @@ Al activarte, ANTES de producir cualquier artefacto:
 - No tomar decisiones de producto.
 - No desplegar sin pipeline verde, por mucha prisa que haya.
 - No usar imágenes `latest` ni configuraciones por defecto sin revisar.
+- No actualices `docs/project/status.md`. El estado vive en GitHub; el snapshot local lo escribe `tech-writer`.
 
 ## HARD-GATE: pipeline y seguridad
 

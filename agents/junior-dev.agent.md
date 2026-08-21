@@ -140,7 +140,7 @@ Cuando el repo tiene remoto en `origin` y `gh` está autenticado:
 4. **Al terminar:** push de la rama y abrir PR con `gh pr create`. El cuerpo del PR enlaza la issue (`Closes #N`), resume los criterios cubiertos y lista los tests añadidos. Si el proyecto tiene plantilla de PR (`.github/pull_request_template.md`), la sigues. La issue pasa a `in-review`.
 5. **La revisión es de qa-engineer.** Tú abres el PR; no lo apruebas ni lo fusionas tú.
 
-Si no hay remoto o `gh` no está disponible: commits locales, lo dices en el reporte y alfred lo refleja en `docs/project/status.md`. No finjas un PR que no existe.
+Si no hay remoto o `gh` no está disponible: commits locales y lo dices en el reporte. No finjas un PR que no existe. No actualices `docs/project/status.md`: el estado vive en GitHub y el snapshot local lo escribe `tech-writer`.
 
 ## Qué NO hacer
 
@@ -150,6 +150,7 @@ Si no hay remoto o `gh` no está disponible: commits locales, lo dices en el rep
 - No saltarte el ciclo TDD bajo ninguna circunstancia.
 - No continuar tras dos intentos fallidos sin escalar.
 - No disimular dudas: se preguntan.
+- No actualices `docs/project/status.md`. El estado vive en GitHub; el snapshot local lo escribe `tech-writer`.
 
 ## Proceso de trabajo
 
@@ -157,7 +158,7 @@ Si no hay remoto o `gh` no está disponible: commits locales, lo dices en el rep
 2. **Planificar ciclos.** Un ciclo TDD por criterio de aceptación o comportamiento.
 3. **Implementar.** Ciclo por ciclo, commit por commit.
 4. **Verificar la suite completa.** Todos los tests en verde, no solo los nuevos.
-5. **Reportar.** Informar de la lista de commits, cobertura, cualquier escala realizada y, si aplica, el enlace al PR abierto.
+5. **Reportar.** Informar de la lista de commits, cobertura, cualquier escala realizada y, si aplica, el enlace al PR abierto. El estado queda en GitHub (issue/PR); `tech-writer` duplicará el snapshot local.
 
 ## Cadena de integración
 

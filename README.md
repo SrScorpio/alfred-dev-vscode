@@ -33,6 +33,11 @@ Tres principios de diseño heredados de alfred-dev:
 
 Durante el trabajo, los agentes siguen una política de progreso muy compacto: no narran búsquedas, lecturas ni comandos correctos. Interrumpen el silencio ante un bloqueo, una decisión, un riesgo o una confirmación, y entregan el detalle en el informe o la gate final.
 
+Autopilot se limita a la petición actual: un resultado o gate se informa y se
+cierra. Los handoffs usan `send: false`; solo el clic del usuario inicia la
+siguiente fase. Una gate rechazada no dispara reintentos ni delegaciones por
+inercia.
+
 ## Instalación
 
 Requisitos: VS Code con GitHub Copilot Chat. Tras instalar, los agentes aparecen en el selector de agente del chat (abajo-izquierda del input) y quedan disponibles **en todos tus proyectos**.
@@ -195,8 +200,8 @@ flowchart LR
     AR --> JD[junior-dev]
     JD --> QA[qa-engineer]
     QA --> TW[tech-writer]
-    TW --> DO[devops-engineer]
-    DO --> A
+    TW --> A
+    A -->|si el usuario pide entrega| DO[devops-engineer]
 ```
 
 - **feature** (completo): producto → estilo visual* → arquitectura+seguridad → desarrollo → calidad+seguridad → documentación → entrega+seguridad.
@@ -208,6 +213,16 @@ flowchart LR
 \* Solo si el proyecto tiene frontend.
 
 Los gates de usuario nunca se autoaprueban: los handoffs usan `send: false` para que tú decidas con un clic cuándo avanzar de fase.
+
+### Autopilot y aprobaciones de VS Code
+
+El plugin no omite las confirmaciones de VS Code. Autopilot es un permiso de sesión del editor, no un modo de Alfred. Para que el flujo funcione sin reabrir fases:
+
+- Deja los handoffs en `send: false`.
+- No uses **Bypass Approvals** ni Autopilot global para saltar gates.
+- Si auto-apruebas terminal, limítalo a comandos de lectura (`gh issue list`, `gh pr list`, `npm test`) y nunca a `git push`, `gh pr merge` o despliegues.
+- Tras cambiar un `.agent.md`, reselecciona el agente o abre un chat nuevo.
+- El agente destino usa su propio array `model`; no hace falta activar un setting extra para la subdelegación.
 
 ### Flujo GitHub (issues, ramas y PRs)
 
@@ -227,7 +242,7 @@ El merge siempre lo decides tú. El contenido de las historias manda el PRD (`do
 El trabajo nunca depende de una sola persona ni de un chat que se pierde. El estado tiene dos capas, por orden de prioridad:
 
 1. **GitHub Issues + PRs — fuente de verdad colaborativa.** Cada historia es una issue con label de estado; cada gate pasa dejando comentario en la issue o PR. Si mañana quien llevaba el flujo no está, cualquiera reconstruye el estado desde el repo: issues abiertas con sus labels + PRs en revisión. Audit de gates incluido.
-2. **`docs/project/status.md` — snapshot local (fallback offline).** Flujo, fase, gate pendiente, siguiente acción. Plantilla instalada en `~/.copilot/alfred-dev/templates/status.md` (global) o `.github/alfred-dev/templates/` (proyecto).
+2. **`docs/project/status.md` — snapshot local (fallback offline).** Duplicado de GitHub: flujo, fase, gate pendiente, siguiente acción. Lo escribe `tech-writer`. Alfred lee el snapshot; no lo edita. Plantilla instalada en `~/.copilot/alfred-dev/templates/status.md` (global) o `.github/alfred-dev/templates/` (proyecto).
 
 **Labels de estado** (los crea `product-owner` la primera vez):
 
@@ -250,20 +265,20 @@ El trabajo nunca depende de una sola persona ni de un chat que se pierde. El est
 
 | Agente | search | edit | terminal | web | agent (subagentes) |
 |--------|:-----:|:----:|:--------:|:---:|:------------------:|
-| alfred | ✓ | ✓ | ✓ | ✓ | ✓ (los 9) |
-| product-owner | ✓ | ✓ | – | ✓ | – |
+| alfred | ✓ | – | ✓ | ✓ | ✓ (el equipo) |
+| product-owner | ✓ | ✓ | ✓ | ✓ | – |
 | selina | ✓ | ✓ | ✓ | – | – |
 | architect | ✓ | ✓ | ✓ | ✓ | – |
 | senior-dev | ✓ | ✓ | ✓ | – | ✓ (security) |
 | junior-dev | ✓ | ✓ | ✓ | – | – |
 | security-officer | ✓ | ✓ | ✓ | ✓ | – |
 | qa-engineer | ✓ | ✓ | ✓ | – | ✓ (security) |
-| tech-writer | ✓ | ✓ | – | – | – |
+| tech-writer | ✓ | ✓ | ✓ | – | – |
 | devops-engineer | ✓ | ✓ | ✓ | – | – |
 | lucius | ✓ | – | ✓ | – | – |
 | seo-specialist | ✓ | ✓ | ✓ | – | – |
 
-Restricción deliberada: tech-writer no ejecuta terminal; product-owner no ejecuta comandos; lucius solo busca y ejecuta Codex CLI en read-only.
+Restricción deliberada: `tech-writer` usa `terminal` solo para leer GitHub y duplicar `status.md`; lucius solo busca y ejecuta Codex CLI en read-only. `product-owner` declara `terminal` para `gh issue`. En Copilot no existe la tool `execute`: el equivalente es `terminal`. Los subagentes no heredan las tools de Alfred. La delegación apunta al agente; el receptor usa su propio array `model`. No se pone `handoffs.model`.
 
 ### Lucius (segunda opinión externa)
 

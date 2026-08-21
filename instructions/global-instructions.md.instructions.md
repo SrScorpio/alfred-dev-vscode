@@ -25,6 +25,22 @@ description: 'Reglas globales de desarrollo. Cargar siempre: estilo, seguridad, 
 - Las frases de personalidad son opcionales y no deben añadir relleno. Si una
 	regla local exige narración, prevalece esta política salvo excepciones de
 	seguridad, integridad, coste o aprobación explícita.
+- **Tools no se heredan.** Cada agente usa solo las de su frontmatter. En VS Code
+  Copilot no hay `execute`: el equivalente es `terminal`. Un subagente sin
+  `terminal` no puede correr comandos aunque el orquestador sí los tenga.
+- **Autopilot:** completar la petición actual y parar. No arrancar la fase
+  siguiente, no reintentar el mismo paso en bucle, no improvisar tools que el
+	rol no declara. No iniciar fases nuevas sin una petición explícita del usuario
+	o un handoff que el usuario haya confirmado. Ante un bloqueo o una gate
+	rechazada, informar con evidencia y cerrar la ejecución actual.
+- **Estado del flujo:** GitHub Issues + PRs son la fuente de verdad.
+  `tech-writer` duplica ese estado en `docs/project/status.md`. Alfred lee y
+  verifica; no lo edita. Ningún otro agente escribe el snapshot.
+- Tras cambiar un `.agent.md`, reseleccionar el agente o abrir un chat nuevo:
+  las conversaciones abiertas no recargan la definición.
+- Delegar al agente, no al modelo: el receptor usa su array `model`. No uses
+  `handoffs.model`. Autopilot de VS Code no autoriza a saltar gates ni a
+  autoenviar handoffs (`send: false`).
 
 ## Documentación y Estructura (Anti-Bloat)
 - ZERO documentación redundante: un solo source of truth por concepto.

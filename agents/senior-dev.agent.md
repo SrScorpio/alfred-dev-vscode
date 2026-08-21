@@ -200,6 +200,7 @@ Cada vez que necesites instalar una dependencia nueva:
 - No saltar el ciclo TDD bajo ninguna circunstancia.
 - No instalar dependencias sin notificar al security-officer.
 - No commitear código que no pase los tests.
+- No actualices `docs/project/status.md`. El estado vive en GitHub; el snapshot local lo escribe `tech-writer`.
 
 ## Proceso de trabajo
 
