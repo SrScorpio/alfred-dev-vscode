@@ -1,8 +1,25 @@
+/**
+ * Registro de los comandos de la interfaz nativa de Alfred Dev.
+ *
+ * Conecta la paleta de comandos con el chat de Copilot, el TreeView y la
+ * preferencia global de perfil. Depende de `StatusTreeProvider` y de la
+ * definición de perfiles; `extension.ts` lo invoca durante la activación.
+ *
+ * @module commands/index
+ */
 import * as vscode from 'vscode';
 import { StatusTreeProvider } from '../providers/statusTreeProvider';
 import { getModelProfileItems } from './modelProfiles';
 import type { ModelProfile } from './modelProfiles';
 
+/**
+ * Registra los comandos de Alfred Dev y los añade a las suscripciones del contexto.
+ *
+ * @param context Contexto de la extensión donde se conservan las suscripciones.
+ * @param statusProvider Proveedor cuyo estado puede refrescar la paleta.
+ * @returns `void`.
+ * @example `registerCommands(context, statusTreeProvider)` durante `activate`.
+ */
 export function registerCommands(context: vscode.ExtensionContext, statusProvider: StatusTreeProvider) {
   const startFlowCommand = vscode.commands.registerCommand('alfred-dev.startFlow', async () => {
     const flowType = await vscode.window.showQuickPick(

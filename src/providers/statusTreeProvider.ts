@@ -1,20 +1,49 @@
+/**
+ * Proveedor del TreeView que muestra el snapshot local del flujo de Alfred Dev.
+ *
+ * Lee `docs/project/status.md` del primer workspace mediante el lector y el
+ * parser locales. La ausencia del snapshot conserva el estado en GitHub como
+ * fuente de verdad; `extension.ts` registra este proveedor en la Activity Bar.
+ *
+ * @module providers/statusTreeProvider
+ */
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { parseProjectStatus } from './parseStatus';
 import { readStatusFile } from './readStatusFile';
 
+/**
+ * Implementa el árbol de estado y sus acciones de la interfaz nativa.
+ */
 export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<StatusItem | undefined | null | void> = new vscode.EventEmitter<StatusItem | undefined | null | void>();
   readonly onDidChangeTreeData: vscode.Event<StatusItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
+  /**
+   * Solicita a VS Code que vuelva a leer y representar el snapshot.
+   *
+   * @returns `void`.
+   */
   refresh(): void {
     this._onDidChangeTreeData.fire();
   }
 
+  /**
+   * Devuelve el elemento que representa una entrada del árbol.
+   *
+   * @param element Elemento que VS Code quiere representar.
+   * @returns El mismo elemento como `TreeItem` de VS Code.
+   */
   getTreeItem(element: StatusItem): vscode.TreeItem {
     return element;
   }
 
+  /**
+   * Obtiene las acciones y los campos disponibles del snapshot local.
+   *
+   * @param element Nodo padre opcional; los nodos hoja no tienen descendientes.
+   * @returns Promise con las entradas visibles del TreeView.
+   */
   async getChildren(element?: StatusItem): Promise<StatusItem[]> {
     if (element) {
       return [];
@@ -75,11 +104,28 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
   }
 }
 
+/**
+ * Comprueba si un error indica que el snapshot local no existe.
+ *
+ * @param error Valor capturado por la lectura del fichero.
+ * @returns `true` solo para el código de error `ENOENT`.
+ */
 function isFileNotFoundError(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
 }
 
+/**
+ * Entrada visual del TreeView con icono, tooltip y comando opcionales.
+ */
 export class StatusItem extends vscode.TreeItem {
+  /**
+   * Crea una entrada del TreeView.
+   *
+   * @param label Texto visible de la entrada.
+   * @param collapsibleState Estado de expansión que gestiona VS Code.
+   * @param icon Identificador opcional del icono de tema de VS Code.
+   * @param command Comando opcional que se ejecuta al seleccionar la entrada.
+   */
   constructor(
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
