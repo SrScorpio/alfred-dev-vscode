@@ -163,6 +163,19 @@ incluidas con Copilot (`copilot`) si acaso, y después a Grok 4.6 y GLM como
 alternativas. Si un nombre no existe en tu catálogo, VS Code lo salta sin
 error y usa el siguiente: es una lista YAML, el orden es la prioridad.
 
+La extensión nativa ofrece **Alfred Dev: Seleccionar perfil de modelo** para
+guardar `alfred-dev.modelProfile` como preferencia global (`luna`, `terra` o
+`sol`). Es una preferencia de UI y no reescribe los arrays `model` de los
+agentes: VS Code no expone una API estable para cambiar ese frontmatter desde
+una extensión. La selección queda guardada como referencia visible de la
+política de coste al trabajar con Alfred.
+
+En VS Code, abre **Alfred Dev** en la Activity Bar para consultar el estado del
+workspace, o usa la paleta de comandos para hablar con `@alfred`, iniciar un
+flujo, refrescar el snapshot y elegir el perfil global. Para generar el VSIX
+local, ejecuta `npm run package`; esta fase no incluye publicación en
+Marketplace.
+
 ### Añadir proveedores adicionales
 
 Para añadir otro proveedor, instala primero una extensión que implemente un
@@ -345,7 +358,9 @@ alfred-dev-vscode/
 - [x] **Fase 2** — Flujo GitHub: issues desde las historias del PRD, ramas de feature, PRs y revisión como gate de calidad. Estado del trabajo en issues (labels) + snapshot local `status.md`.
 - [x] **Fase 3a** — 8 skills de proceso en `skills/core/`. Archivo Claude (`memory`, `style-direction`, `sonarqube`) solo en `skills/source-claude/`, no se instala.
 - [ ] **Fase 3b** — Memoria MCP / companion visual / SonarQube si algún día hay equivalente nativo. Hooks de seguridad.
-- [ ] **Fase 4** — Extensión VSIX con UI de configuración de modelos y bootstrap.
+- [x] **Fase 4** — Extensión VSIX local con UI de estado en la Activity Bar,
+  perfil global de modelos y empaquetado reproducible; no incluye publicación
+  en Marketplace.
 - [ ] **Fase 5** — Integración con Ralph Suite (kanban + runner).
 
 ## Créditos y licencia

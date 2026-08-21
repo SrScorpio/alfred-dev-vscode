@@ -7,6 +7,22 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ## [Unreleased]
 
+### Added
+
+- TreeView nativo en la Activity Bar para leer el snapshot local
+  `docs/project/status.md`, con límite de lectura de 64 KiB y campos visibles
+  limitados a 200 caracteres.
+- Comandos nativos para abrir `@alfred`, iniciar un flujo, refrescar el estado
+  y seleccionar el perfil global `luna`, `terra` o `sol`.
+- Empaquetado VSIX local con `npm run package` mediante `@vscode/vsce` 3.9.2,
+  con una allowlist de runtime para el contenido distribuido.
+
+### Changed
+
+- El selector de modelos persiste `alfred-dev.modelProfile` como preferencia
+  global de UI/coste y marca el perfil guardado al reabrirse; no reescribe los
+  arrays `model` de los agentes.
+
 ## [0.6.5] - 2026-08-21
 
 ### Added

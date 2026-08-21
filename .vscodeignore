@@ -1,0 +1,25 @@
+# Runtime allowlist
+*
+!out/**/*.js
+!package.json
+!README.md
+!LICENSE
+
+# Explicit exclusions for generated and non-runtime files
+docs/
+.vscode/
+.github/
+*-out/
+node_modules/
+tests/
+src/
+skills/
+agents/
+instructions/
+templates/
+**/*.ts
+**/*.map
+install.ps1
+install.sh
+plugin.json
+CHANGELOG.md
