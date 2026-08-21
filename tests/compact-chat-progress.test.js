@@ -36,6 +36,9 @@ test('Alfred uses compact phase updates without removing gate reporting', () => 
   assert.match(alfred, /qa_seguridad_aprobado/);
   assert.match(alfred, /OWASP/);
   assert.match(alfred, /Compliance check/);
+  assert.match(alfred, /FASE 3: DESARROLLO\\njunior-dev/);
+  assert.doesNotMatch(alfred, /FASE 3: DESARROLLO\\nsenior-dev/);
+  assert.match(alfred, /FASE 1: DIAGNÓSTICO\\njunior-dev o senior-dev/);
 });
 
 test('QA accumulates exploratory notes instead of narrating them live', () => {
@@ -152,6 +155,10 @@ test('model cost follows task difficulty, not job title', () => {
   assert.match(juniorFrontmatter, /GPT 5\.6 Luna \(openai-codex\)/);
   assert.match(readme, /Alfred orquesta en Luna/);
   assert.match(readme, /senior-dev.*Sol/s);
+  assert.match(readme, /Los 12 agentes/);
+  assert.doesNotMatch(readme, /Los 11 agentes/);
+  assert.match(readRepositoryFile('plugin.json'), /"publisher": "SrScorpio"/);
+  assert.match(readRepositoryFile('package.json'), /"publisher": "SrScorpio"/);
 });
 
 test('tech-writer duplicates GitHub state into status.md and Alfred only reads it', () => {

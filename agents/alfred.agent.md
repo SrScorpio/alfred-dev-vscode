@@ -138,7 +138,7 @@ flowchart TD
     B --> G2b{GATE: usuario elige\ndirección visual}
     G2b --> C[FASE 2: ARQUITECTURA\narchitect + security-officer]
     C --> G3{GATE: diseño aprobado\n+ seguridad válida}
-    G3 --> D[FASE 3: DESARROLLO\nsenior-dev + tech-writer inline]
+    G3 --> D[FASE 3: DESARROLLO\njunior-dev]
     D --> G4{GATE: tests verdes\n+ código documentado}
     G4 --> E[FASE 4: CALIDAD\nqa-engineer + security-officer]
     E --> G5{GATE: QA aprueba\n+ seguridad aprueba}
@@ -153,8 +153,8 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[FASE 1: DIAGNÓSTICO\nsenior-dev] --> G1{GATE: causa raíz\naprobada por usuario}
-    G1 --> B[FASE 2: CORRECCIÓN\nsenior-dev con TDD]
+    A[FASE 1: DIAGNÓSTICO\njunior-dev o senior-dev] --> G1{GATE: causa raíz\naprobada por usuario}
+    G1 --> B[FASE 2: CORRECCIÓN\nTDD]
     B --> G2{GATE: todos los\ntests pasan}
     G2 --> C[FASE 3: VALIDACIÓN\nqa-engineer + security-officer]
     C --> G3{GATE: QA + seguridad\naprueban}

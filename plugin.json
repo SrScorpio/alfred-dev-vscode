@@ -2,8 +2,8 @@
   "name": "alfred-dev-vscode",
   "displayName": "Alfred Dev for VS Code",
   "description": "Equipo de 12 agentes de ingeniería de software para VS Code: orquestación con quality gates, TDD, seguridad y compliance europeo (RGPD, NIS2, CRA). Multi-modelo con política de coste: junior-dev (Luna) para el día a día, senior-dev (Sol) para lo muy complicado. Flujo GitHub: issues desde el PRD, ramas de feature y revisión de PRs como gate. SEO opcional para proyectos con web pública.",
-  "version": "0.6.4",
-  "publisher": "686f6c61",
+  "version": "0.6.5",
+  "publisher": "SrScorpio",
   "license": "MIT",
   "repository": {
     "type": "git",

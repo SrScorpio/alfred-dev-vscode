@@ -30,7 +30,7 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
 
     if (!fs.existsSync(statusPath)) {
       return Promise.resolve([
-        new StatusItem('Sin flujo activo (docs/project/status.md no existe)', vscode.TreeItemCollapsibleState.None)
+        new StatusItem('Sin snapshot local (docs/project/status.md). El estado vive en GitHub Issues.', vscode.TreeItemCollapsibleState.None)
       ]);
     }
 
@@ -41,7 +41,7 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
       const flowMatch = content.match(/\*\*Flujo:\*\*\s*(.*)/i);
       const phaseMatch = content.match(/\*\*Fase actual:\*\*\s*(.*)/i);
       const gateMatch = content.match(/\*\*Gate pendiente:\*\*\s*(.*)/i);
-      const actionMatch = content.match(/\*\*Próxima acción:\*\*\s*(.*)/i);
+      const actionMatch = content.match(/\*\*(?:Siguiente|Próxima) acción(?: recomendada)?:\*\*\s*(.*)/i);
 
       if (flowMatch) items.push(new StatusItem(`Flujo: ${flowMatch[1].trim()}`, vscode.TreeItemCollapsibleState.None, '$(sync)'));
       if (phaseMatch) items.push(new StatusItem(`Fase: ${phaseMatch[1].trim()}`, vscode.TreeItemCollapsibleState.None, '$(play)'));

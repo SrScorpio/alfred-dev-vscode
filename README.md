@@ -341,7 +341,7 @@ alfred-dev-vscode/
 
 ## Roadmap
 
-- [x] **Fase 1** — Los 11 agentes con multi-modelo, handoffs y subagentes (junior/senior incluido).
+- [x] **Fase 1** — Los 12 agentes con multi-modelo, handoffs y subagentes (junior/senior incluido).
 - [x] **Fase 2** — Flujo GitHub: issues desde las historias del PRD, ramas de feature, PRs y revisión como gate de calidad. Estado del trabajo en issues (labels) + snapshot local `status.md`.
 - [x] **Fase 3a** — 8 skills de proceso en `skills/core/`. Archivo Claude (`memory`, `style-direction`, `sonarqube`) solo en `skills/source-claude/`, no se instala.
 - [ ] **Fase 3b** — Memoria MCP / companion visual / SonarQube si algún día hay equivalente nativo. Hooks de seguridad.
