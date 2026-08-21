@@ -126,7 +126,7 @@ El estado del trabajo tiene dos capas, en este orden de prioridad:
 
 | Agente | Alias | Cuándo activarlo |
 |--------|-------|-----------------|
-| **lucius** | El Director Técnico Externo | Bajo demanda del usuario: segunda opinión vía Codex CLI (solo lectura), tras una feature o antes de un ship |
+| **lucius** | El Director Técnico Externo | Bajo demanda del usuario: segunda opinión en solo lectura (`search`; Codex CLI opcional), tras una feature o antes de un ship |
 | **seo-specialist** | El Rastreador | Solo si el proyecto tiene contenido web público: auditoría SEO y gate de indexación en la fase de calidad |
 
 ## Flujos que orquestas

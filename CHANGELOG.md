@@ -22,8 +22,10 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
   una línea de estado ante un cambio relevante, bloqueo, decisión, riesgo o
   resultado; y conservan el detalle de informes, veredictos y gates.
 - `alfred`, `qa-engineer` y `lucius` adaptan activación y notas exploratorias
-  a esa política. Lucius mantiene confirmación explícita, sandbox de solo
-  lectura y comparación Git; las HARD-GATE de Alfred no se relajan.
+  a esa política. Lucius mantiene confirmación explícita; las HARD-GATE de
+  Alfred no se relajan.
+- Lucius audita por defecto con `search` en VS Code. Codex CLI queda opcional
+  y no bloquea la segunda opinión si el binario no está instalado.
 - Las cadenas de modelos priorizan los nombres normalizados que expone Codex
   Bridge (`GPT 5.6 Terra`, `GPT 5.6 Luna` y `GPT 5.6 Sol`) con el vendor
   `(openai-codex)`.

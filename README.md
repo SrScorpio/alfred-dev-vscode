@@ -22,7 +22,7 @@ Adaptación a los mecanismos nativos de VS Code: custom agents (`.agent.md`), ha
 | `qa-engineer` | El Rompe-cosas | Code review, test plans, exploratorio, regresión, revisión de PRs | Terra → Grok 4.6 → GLM |
 | `tech-writer` | El Escriba | Documentación de código y de proyecto | Luna → Grok 4.6 → GLM |
 | `devops-engineer` | El Fontanero | Docker, CI/CD, despliegue, monitoring | Luna → Grok 4.6 → GLM |
-| `lucius` | El Director Técnico Externo | Segunda opinión vía Codex CLI (solo lectura) | Luna |
+| `lucius` | El Director Técnico Externo | Segunda opinión en solo lectura (`search`; Codex CLI opcional) | Luna |
 | `seo-specialist` *(opcional)* | El Rastreador | Auditoría SEO, Core Web Vitals, gate de indexación (solo proyectos con web pública) | Luna → Grok 4.6 → GLM |
 
 Tres principios de diseño heredados de alfred-dev:
@@ -278,11 +278,13 @@ El trabajo nunca depende de una sola persona ni de un chat que se pierde. El est
 | lucius | ✓ | – | ✓ | – | – |
 | seo-specialist | ✓ | ✓ | ✓ | – | – |
 
-Restricción deliberada: `tech-writer` usa `terminal` solo para leer GitHub y duplicar `status.md`; lucius solo busca y ejecuta Codex CLI en read-only. `product-owner` declara `terminal` para `gh issue`. En Copilot no existe la tool `execute`: el equivalente es `terminal`. Los subagentes no heredan las tools de Alfred. La delegación apunta al agente; el receptor usa su propio array `model`. No se pone `handoffs.model`.
+Restricción deliberada: `tech-writer` usa `terminal` solo para leer GitHub y duplicar `status.md`; lucius audita con `search` y no tiene `edit`. `product-owner` declara `terminal` para `gh issue`. En Copilot no existe la tool `execute`: el equivalente es `terminal`. Los subagentes no heredan las tools de Alfred. La delegación apunta al agente; el receptor usa su propio array `model`. No se pone `handoffs.model`.
 
 ### Lucius (segunda opinión externa)
 
-Requiere Codex CLI de OpenAI: `npm install -g @openai/codex` y `codex login`. Lucius audita en sandbox de solo lectura y verifica con Git que no ha tocado nada.
+Lucius audita con `search` (en Copilot no hay `read`) y no modifica ficheros.
+Codex CLI es opcional: solo si está instalado y el usuario lo pide. El Codex
+Bridge (`openai-codex`) es el modelo de chat, no el binario `codex`.
 
 ### Artefactos que produce el equipo en tu proyecto
 

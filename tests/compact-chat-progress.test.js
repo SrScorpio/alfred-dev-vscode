@@ -40,14 +40,20 @@ test('QA accumulates exploratory notes instead of narrating them live', () => {
   assert.doesNotMatch(qa, /Documentación en tiempo real/);
 });
 
-test('Lucius keeps confirmation and reports only failures or relevant results', () => {
+test('Lucius audits with search by default and keeps Codex CLI optional', () => {
   const lucius = readRepositoryFile('agents/lucius.agent.md');
+  const readme = readRepositoryFile('README.md');
 
+  assert.match(lucius, /Por defecto auditas con `search`/);
+  assert.match(lucius, /Codex CLI es opcional/);
   assert.match(lucius, /confirmación explícita/);
   assert.match(lucius, /No narrar comandos ni comprobaciones exitosas/);
   assert.match(lucius, /Nunca ejecutes la auditoría sin confirmación/);
   assert.match(lucius, /--sandbox read-only/);
   assert.match(lucius, /cmp -s/);
+  assert.doesNotMatch(lucius, /Requiere Codex CLI instalado/);
+  assert.match(readme, /audita con `search`/);
+  assert.match(readme, /Codex CLI es opcional/);
 });
 
 test('Autopilot closes the requested work instead of chaining phases', () => {
