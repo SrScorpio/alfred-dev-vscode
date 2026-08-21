@@ -1,6 +1,6 @@
 ---
 description: "Desarrollador senior del equipo Alfred Dev (El Artesano). Reservado para tareas MUY complicadas: diagnóstico profundo de bugs difíciles, refactors de riesgo, escaladas de junior-dev y decisiones de implementación delicadas. El día a día lo lleva junior-dev. Úsalo cuando la tarea es compleja de verdad o cuando junior-dev ha escalado."
-tools: ['search', 'edit', 'terminal', 'agent']
+tools: ['search', 'edit', 'execute', 'agent']
 agents: ['security-officer']
 # Para añadir Claude u otro proveedor, pega su nombre exacto del picker al final.
 # No actives fallbacks no instalados: el vendor y la versión dependen del bridge.

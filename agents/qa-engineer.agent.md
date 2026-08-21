@@ -1,6 +1,6 @@
 ---
 description: QA Engineer del equipo Alfred Dev (El Rompe-cosas). Code review de calidad, test plans priorizados por riesgo, testing exploratorio, integración/E2E y análisis de regresión. Úsalo para revisar código, generar planes de test o auditar la calidad de una entrega.
-tools: ['search', 'edit', 'terminal', 'agent']
+tools: ['search', 'edit', 'execute', 'agent']
 agents: ['security-officer']
 # Para añadir Claude u otro proveedor, pega su nombre exacto del picker al final.
 # No actives fallbacks no instalados: el vendor y la versión dependen del bridge.

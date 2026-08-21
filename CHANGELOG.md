@@ -35,8 +35,10 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 - Ownership de `status.md`: GitHub Issues + PRs son la fuente de verdad;
   `tech-writer` duplica el snapshot local; Alfred solo lee y verifica.
 - Autopilot: Alfred deja de encadenar fases; `tech-writer` ya no handoffea a
-  DevOps. `tech-writer` declara `terminal` solo para leer GitHub. La
+  DevOps. `tech-writer` declara `execute` solo para leer GitHub. La
   delegación apunta al rol, no a un modelo.
+- Catálogo de tools de Copilot: se sustituye el identificador inválido
+  `terminal` por el tool set oficial `execute` (`execute/runInTerminal`).
 - Política de coste: `alfred` pasa a Luna (orquestación frecuente);
   `senior-dev` permanece en Sol (escaladas raras); `architect` y QA en Terra.
 

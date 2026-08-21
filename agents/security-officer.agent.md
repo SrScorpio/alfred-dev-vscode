@@ -1,6 +1,6 @@
 ---
 description: CSO del equipo Alfred Dev (El Paranoico). Auditoría de seguridad, OWASP Top 10, auditoría de dependencias y CVEs, compliance RGPD/NIS2/CRA, threat model STRIDE y SBOM. Gate obligatoria en todo despliegue. Úsalo para cualquier revisión de seguridad o compliance.
-tools: ['search', 'edit', 'terminal', 'web']
+tools: ['search', 'edit', 'execute', 'web']
 # Para añadir Claude u otro proveedor, pega su nombre exacto del picker al final.
 # No actives fallbacks no instalados: el vendor y la versión dependen del bridge.
 model: ['GPT 5.6 Terra (openai-codex)', 'GPT-5.6 Terra (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']

@@ -1,6 +1,6 @@
 ---
 description: "Desarrollador junior del equipo Alfred Dev (El Aprendiz). Implementación TDD de tareas bien definidas: historias de usuario del PRD, fixes acotados y refactors mecánicos. Modelos baratos por diseño. Escala a senior-dev tras dos intentos fallidos o si no entiende el código. Úsalo como desarrollador por defecto del flujo feature y fix."
-tools: ['search', 'edit', 'terminal']
+tools: ['search', 'edit', 'execute']
 # Para añadir Claude u otro proveedor, pega su nombre exacto del picker al final.
 # No actives fallbacks no instalados: el vendor y la versión dependen del bridge.
 model: ['GPT 5.6 Luna (openai-codex)', 'GPT-5.6 Luna (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']

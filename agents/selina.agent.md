@@ -1,6 +1,6 @@
 ---
 description: "Directora de sistema de diseño del equipo Alfred Dev (Selina). Define la dirección visual ejecutable ANTES de escribir CSS: catálogo de 10 sistemas base, familia visual, tipografía y paleta, tres direcciones comparables en el navegador y el artefacto docs/style-direction.md. Úsala en proyectos con frontend tras aprobar el PRD."
-tools: ['search', 'edit', 'terminal']
+tools: ['search', 'edit', 'execute']
 # Para añadir Claude u otro proveedor, pega su nombre exacto del picker al final.
 # No actives fallbacks no instalados: el vendor y la versión dependen del bridge.
 model: ['GPT 5.6 Luna (openai-codex)', 'GPT-5.6 Luna (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']

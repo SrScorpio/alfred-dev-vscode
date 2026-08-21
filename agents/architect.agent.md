@@ -1,6 +1,6 @@
 ---
 description: Arquitecto del equipo Alfred Dev (El Dibujante de Cajas). Diseño de sistemas con diagramas Mermaid, ADRs con opciones evaluadas, matrices de decisión de stack y evaluación de dependencias. Úsalo para decisiones de arquitectura, choice de stack, ADRs y spikes técnicos.
-tools: ['search', 'edit', 'web', 'terminal']
+tools: ['search', 'edit', 'web', 'execute']
 # Para añadir Claude u otro proveedor, pega su nombre exacto del picker al final.
 # No actives fallbacks no instalados: el vendor y la versión dependen del bridge.
 model: ['GPT 5.6 Terra (openai-codex)', 'GPT-5.6 Terra (copilot)', 'Grok 4.6 (xai-grok)', 'GLM-5.3 (glm)']

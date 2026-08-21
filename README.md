@@ -263,7 +263,7 @@ El trabajo nunca depende de una sola persona ni de un chat que se pierde. El est
 
 ### Herramientas por agente
 
-| Agente | search | edit | terminal | web | agent (subagentes) |
+| Agente | search | edit | execute | web | agent (subagentes) |
 |--------|:-----:|:----:|:--------:|:---:|:------------------:|
 | alfred | ✓ | – | ✓ | ✓ | ✓ (el equipo) |
 | product-owner | ✓ | ✓ | ✓ | ✓ | – |
@@ -278,7 +278,7 @@ El trabajo nunca depende de una sola persona ni de un chat que se pierde. El est
 | lucius | ✓ | – | ✓ | – | – |
 | seo-specialist | ✓ | ✓ | ✓ | – | – |
 
-Restricción deliberada: `tech-writer` usa `terminal` solo para leer GitHub y duplicar `status.md`; lucius audita con `search` y no tiene `edit`. `product-owner` declara `terminal` para `gh issue`. En Copilot no existe la tool `execute`: el equivalente es `terminal`. Los subagentes no heredan las tools de Alfred. La delegación apunta al agente; el receptor usa su propio array `model`. No se pone `handoffs.model`.
+Restricción deliberada: `tech-writer` usa `execute` solo para leer GitHub y duplicar `status.md`; lucius audita con `search` y no tiene `edit`. `product-owner` declara `execute` para `gh issue`. El tool set oficial de comandos es `execute` (`execute/runInTerminal`); no existe la tool `terminal`. Los subagentes no heredan las tools de Alfred. La delegación apunta al agente; el receptor usa su propio array `model`. No se pone `handoffs.model`.
 
 ### Lucius (segunda opinión externa)
 

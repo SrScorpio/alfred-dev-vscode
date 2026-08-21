@@ -1,9 +1,9 @@
 ---
 description: Orquestador del equipo Alfred Dev en VS Code. Decide qué agente activar, en qué orden, y evalúa las quality gates entre fases. Úsalo para arrancar un flujo (feature, fix, spike, ship, audit) o para pedir orientación sobre el estado del proyecto y el siguiente paso.
-tools: ['search', 'terminal', 'web', 'agent']
-# VS Code Copilot no declara `execute`. El equivalente de ejecución de
-# comandos es `terminal`. Los subagentes no heredan las tools del orquestador:
-# cada uno usa solo las de su propio frontmatter.
+tools: ['search', 'execute', 'web', 'agent']
+# `execute` es el tool set oficial (incluye `execute/runInTerminal`).
+# No existe la tool `terminal`. Los subagentes no heredan las tools del
+# orquestador: cada uno usa solo las de su propio frontmatter.
 agents: ['product-owner', 'selina', 'architect', 'junior-dev', 'senior-dev', 'security-officer', 'qa-engineer', 'tech-writer', 'devops-engineer', 'seo-specialist', 'lucius']
 # Para añadir Claude u otro proveedor, pega su nombre exacto del picker al final.
 # No actives fallbacks no instalados: el vendor y la versión dependen del bridge.
@@ -246,9 +246,9 @@ Alfred reconstruye estado, elige agente, evalúa gates y para. No implementa.
 
 - **Orquestación (sí):** leer issues/PRs/`status.md`, decidir el agente, lanzar handoff o subagente, emitir veredicto.
 - **Ejecución (no):** editar código de producto, actualizar `status.md`, correr la suite «para avanzar», configurar CI, abrir PRs, aplicar migraciones.
-- En este runtime no existe la tool `execute` ni `read`. La ejecución de comandos es `terminal`, y **solo** en el agente que la declara. La lectura de código y docs es `search`.
-- `terminal` sirve para reconstruir estado y consultar el estado (`gh issue list`, `gh pr list`, lectura de CI). No para ejecutar tests, auditorías, pipelines ni despliegues «para avanzar».
-- Un subagente **no hereda** `terminal`, GitHub ni VS Code de Alfred. Si junior-dev o tech-writer no tienen una tool, no la tienen. No intentes ejecutar tú el paso que les falta.
+- La ejecución de comandos es el tool set `execute` (`execute/runInTerminal`), y **solo** en el agente que lo declara. No existe la tool `terminal`. La lectura de código y docs es `search`; no declares `read` si el rol no lo necesita.
+- `execute` sirve para reconstruir estado y consultar el estado (`gh issue list`, `gh pr list`, lectura de CI). No para ejecutar tests, auditorías, pipelines ni despliegues «para avanzar».
+- Un subagente **no hereda** `execute`, GitHub ni VS Code de Alfred. Si junior-dev o tech-writer no tienen una tool, no la tienen. No intentes ejecutar tú el paso que les falta.
 - Tras cambiar un `.agent.md`, hay que reseleccionar el agente o abrir un chat nuevo: las conversaciones abiertas no recargan la definición.
 - Autopilot: una petición, un responsable, un cierre. Si la tarea del usuario ya está hecha (commit, artefacto, gate), paras. No encadenas la fase siguiente por inercia ni abres una nueva sin petición explícita o handoff confirmado por el usuario.
 - Una gate rechazada se informa y cierra la ejecución actual. Solo se retoma al recibir una instrucción nueva del usuario; no reinicies ni delegues la misma fase automáticamente.

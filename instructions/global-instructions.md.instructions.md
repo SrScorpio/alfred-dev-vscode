@@ -26,8 +26,9 @@ description: 'Reglas globales de desarrollo. Cargar siempre: estilo, seguridad, 
 	regla local exige narración, prevalece esta política salvo excepciones de
 	seguridad, integridad, coste o aprobación explícita.
 - **Tools no se heredan.** Cada agente usa solo las de su frontmatter. En VS Code
-  Copilot no hay `execute`: el equivalente es `terminal`. Un subagente sin
-  `terminal` no puede correr comandos aunque el orquestador sí los tenga.
+  Copilot el tool set de comandos es `execute` (`execute/runInTerminal`). No
+  existe la tool `terminal`. Un subagente sin `execute` no puede correr
+  comandos aunque el orquestador sí los tenga.
 - **Autopilot:** completar la petición actual y parar. No arrancar la fase
   siguiente, no reintentar el mismo paso en bucle, no improvisar tools que el
 	rol no declara. No iniciar fases nuevas sin una petición explícita del usuario
