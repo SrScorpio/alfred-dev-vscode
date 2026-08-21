@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-08-21
 **Autor:** security-officer
-**Commit revisado:** `084e64eaf1b51656a5149cb0b5a22021c90f56d2`
+**Commit revisado:** `29b1dbc897758a5ced3082623cffe7278cc971cb`
 **Metodologia:** STRIDE
 
 ## Superficie de ataque
@@ -38,7 +38,7 @@ No se implementa autenticacion propia. Los comandos de chat se registran con ide
 
 ### Tampering (manipulacion)
 
-`status.md` es controlable por el workspace, pero sus valores solo se convierten en etiquetas y no seleccionan comandos ni rutas. El riesgo relevante es la cadena de empaquetado: `vsce` admite archivos locales no versionados con las reglas actuales.
+`status.md` es controlable por el workspace, pero sus valores solo se convierten en etiquetas y no seleccionan comandos ni rutas. La cadena de empaquetado usa una allowlist que parte de `*` y `npx vsce ls` confirma que solo distribuye 10 ficheros de runtime y metadatos.
 
 ### Repudiation (repudio)
 
@@ -46,11 +46,11 @@ No hay registro de acciones de seguridad, publicacion de VSIX ni cambios de perf
 
 ### Information Disclosure (fuga de informacion)
 
-`npx vsce ls` incluye `1260721182603-out/`, `.vscode/launch.json` y `docs/test/`. Los mapas evaluados no contienen `sourcesContent`, pero el contenido no versionado puede variar entre estaciones y no debe distribuirse. El escaneo de secretos de codigo y configuracion no encontro coincidencias de credenciales; las del lockfile son nombres de paquetes.
+`npx vsce ls` no incluye `1260721182603-out/`, `.vscode/`, `docs/test/`, mapas, fuentes, tests, dependencias ni skills. El escaneo de secretos de codigo y configuracion no encontro coincidencias de credenciales; las del lockfile son nombres de paquetes.
 
 ### Denial of Service (denegacion de servicio)
 
-La lectura sincronica e ilimitada de `status.md` puede bloquear el host de extensiones ante un fichero muy grande. No hay endpoints de red propios ni superficie de rate limiting en el cambio revisado.
+La lectura de `status.md` es asincrona y se rechaza antes de abrir el fichero si supera 64 KiB; solo `ENOENT` se comunica como ausencia de snapshot. No hay endpoints de red propios ni superficie de rate limiting en el cambio revisado.
 
 ### Elevation of Privilege (elevacion de privilegios)
 
@@ -60,14 +60,13 @@ No hay `child_process`, shell, acceso de red ni comandos derivados de contenido 
 
 | Amenaza | Probabilidad | Impacto | Riesgo | Mitigacion |
 |---------|--------------|---------|--------|------------|
-| VSIX incluye artefactos locales no revisados | Media | Alto | Medio | Lista permitida de release o exclusiones estrictas y comprobacion `vsce ls` en CI. |
-| `status.md` agota el host de extensiones | Media | Medio | Medio | Limite de tamano, lectura asincrona y limite de longitud renderizada. |
+| VSIX incluye artefactos locales no revisados | Baja | Alto | Bajo | Mitigado: allowlist de release y `npx vsce ls` con 10 ficheros. Mantener comprobacion en CI. |
+| `status.md` agota el host de extensiones | Baja | Medio | Bajo | Mitigado: limite previo de 64 KiB, lectura asincrona y limite de longitud renderizada. |
 | Cambio no autorizado de la preferencia global | Baja | Bajo | Bajo | Mantener enum en `contributes.configuration` y no aceptar valores desde `status.md`. |
 | Dependencia comprometida en build | Baja | Alto | Medio | Lockfile con integridad, SBOM, `npm audit` y actualizaciones revisadas. |
 | Fuga de secretos en VSIX | Baja | Alto | Medio | Escaneo de secretos y lista de archivos permitidos antes de publicar. |
 
 ## Recomendaciones
 
-1. Bloquear la publicacion hasta que `vsce ls` contenga exclusivamente runtime y metadatos de release aprobados.
-2. Limitar y leer de forma asincrona `docs/project/status.md` antes de parsearlo.
-3. Anadir politica de vulnerabilidades y soporte de actualizaciones para cerrar los controles CRA/NIS2 pendientes.
+1. Mantener en CI una comprobacion de `npx vsce ls` que permita exclusivamente runtime y metadatos de release aprobados.
+2. Anadir politica de vulnerabilidades y soporte de actualizaciones para cerrar los controles CRA/NIS2 pendientes.

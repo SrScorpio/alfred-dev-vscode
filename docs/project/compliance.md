@@ -1,6 +1,6 @@
 # Registro de compliance
 
-No es un dictamen juridico. Es un registro tecnico con evidencia de la revision de la extension nativa para VSIX en el commit `084e64eaf1b51656a5149cb0b5a22021c90f56d2`.
+No es un dictamen juridico. Es un registro tecnico con evidencia de la revision de la extension nativa para VSIX en el commit `29b1dbc897758a5ced3082623cffe7278cc971cb`.
 
 **Fecha:** 2026-08-21
 **Autor:** security-officer
@@ -19,7 +19,7 @@ No es un dictamen juridico. Es un registro tecnico con evidencia de la revision 
 |---------|-------|--------|-----------|
 | Inventario de componentes directos y transitivos | CRA | cumple | `docs/project/sbom.cdx.json` generado desde `package-lock.json`; 272 componentes CycloneDX y `@vscode/vsce` 3.9.2 identificado. |
 | Analisis de vulnerabilidades conocidas | CRA / NIS2 | cumple | `npm audit --json` y `npm audit --omit=dev --json` del 2026-08-21: 0 critica, 0 alta, 0 moderada, 0 baja. |
-| Integridad de la cadena de build | CRA / NIS2 | parcial | `package-lock.json` v3 fija integridades SHA-512, pero `npx vsce ls` incluye `1260721182603-out/` y `docs/test/` no versionados. Falta una lista permitida o exclusiones que cierren el artefacto. |
+| Integridad de la cadena de build | CRA / NIS2 | cumple | `package-lock.json` v3 fija integridades SHA-512. `npx vsce ls` en `29b1dbc` enumera 10 ficheros: metadatos y JavaScript bajo `out/`; no contiene `1260721182603-out/`, `docs/test/`, `.vscode/`, `.github/`, mapas, fuentes, tests, dependencias ni skills. |
 | Minimizacion y finalidad de datos | RGPD art. 5 | parcial | `src/providers/statusTreeProvider.ts` lee solo `docs/project/status.md`; `src/commands/index.ts` persiste un literal de tres perfiles. Falta inventario del tratamiento de marketplace/Copilot y aviso de privacidad del responsable. |
 | Base juridica y transparencia | RGPD arts. 6 y 13 | pendiente | No hay politica de privacidad ni evidencia de base juridica para la preferencia global o los servicios de terceros asociados. |
 | Derechos de acceso, supresion y portabilidad | RGPD arts. 15, 17 y 20 | pendiente | No hay evidencia de flujo para datos que pudieran tratar el publicador, marketplace o Copilot; el codigo revisado no implementa almacenamiento propio fuera de la configuracion gestionada por VS Code. |
@@ -29,24 +29,29 @@ No es un dictamen juridico. Es un registro tecnico con evidencia de la revision 
 | Gestion y divulgacion de vulnerabilidades | CRA | pendiente | No existe politica publica de reporte ni SLA de correccion de vulnerabilidades. |
 | Actualizaciones de seguridad | CRA | pendiente | No hay evidencia de politica de soporte, canal de actualizacion ni periodo de correcciones para VSIX publicados. |
 
-## Hallazgos
+## Hallazgos activos
+
+Ninguno con severidad critica, alta o media en el alcance de esta revision.
+
+## Hallazgos cerrados
 
 - **Ubicacion:** `.vscodeignore` y contenido evaluado por `npx vsce ls`
 - **Severidad:** MEDIA (confianza: 99)
 - **Categoria:** OWASP A05 / CRA
-- **Hallazgo:** El empaquetador incluye `1260721182603-out/` y `docs/test/`, ambos no versionados, ademas de mapas de fuentes y configuracion de desarrollo.
-- **Vector de ataque:** Quien genere un VSIX desde un arbol de trabajo con archivos locales puede distribuir contenido no revisado ni versionado.
-- **Impacto:** Fuga de informacion interna o inclusion de artefactos no auditados; se pierde reproducibilidad e integridad del paquete distribuido.
-- **Solucion:** Definir una lista permitida de ficheros de release o excluir explicitamente directorios temporales, `.vscode/`, `docs/test/`, mapas y cualquier salida no destinada a runtime; validar el listado en CI antes de publicar.
+- **Hallazgo:** Corregido en `29b1dbc`: la allowlist parte de `*`, reintroduce solo los metadatos y JavaScript de `out/`, y las exclusiones explicitas cubren contenido no distribuible.
+- **Vector de ataque:** Un arbol de trabajo con contenido local no versionado intentaba colarse en el VSIX.
+- **Impacto:** Habria permitido filtrar informacion interna o distribuir artefactos no auditados.
+- **Solucion:** `npx vsce ls` confirma 10 ficheros permitidos y la ausencia de `1260721182603-out/`, `docs/test/`, `.vscode/`, `.github/`, mapas, fuentes, tests, dependencias y skills. Mantener esta comprobacion en CI antes de publicar.
 
 - **Ubicacion:** `src/providers/statusTreeProvider.ts`
-- **Severidad:** MEDIA (confianza: 92)
+- **Severidad:** MEDIA (confianza: 99)
 - **Categoria:** OWASP A04 / A05
-- **Hallazgo:** `fs.readFileSync(statusPath, 'utf8')` consume sin limite un fichero controlado por el workspace y bloquea el host de extensiones durante la lectura y el parseo.
+- **Hallazgo:** Corregido en `79e1618`: `readStatusFile` ejecuta `fs.stat` antes de `fs.readFile`, rechaza archivos de mas de 64 KiB y el TreeView usa la API asincrona.
 - **Vector de ataque:** Un repositorio malicioso o corrupto aporta un `docs/project/status.md` desproporcionadamente grande y el usuario abre o refresca el TreeView.
-- **Impacto:** Denegacion local de servicio del host de extensiones y degradacion de VS Code.
-- **Solucion:** Consultar el tamano antes de leer, rechazar un maximo pequeno y usar lectura asincrona; limitar tambien las longitudes mostradas de los campos parseados.
+- **Impacto:** Habria podido causar denegacion local de servicio y degradar el host de extensiones.
+- **Solucion:** El error por tamano no se trata como `ENOENT`; `statusTreeProvider` muestra error generico y reserva «Sin snapshot local» exclusivamente para `ENOENT`. Los campos mostrados se limitan a 200 caracteres.
 
-## Riesgos aceptados
+## Condiciones pendientes
 
-Ninguno. Los dos hallazgos medios deben corregirse antes de una publicacion de produccion.
+- La divulgacion y correccion coordinada de vulnerabilidades CRA sigue pendiente: no hay politica publica de reporte ni SLA de correccion. Severidad MEDIA de proceso, no bloqueante para esta PR de UI.
+- La politica de actualizaciones de seguridad CRA sigue pendiente de evidencia del publicador.

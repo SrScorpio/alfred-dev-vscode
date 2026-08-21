@@ -2,7 +2,7 @@
 
 **Proyecto:** alfred-dev-vscode
 **Version:** 0.6.5
-**Commit revisado:** `084e64eaf1b51656a5149cb0b5a22021c90f56d2`
+**Commit revisado:** `29b1dbc897758a5ced3082623cffe7278cc971cb`
 **Fecha:** 2026-08-21
 **Autor:** security-officer
 **Formato verificable:** `docs/project/sbom.cdx.json`, CycloneDX 1.5 generado con `npx @cyclonedx/cyclonedx-npm` desde `package-lock.json`.
@@ -46,4 +46,4 @@ Las versiones resueltas, PURLs, licencias, relaciones y transitivas estan en `do
 - [x] Licencias de componentes registradas por CycloneDX.
 - [ ] Proceso de divulgacion y correccion de vulnerabilidades documentado.
 - [ ] Politica de actualizaciones de seguridad documentada.
-- [ ] Empaquetado restringido a contenido aprobado y reproducible.
+- [x] Empaquetado restringido a contenido aprobado y reproducible: `npx vsce ls` enumera solo 10 ficheros de runtime y metadatos, sin salidas locales, mapas, fuentes, tests ni dependencias.
