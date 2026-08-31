@@ -8,8 +8,18 @@
  * @module extension
  */
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { StatusTreeProvider } from './providers/statusTreeProvider';
 import { registerCommands } from './commands';
+import { createLazyMemoryStore, JsonMemoryStore } from './memory/memoryStore';
+import type { MemoryStore } from './memory/memoryStore';
+import { registerSecretDiagnostics } from './security/diagnostics';
+
+let configuredMemoryStore: MemoryStore | undefined;
+
+export function getConfiguredMemoryStore(): MemoryStore | undefined {
+  return configuredMemoryStore;
+}
 
 /**
  * Activa la extensión y registra sus contribuciones programáticas.
@@ -24,6 +34,10 @@ export function activate(context: vscode.ExtensionContext) {
   const statusTreeProvider = new StatusTreeProvider();
   vscode.window.registerTreeDataProvider('alfred-dev-status', statusTreeProvider);
 
+  const memoryEnabled = vscode.workspace.getConfiguration('alfred-dev.memory').get<boolean>('enabled', false);
+  configuredMemoryStore = createLazyMemoryStore(memoryEnabled, async () => new JsonMemoryStore(path.join(context.globalStorageUri.fsPath, 'memory.json')));
+  const diagnosticsEnabled = vscode.workspace.getConfiguration('alfred-dev').get<boolean>('secretGuard.diagnostics', true);
+  if (diagnosticsEnabled) registerSecretDiagnostics(context);
   registerCommands(context, statusTreeProvider);
 }
 

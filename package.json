@@ -38,6 +38,36 @@
         "command": "alfred-dev.selectModelProfile",
         "title": "Alfred Dev: Seleccionar perfil de modelo",
         "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.openStyleGallery",
+        "title": "Alfred Dev: Abrir galería visual",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.installSecretHook",
+        "title": "Alfred Dev: Instalar Secret Guard pre-commit",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.ralph.openKanban",
+        "title": "Alfred Dev: Abrir Kanban Ralph",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.ralph.runTask",
+        "title": "Alfred Dev: Ejecutar tarea Ralph",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.ralph.startRunner",
+        "title": "Alfred Dev: Iniciar runner Ralph",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.ralph.stopRunner",
+        "title": "Alfred Dev: Detener runner Ralph",
+        "category": "Alfred Dev"
       }
     ],
     "configuration": {
@@ -53,6 +83,16 @@
           ],
           "default": "luna",
           "description": "Perfil visual de coste preferido para los agentes de Alfred Dev."
+        },
+        "alfred-dev.memory.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Activa bajo demanda la memoria MCP local JSON de Alfred Dev."
+        },
+        "alfred-dev.secretGuard.diagnostics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Muestra avisos no bloqueantes al guardar posibles secretos."
         }
       }
     },

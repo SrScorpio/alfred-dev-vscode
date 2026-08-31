@@ -12,6 +12,9 @@ import { StatusTreeProvider } from '../providers/statusTreeProvider';
 import { getModelProfileItems } from './modelProfiles';
 import type { ModelProfile } from './modelProfiles';
 import { openAlfredChat } from './chatCommand';
+import { openStyleGallery } from '../gallery/styleGalleryPanel';
+import { installSecretHook } from '../security/secretHook';
+import { RalphBridge } from '../integrations/ralph';
 
 /**
  * Registra los comandos de Alfred Dev y los añade a las suscripciones del contexto.
@@ -22,6 +25,12 @@ import { openAlfredChat } from './chatCommand';
  * @example `registerCommands(context, statusTreeProvider)` durante `activate`.
  */
 export function registerCommands(context: vscode.ExtensionContext, statusProvider: StatusTreeProvider) {
+  const getWorkspaceRoot = (): string | undefined => vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const getRalphBridge = () => new RalphBridge(
+    () => vscode.extensions.all.find((extension) => hasRalphCommands(extension.packageJSON)),
+    (command, ...args) => vscode.commands.executeCommand(command, ...args),
+  );
+
   const startFlowCommand = vscode.commands.registerCommand('alfred-dev.startFlow', async () => {
     const flowType = await vscode.window.showQuickPick(
       ['Feature (Idea -> Entrega)', 'Fix (Diagnóstico -> TDD -> QA)', 'Audit (Seguridad + Calidad)', 'Ship (Publicación)'],
@@ -66,5 +75,65 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
     vscode.window.showInformationMessage(`Perfil de modelo guardado: ${selected.label}.`);
   });
 
-  context.subscriptions.push(startFlowCommand, refreshStatusCommand, openChatCommand, selectModelProfileCommand);
+  const openStyleGalleryCommand = vscode.commands.registerCommand('alfred-dev.openStyleGallery', () => {
+    void openStyleGallery(context).catch((error: unknown) => {
+      vscode.window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo abrir la galería visual.');
+    });
+  });
+  const installSecretHookCommand = vscode.commands.registerCommand('alfred-dev.installSecretHook', async () => {
+    const workspaceRoot = getWorkspaceRoot();
+    if (!workspaceRoot) {
+      vscode.window.showErrorMessage('Abre un workspace para instalar el Secret Guard.');
+      return;
+    }
+    try {
+      await installSecretHook(workspaceRoot);
+      vscode.window.showInformationMessage('Secret Guard instalado para el pre-commit de este repositorio.');
+    } catch (error: unknown) {
+      vscode.window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo instalar el Secret Guard.');
+    }
+  });
+  const ralphOpenKanbanCommand = vscode.commands.registerCommand('alfred-dev.ralph.openKanban', () => {
+    void executeRalph(() => getRalphBridge().openKanban());
+  });
+  const ralphRunTaskCommand = vscode.commands.registerCommand('alfred-dev.ralph.runTask', async () => {
+    const taskId = await vscode.window.showInputBox({ prompt: 'ID de tarea Ralph', validateInput: (value) => /^[a-z0-9][a-z0-9-]{0,63}$/.test(value) ? undefined : 'Usa un ID alfanumérico con guiones.' });
+    if (taskId) void executeRalph(() => getRalphBridge().runTask(taskId));
+  });
+  const ralphStartRunnerCommand = vscode.commands.registerCommand('alfred-dev.ralph.startRunner', () => {
+    void executeRalph(() => getRalphBridge().startRunner());
+  });
+  const ralphStopRunnerCommand = vscode.commands.registerCommand('alfred-dev.ralph.stopRunner', () => {
+    void executeRalph(() => getRalphBridge().stopRunner());
+  });
+
+  context.subscriptions.push(
+    startFlowCommand,
+    refreshStatusCommand,
+    openChatCommand,
+    selectModelProfileCommand,
+    openStyleGalleryCommand,
+    installSecretHookCommand,
+    ralphOpenKanbanCommand,
+    ralphRunTaskCommand,
+    ralphStartRunnerCommand,
+    ralphStopRunnerCommand,
+  );
+}
+
+function hasRalphCommands(packageJson: unknown): boolean {
+  if (typeof packageJson !== 'object' || packageJson === null) return false;
+  const contributes = (packageJson as { contributes?: { commands?: unknown } }).contributes;
+  if (!contributes || !Array.isArray(contributes.commands)) return false;
+  return contributes.commands.some((command) => typeof command === 'object' && command !== null
+    && typeof (command as { command?: unknown }).command === 'string'
+    && (command as { command: string }).command.startsWith('ralph-suite.'));
+}
+
+async function executeRalph(action: () => Promise<void>): Promise<void> {
+  try {
+    await action();
+  } catch (error: unknown) {
+    vscode.window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo ejecutar la acción Ralph.');
+  }
 }

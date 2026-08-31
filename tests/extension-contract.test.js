@@ -15,7 +15,11 @@ test('declara comandos de chat y selección de perfil de modelo', () => {
 
   assert.ok(commands.some((command) => command.command === 'alfred-dev.openChat'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.selectModelProfile'));
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.openStyleGallery'));
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.installSecretHook'));
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.ralph.openKanban'));
   assert.equal(packageJson.contributes.configuration.properties['alfred-dev.modelProfile'].default, 'luna');
+  assert.equal(packageJson.contributes.configuration.properties['alfred-dev.memory.enabled'].default, false);
   assert.deepEqual(
     packageJson.contributes.configuration.properties['alfred-dev.modelProfile'].enum,
     ['luna', 'terra', 'sol'],
