@@ -12,6 +12,8 @@
 - `package-lock.json` v3 contiene 295 paquetes resueltos de desarrollo, incluidas entradas opcionales por plataforma.
 - El documento CycloneDX contiene 272 componentes con licencia identificada; las diferencias son entradas de lockfile opcionales o duplicadas por ruta que no se materializan como componentes independientes.
 - La extension no declara dependencias de produccion. Las 295 dependencias de desarrollo se incluyen porque ejecutan codigo en la construccion y empaquetado del VSIX.
+- Issue #2 y el MVP opcional de Issue #3A no añaden dependencias: memoria,
+  scanner, galería y bridge Ralph usan Node/VS Code y feature detection.
 - El lockfile fija `@vscode/vsce` 3.9.2 con integridad `sha512-XSxMosEEDO6vLxELAHVkwmhC0qe0ijZni2jB9Rcs8kQsW4lhTDQ/wMzmwFs/buotAWSnpmUp/dRWD2ufG3UYKA==`.
 
 ## Componente principal

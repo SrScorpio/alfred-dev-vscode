@@ -9,6 +9,16 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
+- Correcciones de compatibilidad del parser para snapshots con viñetas,
+  diagnóstico de snapshots malformados y errores accionables al abrir Copilot
+  Chat.
+- MVP de Issue #2: memoria JSON local opt-in y lazy con límites, escritura
+  atómica y sanitización; Secret Guard reutilizable con avisos al guardar y
+  hook pre-commit instalable explícitamente; y galería visual con tres
+  propuestas, CSP/nonce, catálogo fallback y confirmación antes de persistir.
+- MVP opcional de Issue #3A: detección y wrappers de Ralph Suite, validación
+  segura de `.ralph/config.json`, asociaciones `ISSUE-123` y sync best-effort.
+  El paralelismo no se simula porque no existe API/scheduler público.
 - Índice público de documentación, guía del catálogo, guía de la extensión
   VS Code y políticas de contribución y seguridad.
 - TreeView nativo en la Activity Bar para leer el snapshot local

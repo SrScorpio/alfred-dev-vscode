@@ -7,7 +7,7 @@
 
 ## Superficie de ataque
 
-La extension se activa en VS Code, lee `docs/project/status.md` del primer workspace, muestra campos parseados en un TreeView, abre el chat con mensajes fijos `@alfred` y persiste una preferencia global con tres valores declarados. La cadena de release compila TypeScript y usa `@vscode/vsce` para crear el VSIX.
+La extension se activa en VS Code, lee `docs/project/status.md` del primer workspace, muestra campos parseados en un TreeView, abre el chat con mensajes fijos `@alfred`, ofrece memoria JSON local opt-in, diagnósticos de secretos, una galería local y un puente opcional a Ralph Suite. La cadena de release compila TypeScript y usa `@vscode/vsce` para crear el VSIX.
 
 ```mermaid
 flowchart LR
@@ -15,6 +15,8 @@ flowchart LR
   extension -->|campos renderizados| tree[TreeView]
   extension -->|mensaje fijo @alfred| chat[GitHub Copilot Chat]
   extension -->|luna terra sol| config[Configuracion global VS Code]
+  extension -->|opt-in| memory[Memoria JSON local]
+  extension -->|feature detection| ralph[Ralph Suite opcional]
   source[Repositorio y lockfile] --> build[Build local]
   build --> vsce[@vscode/vsce]
   vsce --> vsix[VSIX distribuido]
@@ -28,6 +30,8 @@ flowchart LR
 | Host de extensiones VS Code | Disponibilidad | Bloqueo local del editor. |
 | Preferencia de modelo | Baja sensibilidad | Alteracion de la politica visual de coste. |
 | Contenido de `status.md` | No confiable | Desinformacion de la interfaz o consumo de recursos. |
+| Memoria local | Sensible potencial | Persistencia accidental de contexto o secretos. |
+| Configuracion `.ralph` | No confiable | Lectura de rutas o tareas fuera del workspace. |
 | Lockfile y dependencias de build | Integridad | Ejecucion de codigo comprometido durante build o empaquetado. |
 
 ## Analisis STRIDE
@@ -40,6 +44,11 @@ No se implementa autenticacion propia. Los comandos de chat se registran con ide
 
 `status.md` es controlable por el workspace, pero sus valores solo se convierten en etiquetas y no seleccionan comandos ni rutas. La cadena de empaquetado usa una allowlist que parte de `*` y `npx vsce ls` confirma que solo distribuye 10 ficheros de runtime y metadatos.
 
+La galería escapa texto, usa nonce y CSP sin recursos remotos. La memoria
+sanitiza secretos, limita tamaño/entradas y escribe mediante temporal + rename.
+Ralph valida workspace trust, IDs, estados, rutas y tamaño antes de leer
+`.ralph/config.json`; los comandos se invocan por nombres fijos.
+
 ### Repudiation (repudio)
 
 No hay registro de acciones de seguridad, publicacion de VSIX ni cambios de perfil atribuible. Para un producto distribuido debe existir trazabilidad de releases y un proceso de incidentes.
@@ -50,11 +59,16 @@ No hay registro de acciones de seguridad, publicacion de VSIX ni cambios de perf
 
 ### Denial of Service (denegacion de servicio)
 
-La lectura de `status.md` es asincrona y se rechaza antes de abrir el fichero si supera 64 KiB; solo `ENOENT` se comunica como ausencia de snapshot. No hay endpoints de red propios ni superficie de rate limiting en el cambio revisado.
+La lectura de `status.md` es asincrona y se rechaza antes de abrir el fichero si supera 64 KiB; solo `ENOENT` se comunica como ausencia de snapshot. La memoria y `.ralph` tienen límites propios. No hay endpoints de red propios ni superficie de rate limiting.
 
 ### Elevation of Privilege (elevacion de privilegios)
 
-No hay `child_process`, shell, acceso de red ni comandos derivados de contenido de workspace. La configuracion declara el enum `luna`, `terra`, `sol`; debe mantenerse ese limite en cualquier futura ruta de escritura.
+No hay comandos derivados de contenido de workspace. La configuracion declara
+el enum `luna`, `terra`, `sol`; debe mantenerse ese limite en cualquier futura
+ruta de escritura. El hook de secretos se instala solo por comando explícito y
+los diagnósticos de guardado son avisos no bloqueantes. Ralph no recibe cuerpos
+de issues ni prompts como comandos y no se simula paralelismo sin API/scheduler
+público.
 
 ## Matriz de riesgo
 
@@ -65,8 +79,12 @@ No hay `child_process`, shell, acceso de red ni comandos derivados de contenido 
 | Cambio no autorizado de la preferencia global | Baja | Bajo | Bajo | Mantener enum en `contributes.configuration` y no aceptar valores desde `status.md`. |
 | Dependencia comprometida en build | Baja | Alto | Medio | Lockfile con integridad, SBOM, `npm audit` y actualizaciones revisadas. |
 | Fuga de secretos en VSIX | Baja | Alto | Medio | Escaneo de secretos y lista de archivos permitidos antes de publicar. |
+| Secreto guardado en memoria local | Baja | Alto | Medio | Memoria apagada por defecto, sanitización, límites, almacenamiento global local y no red. |
+| Webview con contenido local inseguro | Baja | Alto | Bajo | CSP nonce, escape HTML, sin recursos remotos ni raíces locales. |
+| Ralph lee o ejecuta fuera del workspace | Baja | Alto | Bajo | Workspace trust, esquema estricto, rutas sin `..` y comandos fijos. |
 
 ## Recomendaciones
 
 1. Mantener en CI una comprobacion de `npx vsce ls` que permita exclusivamente runtime y metadatos de release aprobados.
 2. Anadir politica de vulnerabilidades y soporte de actualizaciones para cerrar los controles CRA/NIS2 pendientes.
+3. Mantener la confirmacion explicita de la galería, el opt-in de memoria y la instalación voluntaria del hook.
