@@ -86,6 +86,7 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
       if (status.phase) items.push(new StatusItem(`Fase: ${status.phase}`, vscode.TreeItemCollapsibleState.None, 'play'));
       if (status.pendingGate) items.push(new StatusItem(`Gate: ${status.pendingGate}`, vscode.TreeItemCollapsibleState.None, 'shield'));
       if (status.nextAction) items.push(new StatusItem(`Acción: ${status.nextAction}`, vscode.TreeItemCollapsibleState.None, 'arrow-right'));
+      if (status.message) items.push(new StatusItem(status.message, vscode.TreeItemCollapsibleState.None, 'warning'));
 
       return items;
     } catch (error: unknown) {

@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 import { StatusTreeProvider } from '../providers/statusTreeProvider';
 import { getModelProfileItems } from './modelProfiles';
 import type { ModelProfile } from './modelProfiles';
+import { openAlfredChat } from './chatCommand';
 
 /**
  * Registra los comandos de Alfred Dev y los añade a las suscripciones del contexto.
@@ -29,7 +30,11 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
 
     if (flowType) {
       vscode.window.showInformationMessage(`Flujo seleccionado: ${flowType}. Invocando a @alfred en GitHub Copilot...`);
-      void vscode.commands.executeCommand('workbench.action.chat.open', `@alfred Arranca el flujo ${flowType}`);
+      void openAlfredChat(
+        (command, prompt) => vscode.commands.executeCommand(command, prompt),
+        (message) => vscode.window.showErrorMessage(message),
+        `@alfred Arranca el flujo ${flowType}`,
+      );
     }
   });
 
@@ -39,7 +44,10 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
   });
 
   const openChatCommand = vscode.commands.registerCommand('alfred-dev.openChat', () => {
-    void vscode.commands.executeCommand('workbench.action.chat.open', '@alfred');
+    void openAlfredChat(
+      (command, prompt) => vscode.commands.executeCommand(command, prompt),
+      (message) => vscode.window.showErrorMessage(message),
+    );
   });
 
   const selectModelProfileCommand = vscode.commands.registerCommand('alfred-dev.selectModelProfile', async () => {

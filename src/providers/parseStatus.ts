@@ -18,10 +18,10 @@ export interface ParsedProjectStatus {
 export const MAX_STATUS_FIELD_LENGTH = 200;
 
 const STATUS_FIELDS = {
-  flow: /^\*\*Flujo:\*\*\s*(.+)$/im,
-  phase: /^\*\*Fase actual:\*\*\s*(.+)$/im,
-  pendingGate: /^\*\*Gate pendiente:\*\*\s*(.+)$/im,
-  nextAction: /^\*\*(?:Siguiente acción|Próxima acción)(?: recomendada)?:\*\*\s*(.+)$/im,
+  flow: /^\s*(?:[-*+]\s+)?\*\*Flujo:\*\*\s*(.+)$/im,
+  phase: /^\s*(?:[-*+]\s+)?\*\*Fase actual:\*\*\s*(.+)$/im,
+  pendingGate: /^\s*(?:[-*+]\s+)?\*\*Gate pendiente:\*\*\s*(.+)$/im,
+  nextAction: /^\s*(?:[-*+]\s+)?\*\*(?:Siguiente acción|Próxima acción)(?: recomendada)?:\*\*\s*(.+)$/im,
 } as const;
 
 function readField(content: string, pattern: RegExp): string | undefined {
@@ -46,10 +46,16 @@ export function parseProjectStatus(content?: string): ParsedProjectStatus {
     return { message: 'Sin snapshot local. El estado vive en GitHub Issues.' };
   }
 
-  return {
+  const parsedStatus: ParsedProjectStatus = {
     flow: readField(content, STATUS_FIELDS.flow),
     phase: readField(content, STATUS_FIELDS.phase),
     pendingGate: readField(content, STATUS_FIELDS.pendingGate),
     nextAction: readField(content, STATUS_FIELDS.nextAction),
   };
+
+  if (!Object.values(parsedStatus).some((value) => value !== undefined)) {
+    return { message: 'Snapshot local malformado: no se reconocieron campos de estado.' };
+  }
+
+  return parsedStatus;
 }
