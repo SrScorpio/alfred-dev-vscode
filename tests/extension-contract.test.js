@@ -49,6 +49,7 @@ test('cablea la memoria configurada a MCP con feature detection y comandos fallb
   assert.match(extension, /registerMemoryMcpProvider\(/);
   assert.match(extension, /registerMcpServerDefinitionProvider/);
   assert.match(extension, /McpStdioServerDefinition/);
+  assert.match(extension, /optionalMcpApi\?\.registerMcpServerDefinitionProvider/);
   assert.match(commands, /createMemoryCommandHandlers\(/);
   assert.match(commands, /alfred-dev\.memory\.(?:put|get|search)/);
 });

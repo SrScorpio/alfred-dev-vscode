@@ -38,15 +38,15 @@ export function activate(context: vscode.ExtensionContext) {
   const memoryEnabled = vscode.workspace.getConfiguration('alfred-dev.memory').get<boolean>('enabled', false);
   const memoryPath = path.join(context.globalStorageUri.fsPath, 'memory.json');
   configuredMemoryStore = createLazyMemoryStore(memoryEnabled, async () => new JsonMemoryStore(memoryPath));
-  const optionalMcpApi = vscode.lm as typeof vscode.lm & {
+  const optionalMcpApi = (vscode as typeof vscode & { lm?: typeof vscode.lm }).lm as (typeof vscode.lm & {
     registerMcpServerDefinitionProvider?: typeof vscode.lm.registerMcpServerDefinitionProvider;
-  };
+  }) | undefined;
   const optionalMcpDefinition = (vscode as typeof vscode & {
     McpStdioServerDefinition?: typeof vscode.McpStdioServerDefinition;
   }).McpStdioServerDefinition;
   const mcpRegistration = registerMemoryMcpProvider({
     enabled: memoryEnabled,
-    registerProvider: typeof optionalMcpApi.registerMcpServerDefinitionProvider === 'function'
+    registerProvider: typeof optionalMcpApi?.registerMcpServerDefinitionProvider === 'function'
       ? (id, provider) => optionalMcpApi.registerMcpServerDefinitionProvider!(id, provider as vscode.McpServerDefinitionProvider)
       : undefined,
     createDefinition: typeof optionalMcpDefinition === 'function'
