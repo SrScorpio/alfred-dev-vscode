@@ -39,6 +39,16 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 - El selector de modelos persiste `alfred-dev.modelProfile` como preferencia
   global de UI/coste y marca el perfil guardado al reabrirse; no reescribe los
   arrays `model` de los agentes.
+- La memoria opt-in persiste ahora únicamente un sobre AES-256-GCM; la clave se
+  custodia con VS Code `SecretStorage`, los formatos legados en claro se
+  rechazan y el provider MCP reacciona una sola vez al concederse workspace
+  trust.
+- El bridge Ralph fija la identidad `ralph-suite.ralph-suite`, exige la
+  capacidad exacta de cada acción y bloquea `runTask` antes de solicitar datos
+  en un workspace no confiable. Ralph Suite 1.9.1 sigue sin API pública de
+  `syncIssue` ni scheduler paralelo.
+- La generación CycloneDX usa `@cyclonedx/cyclonedx-npm` 6.0.1 fijado como
+  dependencia de desarrollo y el script reproducible `npm run sbom`.
 
 ## [0.6.5] - 2026-08-21
 

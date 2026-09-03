@@ -280,16 +280,21 @@ El trabajo nunca depende de una sola persona ni de un chat que se pierde. El est
 
 #### Memoria local opt-in
 
-La VSIX incluye un backend JSON local y acotado para memoria auxiliar. Se
+La VSIX incluye un backend local cifrado y acotado para memoria auxiliar. Se
 activa explícitamente con `alfred-dev.memory.enabled`; está desactivado por
 defecto, se inicializa de forma lazy y no sustituye a GitHub Issues ni a
-`docs/project/status.md`. Los valores se sanitizan antes de persistirse, con
-límite físico de 256 KiB, 100 entradas y 4.000 caracteres por valor.
+`docs/project/status.md`. Los valores se sanitizan antes de persistirse y el
+payload se cifra con AES-256-GCM; la clave se genera y custodia mediante VS Code
+`SecretStorage`, fuera de `memory.json`. Se aplican un límite físico de 256
+KiB, 100 entradas y 4.000 caracteres por valor. Los ficheros legados sin
+cifrar se rechazan explícitamente y no se migran de forma silenciosa.
 
 Cuando el runtime de VS Code expone la API MCP, la extensión registra bajo
 feature detection un servidor stdio con tres tools: `memory_put`, `memory_get`
 y `memory_search`. VS Code solo arranca ese proceso al usarlo y nunca se
-registra ni arranca mientras el ajuste esté desactivado. Como el engine mínimo
+registra ni arranca mientras el ajuste esté desactivado. El provider requiere
+workspace trust y se registra una sola vez si la confianza se concede durante
+la sesión. Como el engine mínimo
 declarado es VS Code `^1.85.0`, las versiones sin esa API mantienen la función
 mediante los comandos **Guardar**, **Consultar** y **Buscar memoria local**,
 conectados al mismo JSON sanitizado y atómico. Ninguna ruta realiza llamadas de
@@ -313,9 +318,11 @@ después de la confirmación explícita del usuario.
 
 #### MVP opcional de Ralph Suite
 
-La integración detecta Ralph Suite sin convertirla en dependencia obligatoria.
+La integración detecta exclusivamente la extensión con ID
+`ralph-suite.ralph-suite`, sin convertirla en dependencia obligatoria.
 Expone wrappers para abrir el Kanban, ejecutar una tarea e iniciar o detener
-el runner. El comando **Sincronizar issue con Ralph** pide solo el número y el
+el runner, y cada wrapper comprueba que el proveedor anuncia su comando exacto
+antes de ejecutarlo. El comando **Sincronizar issue con Ralph** pide solo el número y el
 estado GitHub, exige workspace trust y da un resultado accionable si Ralph no
 está disponible o rechaza el comando. `ISSUE-123` es la asociación soportada y
 los estados se mapean como

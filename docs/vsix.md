@@ -51,11 +51,14 @@ los agentes: esos arrays siguen definiendo su propia prioridad y sus fallbacks.
 ## Issue #2: memoria, secretos y galería
 
 La memoria local se activa con `alfred-dev.memory.enabled` y permanece apagada
-por defecto. Es un JSON privado del almacenamiento global de VS Code, con
-escritura atómica, límite previo de 256 KiB y sanitización de secretos. Si el
+por defecto. Persiste un sobre JSON `version: 2` cifrado con AES-256-GCM, con
+clave aleatoria custodiada por VS Code `SecretStorage` y nunca escrita en
+`memory.json`. Mantiene escritura atómica, límite previo de 256 KiB y
+sanitización de secretos; rechaza explícitamente el formato legado en claro. Si el
 runtime expone `registerMcpServerDefinitionProvider`, registra un servidor MCP
-stdio con `memory_put`, `memory_get` y `memory_search`; el proceso solo se
-arranca al utilizarlo. VS Code `^1.85.0` sigue soportado mediante los tres
+stdio con `memory_put`, `memory_get` y `memory_search`; exige workspace trust,
+reacciona a una concesión de confianza sin recarga y evita el doble registro.
+El proceso solo se arranca al utilizarlo. VS Code `^1.85.0` sigue soportado mediante los tres
 comandos equivalentes cuando esa API no existe. No hay red propia.
 
 El diagnóstico de Secret Guard se ejecuta al guardar y solo avisa. El comando
@@ -69,10 +72,12 @@ escritura confirmada de `docs/style-direction.md` requieren workspace trust.
 
 ## Issue #3A: Ralph Suite
 
-La integración es opcional y detecta la extensión por sus comandos. GitHub
+La integración es opcional y resuelve solo el ID canónico
+`ralph-suite.ralph-suite`. GitHub
 Issues/PRs conserva la fuente colaborativa y Ralph la ejecución local. El
-puente valida `.ralph/config.json`, workspace trust, tamaños, IDs, estados y
-rutas; nunca ejecuta cuerpos de issues ni prompts. El comando de sincronización
+puente valida `.ralph/config.json`, workspace trust antes de solicitar datos,
+tamaños, IDs, estados, rutas y la capacidad exacta de cada acción; nunca
+ejecuta cuerpos de issues ni prompts. El comando de sincronización
 solicita solo número de issue y estado GitHub, mantiene GitHub como fuente de
 verdad y comunica por separado Ralph ausente, issue inválida o fallo del
 comando. Solo confirma el sync si la extensión instalada anuncia
@@ -90,13 +95,15 @@ Desde la raíz del repositorio:
 npm ci
 npm test
 npm run compile
+npm run sbom
 npm run package
 ```
 
 `npm ci` instala las dependencias fijadas por el lockfile. `npm test` ejecuta
 los contratos con `node:test` y compila antes mediante `pretest`. `npm run
 compile` genera JavaScript en `out/`. `npm run package` crea el VSIX local con
-`@vscode/vsce`; no publica nada en el Marketplace.
+`@vscode/vsce`; no publica nada en el Marketplace. `npm run sbom` regenera y
+valida el CycloneDX reproducible con la herramienta local fijada en el lockfile.
 
 ## Contenido permitido del VSIX
 

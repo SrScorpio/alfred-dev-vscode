@@ -147,9 +147,11 @@
     "pretest": "npm run compile",
     "test": "node --test tests/*.test.js",
     "verify-package": "node tests/package-contract.test.js",
+    "sbom": "cyclonedx-npm --package-lock-only --output-reproducible --spec-version 1.5 --output-format JSON --output-file docs/project/sbom.cdx.json --validate",
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
+    "@cyclonedx/cyclonedx-npm": "6.0.1",
     "@vscode/vsce": "3.9.2",
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
