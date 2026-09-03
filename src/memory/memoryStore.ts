@@ -103,9 +103,13 @@ export class JsonMemoryStore implements MemoryStore {
   }
 
   private async write(memory: MemoryFile): Promise<void> {
+    const serializedMemory = JSON.stringify(memory, null, 2);
+    if (Buffer.byteLength(serializedMemory, 'utf8') > MAX_MEMORY_FILE_SIZE) {
+      throw new Error('La memoria local supera el tamaño máximo permitido de 256 KiB');
+    }
     await fs.mkdir(path.dirname(this.filePath), { recursive: true });
     const temporaryPath = `${this.filePath}.${process.pid}.tmp`;
-    await fs.writeFile(temporaryPath, JSON.stringify(memory, null, 2), { encoding: 'utf8', mode: 0o600 });
+    await fs.writeFile(temporaryPath, serializedMemory, { encoding: 'utf8', mode: 0o600 });
     await fs.rename(temporaryPath, this.filePath);
   }
 }

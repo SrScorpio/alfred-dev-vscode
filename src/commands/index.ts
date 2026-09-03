@@ -14,7 +14,10 @@ import type { ModelProfile } from './modelProfiles';
 import { openAlfredChat } from './chatCommand';
 import { openStyleGallery } from '../gallery/styleGalleryPanel';
 import { installSecretHook } from '../security/secretHook';
-import { RalphBridge } from '../integrations/ralph';
+import { RalphBridge, runSyncIssueCommand } from '../integrations/ralph';
+import type { AlfredStatus } from '../integrations/ralph';
+import { createMemoryCommandHandlers } from '../memory/memoryIntegration';
+import type { MemoryStore } from '../memory/memoryStore';
 
 /**
  * Registra los comandos de Alfred Dev y los añade a las suscripciones del contexto.
@@ -24,7 +27,7 @@ import { RalphBridge } from '../integrations/ralph';
  * @returns `void`.
  * @example `registerCommands(context, statusTreeProvider)` durante `activate`.
  */
-export function registerCommands(context: vscode.ExtensionContext, statusProvider: StatusTreeProvider) {
+export function registerCommands(context: vscode.ExtensionContext, statusProvider: StatusTreeProvider, memoryStore: MemoryStore) {
   const getWorkspaceRoot = (): string | undefined => vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   const getRalphBridge = () => new RalphBridge(
     () => vscode.extensions.all.find((extension) => hasRalphCommands(extension.packageJSON)),
@@ -81,6 +84,10 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
     });
   });
   const installSecretHookCommand = vscode.commands.registerCommand('alfred-dev.installSecretHook', async () => {
+    if (!vscode.workspace.isTrusted) {
+      vscode.window.showErrorMessage('Secret Guard requiere un workspace de confianza para instalar el hook.');
+      return;
+    }
     const workspaceRoot = getWorkspaceRoot();
     if (!workspaceRoot) {
       vscode.window.showErrorMessage('Abre un workspace para instalar el Secret Guard.');
@@ -92,6 +99,32 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
     } catch (error: unknown) {
       vscode.window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo instalar el Secret Guard.');
     }
+  });
+  const memoryHandlers = createMemoryCommandHandlers(memoryStore, {
+    prompt: async (request) => {
+      const key = await vscode.window.showInputBox({
+        prompt: request === 'search' ? 'Texto que buscar en la memoria local' : 'Clave de memoria local',
+        ignoreFocusOut: true,
+      });
+      if (!key) return undefined;
+      if (request !== 'put') return { key };
+      const value = await vscode.window.showInputBox({
+        prompt: 'Contenido que guardar localmente',
+        ignoreFocusOut: true,
+      });
+      return value === undefined ? undefined : { key, value };
+    },
+    showInformation: (message) => { void vscode.window.showInformationMessage(message); },
+    showError: (message) => { void vscode.window.showErrorMessage(message); },
+  });
+  const memoryPutCommand = vscode.commands.registerCommand('alfred-dev.memory.put', () => {
+    void executeMemory(() => memoryHandlers.put());
+  });
+  const memoryGetCommand = vscode.commands.registerCommand('alfred-dev.memory.get', () => {
+    void executeMemory(() => memoryHandlers.get());
+  });
+  const memorySearchCommand = vscode.commands.registerCommand('alfred-dev.memory.search', () => {
+    void executeMemory(() => memoryHandlers.search());
   });
   const ralphOpenKanbanCommand = vscode.commands.registerCommand('alfred-dev.ralph.openKanban', () => {
     void executeRalph(() => getRalphBridge().openKanban());
@@ -106,6 +139,26 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
   const ralphStopRunnerCommand = vscode.commands.registerCommand('alfred-dev.ralph.stopRunner', () => {
     void executeRalph(() => getRalphBridge().stopRunner());
   });
+  const ralphSyncIssueCommand = vscode.commands.registerCommand('alfred-dev.ralph.syncIssue', () => {
+    const bridge = getRalphBridge();
+    void runSyncIssueCommand({
+      isTrusted: vscode.workspace.isTrusted,
+      promptIssueId: async () => vscode.window.showInputBox({
+        prompt: 'Número de issue GitHub que sincronizar con Ralph',
+        validateInput: (value) => /^[1-9]\d{0,5}$/.test(value) ? undefined : 'Introduce un número entre 1 y 999999.',
+      }),
+      promptStatus: async () => {
+        const selected = await vscode.window.showQuickPick(
+          ['backlog', 'in-progress', 'blocked', 'closed'],
+          { placeHolder: 'Estado actual en GitHub (fuente de verdad)' },
+        );
+        return selected as AlfredStatus | undefined;
+      },
+      syncIssue: (issueId, status) => bridge.syncIssue(issueId, status),
+      showInformation: (message) => { void vscode.window.showInformationMessage(message); },
+      showError: (message) => { void vscode.window.showErrorMessage(message); },
+    });
+  });
 
   context.subscriptions.push(
     startFlowCommand,
@@ -114,11 +167,23 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
     selectModelProfileCommand,
     openStyleGalleryCommand,
     installSecretHookCommand,
+    memoryPutCommand,
+    memoryGetCommand,
+    memorySearchCommand,
     ralphOpenKanbanCommand,
     ralphRunTaskCommand,
     ralphStartRunnerCommand,
     ralphStopRunnerCommand,
+    ralphSyncIssueCommand,
   );
+}
+
+async function executeMemory(action: () => Promise<void>): Promise<void> {
+  try {
+    await action();
+  } catch (error: unknown) {
+    vscode.window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo usar la memoria local.');
+  }
 }
 
 function hasRalphCommands(packageJson: unknown): boolean {

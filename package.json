@@ -50,6 +50,21 @@
         "category": "Alfred Dev"
       },
       {
+        "command": "alfred-dev.memory.put",
+        "title": "Alfred Dev: Guardar memoria local",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.memory.get",
+        "title": "Alfred Dev: Consultar memoria local",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.memory.search",
+        "title": "Alfred Dev: Buscar memoria local",
+        "category": "Alfred Dev"
+      },
+      {
         "command": "alfred-dev.ralph.openKanban",
         "title": "Alfred Dev: Abrir Kanban Ralph",
         "category": "Alfred Dev"
@@ -68,6 +83,17 @@
         "command": "alfred-dev.ralph.stopRunner",
         "title": "Alfred Dev: Detener runner Ralph",
         "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.ralph.syncIssue",
+        "title": "Alfred Dev: Sincronizar issue con Ralph",
+        "category": "Alfred Dev"
+      }
+    ],
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "alfred-dev.memory",
+        "label": "Alfred Dev Memory"
       }
     ],
     "configuration": {
@@ -87,7 +113,7 @@
         "alfred-dev.memory.enabled": {
           "type": "boolean",
           "default": false,
-          "description": "Activa bajo demanda la memoria MCP local JSON de Alfred Dev."
+          "description": "Activa la memoria local de Alfred Dev. Usa MCP cuando VS Code lo soporta y comandos como degradación compatible."
         },
         "alfred-dev.secretGuard.diagnostics": {
           "type": "boolean",

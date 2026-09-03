@@ -13,6 +13,7 @@ import { StatusTreeProvider } from './providers/statusTreeProvider';
 import { registerCommands } from './commands';
 import { createLazyMemoryStore, JsonMemoryStore } from './memory/memoryStore';
 import type { MemoryStore } from './memory/memoryStore';
+import { registerMemoryMcpProvider } from './memory/memoryIntegration';
 import { registerSecretDiagnostics } from './security/diagnostics';
 
 let configuredMemoryStore: MemoryStore | undefined;
@@ -35,10 +36,36 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.window.registerTreeDataProvider('alfred-dev-status', statusTreeProvider);
 
   const memoryEnabled = vscode.workspace.getConfiguration('alfred-dev.memory').get<boolean>('enabled', false);
-  configuredMemoryStore = createLazyMemoryStore(memoryEnabled, async () => new JsonMemoryStore(path.join(context.globalStorageUri.fsPath, 'memory.json')));
+  const memoryPath = path.join(context.globalStorageUri.fsPath, 'memory.json');
+  configuredMemoryStore = createLazyMemoryStore(memoryEnabled, async () => new JsonMemoryStore(memoryPath));
+  const optionalMcpApi = vscode.lm as typeof vscode.lm & {
+    registerMcpServerDefinitionProvider?: typeof vscode.lm.registerMcpServerDefinitionProvider;
+  };
+  const optionalMcpDefinition = (vscode as typeof vscode & {
+    McpStdioServerDefinition?: typeof vscode.McpStdioServerDefinition;
+  }).McpStdioServerDefinition;
+  const mcpRegistration = registerMemoryMcpProvider({
+    enabled: memoryEnabled,
+    registerProvider: typeof optionalMcpApi.registerMcpServerDefinitionProvider === 'function'
+      ? (id, provider) => optionalMcpApi.registerMcpServerDefinitionProvider!(id, provider as vscode.McpServerDefinitionProvider)
+      : undefined,
+    createDefinition: typeof optionalMcpDefinition === 'function'
+      ? (serverPath, configuredMemoryPath, version) => new optionalMcpDefinition(
+        'Alfred Dev Memory',
+        process.execPath,
+        [serverPath],
+        { ELECTRON_RUN_AS_NODE: '1', ALFRED_DEV_MEMORY_PATH: configuredMemoryPath },
+        version,
+      )
+      : undefined,
+    serverPath: context.asAbsolutePath(path.join('out', 'memory', 'memoryMcpServer.js')),
+    memoryPath,
+    version: '0.6.5',
+  });
+  if (mcpRegistration) context.subscriptions.push(mcpRegistration);
   const diagnosticsEnabled = vscode.workspace.getConfiguration('alfred-dev').get<boolean>('secretGuard.diagnostics', true);
   if (diagnosticsEnabled) registerSecretDiagnostics(context);
-  registerCommands(context, statusTreeProvider);
+  registerCommands(context, statusTreeProvider, configuredMemoryStore);
 }
 
 /**

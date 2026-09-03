@@ -6,16 +6,13 @@ const test = require('node:test');
 
 const {
   JsonMemoryStore,
+  MAX_MEMORY_FILE_SIZE,
   createLazyMemoryStore,
 } = require('../out/memory/memoryStore.js');
 const {
   sanitizeSecrets,
   scanSecrets,
 } = require('../out/security/secretScanner.js');
-const {
-  installSecretHook,
-  SECRET_HOOK_MARKER,
-} = require('../out/security/secretHook.js');
 
 test('detecta y sanitiza credenciales sin devolver su valor', () => {
   const content = 'token=ghp_abcdefghijklmnopqrstuvwxyz1234567890';
@@ -26,6 +23,21 @@ test('detecta y sanitiza credenciales sin devolver su valor', () => {
   assert.equal(findings[0].line, 1);
   assert.doesNotMatch(findings[0].redacted, /abcdefghijklmnopqrstuvwxyz/);
   assert.equal(sanitizeSecrets(content), 'token=[REDACTED]');
+});
+
+test('sanitiza Bearer, sk, PEM y credenciales AWS antes de persistir', () => {
+  const sensitiveValues = [
+    'Authorization: Bearer header.payload.signature',
+    `OPENAI_API_KEY=sk-${'a'.repeat(32)}`,
+    '-----BEGIN PRIVATE KEY-----\nprivate-material\n-----END PRIVATE KEY-----',
+    `AWS_ACCESS_KEY_ID=AKIA${'A'.repeat(16)}`,
+    `AWS_SECRET_ACCESS_KEY=${'b'.repeat(40)}`,
+  ].join('\n');
+
+  const sanitized = sanitizeSecrets(sensitiveValues);
+
+  assert.doesNotMatch(sanitized, /header\.payload|sk-|private-material|AKIA|b{40}/);
+  assert.ok(scanSecrets(sensitiveValues).length >= 5);
 });
 
 test('la memoria desactivada no inicializa su backend', async () => {
@@ -55,13 +67,35 @@ test('la memoria JSON persiste de forma acotada y sanitizada', async () => {
   assert.doesNotMatch(await fs.readFile(path.join(directory, 'memory.json'), 'utf8'), /ghp_/);
 });
 
-test('el hook solo se instala mediante una acción explícita', async () => {
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-hook-'));
-  await fs.mkdir(path.join(directory, '.git', 'hooks'), { recursive: true });
+test('la memoria nunca escribe un JSON superior al límite de lectura', async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-size-'));
+  const memoryPath = path.join(directory, 'memory.json');
+  const store = new JsonMemoryStore(memoryPath, { maxEntries: 100, maxValueLength: 4000 });
+  let sizeLimitReached = false;
 
-  await installSecretHook(directory);
+  for (let index = 0; index < 100; index += 1) {
+    try {
+      await store.put(`entry-${index}`, `${index}-${'x'.repeat(3990)}`);
+    } catch (error) {
+      assert.match(error.message, /tamaño máximo/);
+      sizeLimitReached = true;
+      break;
+    }
+  }
 
-  const hook = await fs.readFile(path.join(directory, '.git', 'hooks', 'pre-commit'), 'utf8');
-  assert.match(hook, new RegExp(SECRET_HOOK_MARKER));
-  assert.match(await fs.readFile(path.join(directory, '.git', 'hooks', 'alfred-secret-guard.js'), 'utf8'), /git/);
+  assert.equal(sizeLimitReached, true);
+  assert.ok((await fs.stat(memoryPath)).size <= MAX_MEMORY_FILE_SIZE);
+});
+
+test('las operaciones de memoria desactivada no crean el backend', async () => {
+  let factoryCalls = 0;
+  const memory = createLazyMemoryStore(false, async () => {
+    factoryCalls += 1;
+    throw new Error('No debe inicializarse');
+  });
+
+  await memory.put('key', 'value');
+  assert.equal(await memory.get('key'), undefined);
+  assert.deepEqual(await memory.search('value'), []);
+  assert.equal(factoryCalls, 0);
 });

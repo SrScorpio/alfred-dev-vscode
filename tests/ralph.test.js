@@ -9,6 +9,7 @@ const {
   extractIssueIds,
   mapAlfredStatus,
   readRalphConfig,
+  runSyncIssueCommand,
 } = require('../out/integrations/ralph.js');
 
 test('mapea estados Alfred/Ralph y extrae asociaciones ISSUE', () => {
@@ -44,7 +45,7 @@ test('los wrappers fallan claro y sincronizan de forma best-effort', async () =>
   const unavailable = new RalphBridge(() => undefined, async () => {});
 
   await assert.rejects(unavailable.openKanban(), /Ralph Suite no está instalada/);
-  assert.deepEqual(await unavailable.syncIssue(12, 'completed'), { synced: false });
+  assert.deepEqual(await unavailable.syncIssue(12, 'completed'), { synced: false, reason: 'unavailable' });
 
   const calls = [];
   const bridge = new RalphBridge(() => ({ isActive: true }), async (...args) => {
@@ -60,4 +61,55 @@ test('los wrappers fallan claro y sincronizan de forma best-effort', async () =>
     'ralph-suite.stopRunner',
     'ralph-suite.syncIssue',
   ]);
+});
+
+test('el comando syncIssue exige workspace trust antes de solicitar datos', async () => {
+  let prompts = 0;
+  let executions = 0;
+  const errors = [];
+
+  await runSyncIssueCommand({
+    isTrusted: false,
+    promptIssueId: async () => { prompts += 1; return '12'; },
+    promptStatus: async () => 'closed',
+    syncIssue: async () => { executions += 1; return { synced: true }; },
+    showInformation: () => {},
+    showError: (message) => { errors.push(message); },
+  });
+
+  assert.equal(prompts, 0);
+  assert.equal(executions, 0);
+  assert.match(errors[0], /workspace de confianza/);
+});
+
+test('el comando syncIssue informa cuando Ralph no está disponible', async () => {
+  const errors = [];
+
+  await runSyncIssueCommand({
+    isTrusted: true,
+    promptIssueId: async () => '12',
+    promptStatus: async () => 'in-progress',
+    syncIssue: async () => ({ synced: false, reason: 'unavailable' }),
+    showInformation: () => {},
+    showError: (message) => { errors.push(message); },
+  });
+
+  assert.match(errors[0], /instala o activa Ralph Suite/);
+});
+
+test('el comando syncIssue envía solo issue y estado mapeado y confirma el resultado', async () => {
+  const calls = [];
+  const messages = [];
+
+  await runSyncIssueCommand({
+    isTrusted: true,
+    promptIssueId: async () => '42',
+    promptStatus: async () => 'closed',
+    syncIssue: async (...args) => { calls.push(args); return { synced: true }; },
+    showInformation: (message) => { messages.push(message); },
+    showError: (message) => { throw new Error(message); },
+  });
+
+  assert.deepEqual(calls, [[42, 'completed']]);
+  assert.match(messages[0], /Issue #42 sincronizada/);
 });

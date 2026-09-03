@@ -21,6 +21,11 @@ const ALFRED_STATUSES = {
   blocked: 'blocked',
   closed: 'completed',
 } as const satisfies Record<string, RalphStatus>;
+export type AlfredStatus = keyof typeof ALFRED_STATUSES;
+export type RalphSyncResult = { synced: true } | {
+  synced: false;
+  reason: 'unavailable' | 'invalid-issue' | 'command-failed';
+};
 
 /** Converts the shared Alfred/GitHub status vocabulary to Ralph status. */
 export function mapAlfredStatus(status: keyof typeof ALFRED_STATUSES): RalphStatus {
@@ -86,14 +91,16 @@ export class RalphBridge {
   async startRunner(): Promise<void> { await this.run('ralph-suite.startRunner'); }
   async stopRunner(): Promise<void> { await this.run('ralph-suite.stopRunner'); }
 
-  async syncIssue(issueId: number, status: RalphStatus): Promise<{ synced: boolean }> {
-    if (!this.lookup()?.isActive) return { synced: false };
-    if (!Number.isInteger(issueId) || issueId < 1 || issueId > 999999) return { synced: false };
+  async syncIssue(issueId: number, status: RalphStatus): Promise<RalphSyncResult> {
+    if (!this.lookup()?.isActive) return { synced: false, reason: 'unavailable' };
+    if (!Number.isInteger(issueId) || issueId < 1 || issueId > 999999) {
+      return { synced: false, reason: 'invalid-issue' };
+    }
     try {
       await this.execute('ralph-suite.syncIssue', issueId, status);
       return { synced: true };
     } catch {
-      return { synced: false };
+      return { synced: false, reason: 'command-failed' };
     }
   }
 
@@ -105,6 +112,43 @@ export class RalphBridge {
       throw new Error(`No se pudo ejecutar ${command}; comprueba que Ralph Suite esté actualizada`);
     }
   }
+}
+
+interface SyncIssueCommandOptions {
+  isTrusted: boolean;
+  promptIssueId(): Promise<string | undefined>;
+  promptStatus(): Promise<AlfredStatus | undefined>;
+  syncIssue(issueId: number, status: RalphStatus): Promise<RalphSyncResult>;
+  showInformation(message: string): void;
+  showError(message: string): void;
+}
+
+/** Synchronizes only a user-selected GitHub issue number and status, never remote content. */
+export async function runSyncIssueCommand(options: SyncIssueCommandOptions): Promise<void> {
+  if (!options.isTrusted) {
+    options.showError('La sincronización Ralph requiere un workspace de confianza.');
+    return;
+  }
+  const issueInput = await options.promptIssueId();
+  if (issueInput === undefined) return;
+  if (!/^[1-9]\d{0,5}$/.test(issueInput)) {
+    options.showError('Introduce un número de issue GitHub entre 1 y 999999.');
+    return;
+  }
+  const status = await options.promptStatus();
+  if (!status) return;
+  const issueId = Number(issueInput);
+  const result = await options.syncIssue(issueId, mapAlfredStatus(status));
+  if (result.synced) {
+    options.showInformation(`Issue #${issueId} sincronizada con Ralph desde el estado GitHub seleccionado.`);
+    return;
+  }
+  const errors: Record<Exclude<RalphSyncResult, { synced: true }>['reason'], string> = {
+    unavailable: 'Ralph Suite no está disponible; instala o activa Ralph Suite y vuelve a intentarlo.',
+    'invalid-issue': 'El número de issue GitHub no es válido.',
+    'command-failed': 'Ralph Suite rechazó la sincronización; comprueba que expone ralph-suite.syncIssue y está actualizada.',
+  };
+  options.showError(errors[result.reason]);
 }
 
 function validateTaskId(taskId: string): void {

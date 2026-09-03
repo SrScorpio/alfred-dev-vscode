@@ -4,6 +4,10 @@ import * as vscode from 'vscode';
 import { loadStyleOptions, renderGalleryHtml, saveStyleDirection, type StyleOption } from './styleGallery';
 
 export async function openStyleGallery(context: vscode.ExtensionContext): Promise<void> {
+  if (!vscode.workspace.isTrusted) {
+    vscode.window.showErrorMessage('La galería visual requiere un workspace de confianza para guardar archivos.');
+    return;
+  }
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   if (!workspaceRoot) {
     vscode.window.showErrorMessage('Abre un workspace para guardar una dirección de estilo.');
