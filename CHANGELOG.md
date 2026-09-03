@@ -16,8 +16,12 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
   atómica y sanitización; Secret Guard reutilizable con avisos al guardar y
   hook pre-commit instalable explícitamente; y galería visual con tres
   propuestas, CSP/nonce, catálogo fallback y confirmación antes de persistir.
+- Provider MCP opcional de memoria con tools mínimas `put/get/search` y
+  degradación explícita a comandos en versiones de VS Code sin la API; el
+  Secret Guard inspecciona blobs staged y admite Git worktrees.
 - MVP opcional de Issue #3A: detección y wrappers de Ralph Suite, validación
-  segura de `.ralph/config.json`, asociaciones `ISSUE-123` y sync best-effort.
+  segura de `.ralph/config.json`, asociaciones `ISSUE-123` y comando
+  `syncIssue` best-effort con workspace trust y resultados accionables.
   El paralelismo no se simula porque no existe API/scheduler público.
 - Índice público de documentación, guía del catálogo, guía de la extensión
   VS Code y políticas de contribución y seguridad.

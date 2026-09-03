@@ -31,9 +31,11 @@ Abre la Paleta de comandos y busca la categoría **Alfred Dev**:
 | **Alfred Dev: Seleccionar perfil de modelo** | Guarda el perfil elegido como ajuste global. |
 | **Alfred Dev: Abrir galería visual** | Muestra tres propuestas locales y guarda la elegida tras confirmación explícita. |
 | **Alfred Dev: Instalar Secret Guard pre-commit** | Instala voluntariamente el hook de detección de secretos del repositorio. |
+| **Alfred Dev: Guardar/Consultar/Buscar memoria local** | Usa el backend local opt-in también cuando el runtime no ofrece la API MCP. |
 | **Alfred Dev: Abrir Kanban Ralph** | Abre el Kanban si Ralph Suite está instalada y activa. |
 | **Alfred Dev: Ejecutar tarea Ralph** | Valida un ID y delega la tarea a Ralph Suite. |
 | **Alfred Dev: Iniciar/Detener runner Ralph** | Usa los comandos opcionales de Ralph Suite si están disponibles. |
+| **Alfred Dev: Sincronizar issue con Ralph** | Envía de forma best-effort solo el número y estado GitHub seleccionados. |
 
 ## Perfil global de modelo
 
@@ -50,22 +52,30 @@ los agentes: esos arrays siguen definiendo su propia prioridad y sus fallbacks.
 
 La memoria local se activa con `alfred-dev.memory.enabled` y permanece apagada
 por defecto. Es un JSON privado del almacenamiento global de VS Code, con
-escritura atómica, límites y sanitización de secretos. No hay servidor MCP ni
-red propia en esta MVP.
+escritura atómica, límite previo de 256 KiB y sanitización de secretos. Si el
+runtime expone `registerMcpServerDefinitionProvider`, registra un servidor MCP
+stdio con `memory_put`, `memory_get` y `memory_search`; el proceso solo se
+arranca al utilizarlo. VS Code `^1.85.0` sigue soportado mediante los tres
+comandos equivalentes cuando esa API no existe. No hay red propia.
 
 El diagnóstico de Secret Guard se ejecuta al guardar y solo avisa. El comando
 de instalación añade un hook `pre-commit` gestionado; no puede bloquear de
-forma universal todas las ediciones del editor. La galería usa CSP estricta,
-nonce, escape HTML y `localResourceRoots: []`; el catálogo local es opcional y
-el fallback siempre ofrece tres propuestas. La escritura de
-`docs/style-direction.md` requiere confirmar la selección.
+forma universal todas las ediciones del editor. El hook inspecciona blobs del
+índice con `git show :<path>`, usa argumentos sin shell y resuelve la ruta de
+hooks mediante Git para admitir worktrees. La galería usa CSP estricta, nonce,
+escape HTML y `localResourceRoots: []`; el catálogo local es opcional y el
+fallback siempre ofrece tres propuestas. La instalación del hook y la
+escritura confirmada de `docs/style-direction.md` requieren workspace trust.
 
 ## Issue #3A: Ralph Suite
 
 La integración es opcional y detecta la extensión por sus comandos. GitHub
 Issues/PRs conserva la fuente colaborativa y Ralph la ejecución local. El
 puente valida `.ralph/config.json`, workspace trust, tamaños, IDs, estados y
-rutas; nunca ejecuta cuerpos de issues ni prompts. El sync es best-effort.
+rutas; nunca ejecuta cuerpos de issues ni prompts. El comando de sincronización
+solicita solo número de issue y estado GitHub, mantiene GitHub como fuente de
+verdad y comunica por separado Ralph ausente, issue inválida o fallo del
+comando. El sync es best-effort.
 
 No se implementa paralelismo: Ralph Suite no expone una API/scheduler público
 que permita coordinarlo de forma verificable.
