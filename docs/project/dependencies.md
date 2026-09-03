@@ -13,8 +13,8 @@ y `qs` a 6.16.0, con sus URL e integridades en `package-lock.json`. Tras el
 cambio, `npm audit --audit-level=high` informa `found 0 vulnerabilities`.
 
 La comprobacion de contenido en el commit
-`f23eedefefe5264a80ad431dcc580a00ac248cce` usa `npx vsce ls --tree` y
-enumera 20 ficheros: tres metadatos y 17 JavaScript bajo `out/`. No contiene
+la entrega actual usa `npx vsce ls --tree` y enumera 22 ficheros: tres metadatos
+y 17 JavaScript bajo `out/`. No contiene
 fuentes TypeScript, tests, `node_modules`, skills, agentes, instrucciones,
 plantillas, documentación interna ni mapas. La allowlist de `.vscodeignore`
 parte de `*` y solo reintroduce `out/**/*.js`, `package.json`, `README.md` y

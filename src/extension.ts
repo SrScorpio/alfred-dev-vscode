@@ -46,6 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
   }).McpStdioServerDefinition;
   const mcpRegistration = registerMemoryMcpProvider({
     enabled: memoryEnabled,
+    isTrusted: vscode.workspace.isTrusted,
     registerProvider: typeof optionalMcpApi?.registerMcpServerDefinitionProvider === 'function'
       ? (id, provider) => optionalMcpApi.registerMcpServerDefinitionProvider!(id, provider as vscode.McpServerDefinitionProvider)
       : undefined,

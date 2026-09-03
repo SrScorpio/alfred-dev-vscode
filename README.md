@@ -323,12 +323,15 @@ los estados se mapean como
 de GitHub -> `completed`. Ralph lee `.ralph/config.json` únicamente en un
 workspace de confianza y valida IDs, estados, rutas y tamaño.
 
-GitHub sigue siendo la fuente colaborativa; Ralph es ejecución local. Los
-cuerpos de issues y prompts no se convierten en comandos. No existe una API o
-scheduler público de Ralph Suite para coordinar paralelismo, por lo que este
-MVP no lo simula ni afirma paridad con el plugin original. Si faltan la
-extensión o sus comandos, Alfred muestra un error accionable y continúa
-funcionando sin Ralph.
+Con Ralph Suite 1.9.1, los wrappers de Kanban y runner son utilizables, pero la
+sincronización de issues permanece en modo no disponible porque esa versión no
+publica `ralph-suite.syncIssue`. Alfred solo confirmará una sincronización si
+una versión instalada anuncia explícitamente ese comando. GitHub sigue siendo
+la fuente colaborativa; Ralph es ejecución local. Los cuerpos de issues y
+prompts no se convierten en comandos. No existe una API o scheduler público de
+Ralph Suite para coordinar paralelismo, por lo que este MVP no lo simula ni
+afirma paridad con el plugin original. Si faltan la extensión o sus comandos,
+Alfred muestra un error accionable y continúa funcionando sin Ralph.
 
 ### Subagentes
 
@@ -422,7 +425,7 @@ alfred-dev-vscode/
 - [x] **Fase 4** — Extensión VSIX local con UI de estado en la Activity Bar,
   perfil global de modelos y empaquetado reproducible; no incluye publicación
   en Marketplace.
-- [x] **Fase 5 MVP opcional** — Detección, wrappers y sync best-effort de Ralph Suite. El paralelismo queda fuera por falta de API/scheduler público.
+- [x] **Fase 5 MVP opcional** — Detección, wrappers y sync condicionado a la capacidad pública anunciada por Ralph Suite. Con Ralph Suite 1.9.1 el sync permanece no disponible; el paralelismo queda fuera por falta de API/scheduler público.
 
 ## Créditos y licencia
 

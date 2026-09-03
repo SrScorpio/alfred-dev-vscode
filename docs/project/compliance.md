@@ -1,6 +1,6 @@
 # Registro de compliance
 
-No es un dictamen juridico. Es un registro tecnico con evidencia de la revision de la extension nativa para VSIX en el commit `f23eedefefe5264a80ad431dcc580a00ac248cce`.
+No es un dictamen juridico. Es un registro tecnico con evidencia de la revision actual de la extension nativa para VSIX.
 
 **Fecha:** 2026-09-03
 **Autor:** senior-dev (revisión técnica; no sustituye la gate de security-officer)
@@ -19,12 +19,12 @@ No es un dictamen juridico. Es un registro tecnico con evidencia de la revision 
 |---------|-------|--------|-----------|
 | Inventario de componentes directos y transitivos | CRA | cumple | `docs/project/sbom.cdx.json` CycloneDX 1.5 reproducible y validado desde `package-lock.json`: 280 componentes, 296 relaciones y 0 componentes sin licencia. |
 | Analisis de vulnerabilidades conocidas | CRA / NIS2 | cumple | `npm audit --audit-level=high` del 2026-09-03: `found 0 vulnerabilities` tras actualizar las transitivas `fast-uri` 3.1.5 -> 3.1.7 y `qs` 6.15.3 -> 6.16.0. |
-| Integridad de la cadena de build | CRA / NIS2 | cumple | `package-lock.json` v3 fija integridades SHA-512. `npx vsce ls --tree` en `f23eede` enumera 20 ficheros: metadatos y 17 JavaScript bajo `out/`; excluye fuentes, tests, dependencias, skills, documentos internos y mapas. |
+| Integridad de la cadena de build | CRA / NIS2 | cumple | `package-lock.json` v3 fija integridades SHA-512. `npx vsce ls --tree` en la entrega actual enumera 22 ficheros: metadatos y 17 JavaScript bajo `out/`; excluye fuentes, tests, dependencias, skills, documentos internos y mapas. |
 | Minimizacion y finalidad de datos | RGPD art. 5 | parcial | El TreeView lee solo `docs/project/status.md`; la memoria requiere opt-in, limita el JSON a 256 KiB y sanitiza secretos; MCP y comandos usan el mismo almacenamiento global local; la galería guarda solo la elección confirmada. Falta inventario del tratamiento de marketplace/Copilot y aviso de privacidad del responsable. |
 | Base juridica y transparencia | RGPD arts. 6 y 13 | pendiente | No hay politica de privacidad ni evidencia de base juridica para la preferencia global o los servicios de terceros asociados. |
 | Derechos de acceso, supresion y portabilidad | RGPD arts. 15, 17 y 20 | pendiente | No hay evidencia de flujo para datos que pudieran tratar el publicador, marketplace o Copilot; el codigo revisado no implementa almacenamiento propio fuera de la configuracion gestionada por VS Code. |
-| Seguridad del tratamiento | RGPD art. 32 | parcial | Memoria local opt-in con escritura atómica, límite previo al write y sanitización de Bearer, `sk-*`, PEM, GitHub y AWS; Secret Guard explícito; CSP/nonce en galería; workspace trust antes de escrituras de workspace y sincronización Ralph. El cifrado del almacenamiento global de VS Code no se ha verificado. |
-| Secretos y ejecución local | CRA / NIS2 | parcial | El hook obtiene blobs staged mediante `git show` con argumentos sin shell, no imprime valores y resuelve hooks con Git para admitir worktrees. El scanner de producción recorrió 17 JavaScript de `out/` y produjo 0 hallazgos. El MCP solo se registra con opt-in y API disponible; expone tres tools y no usa red. Ralph usa comandos fijos, no procesa contenido remoto como instrucciones y no simula paralelismo. |
+| Seguridad del tratamiento | RGPD art. 32 | parcial | Memoria local opt-in con escritura atómica, límite previo al write y sanitización de Bearer, `sk-*`, PEM, GitHub y AWS; Secret Guard explícito; CSP/nonce en galería; workspace trust antes de escrituras y acciones Ralph. El cifrado del almacenamiento global de VS Code no se ha verificado. |
+| Secretos y ejecución local | CRA / NIS2 | parcial | El hook obtiene blobs staged mediante `git show` con argumentos sin shell, no imprime valores y resuelve hooks con Git para admitir worktrees. El scanner de producción recorrió 17 JavaScript de `out/` y produjo 0 hallazgos. El MCP solo se registra con opt-in y API disponible; expone tres tools y no usa red. Ralph usa comandos fijos, no procesa contenido remoto como instrucciones y solo confirma sync cuando la extensión anuncia el comando correspondiente; no simula paralelismo. |
 | Gestion de riesgos y cadena de suministro | NIS2 arts. 20 y 21 | parcial | Audit, lockfile y modelo STRIDE presentes. Faltan propietario de riesgo, clasificacion NIS2, politica de proveedores y procedimiento de respuesta. |
 | Notificacion de incidentes | NIS2 art. 23 | parcial | `SECURITY.md` documenta un canal de reporte privado recomendado y una alternativa de contacto; faltan protocolo de alerta temprana en 24 h, informe en 72 h e informe final. |
 | Gestion y divulgacion de vulnerabilidades | CRA | parcial | `SECURITY.md` publica el canal y la coordinacion de divulgacion; no hay SLA de acuse, analisis o correccion, ni matriz formal de versiones soportadas. |
@@ -42,7 +42,7 @@ Ninguno con severidad critica, alta o media en el alcance de esta revision.
 - **Hallazgo:** La allowlist parte de `*`, reintroduce solo los metadatos y JavaScript de `out/`, y las exclusiones explicitas cubren contenido no distribuible.
 - **Vector de ataque:** Un arbol de trabajo con contenido local no versionado intentaba colarse en el VSIX.
 - **Impacto:** Habria permitido filtrar informacion interna o distribuir artefactos no auditados.
-- **Solucion:** `npx vsce ls --tree` en `f23eede` confirma 20 ficheros permitidos y la ausencia de salidas locales, documentos internos, mapas, fuentes, tests, dependencias y skills. Mantener esta comprobacion en CI antes de publicar.
+- **Solucion:** `npx vsce ls --tree` en la entrega actual confirma 22 ficheros permitidos y la ausencia de salidas locales, documentos internos, mapas, fuentes, tests, dependencias y skills. Mantener esta comprobacion en CI antes de publicar.
 
 - **Ubicacion:** `src/providers/statusTreeProvider.ts`
 - **Severidad:** MEDIA (confianza: 99)

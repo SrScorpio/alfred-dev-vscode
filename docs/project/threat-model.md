@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-09-03
 **Autor:** senior-dev (revisión técnica; no sustituye la gate de security-officer)
-**Commit revisado:** `f23eedefefe5264a80ad431dcc580a00ac248cce`
+**Commit revisado:** entrega actual
 **Metodologia:** STRIDE
 
 ## Superficie de ataque
@@ -48,7 +48,7 @@ No se implementa autenticacion propia. Los comandos de chat se registran con ide
 
 ### Tampering (manipulacion)
 
-`status.md` es controlable por el workspace, pero sus valores solo se convierten en etiquetas y no seleccionan comandos ni rutas. La cadena de empaquetado usa una allowlist que parte de `*` y `npx vsce ls --tree` confirma que solo distribuye 20 ficheros de runtime y metadatos.
+`status.md` es controlable por el workspace, pero sus valores solo se convierten en etiquetas y no seleccionan comandos ni rutas. La cadena de empaquetado usa una allowlist que parte de `*` y `npx vsce ls --tree` confirma que solo distribuye 22 ficheros de runtime y metadatos.
 
 La galería escapa texto, usa nonce y CSP sin recursos remotos. La memoria
 sanitiza credenciales comunes, limita el JSON antes de escribir y usa un
@@ -56,7 +56,8 @@ temporal con `rename` atómico. MCP y fallback comparten ese backend; el proceso
 desde la extensión. Secret Guard lee el índice con `git show :<path>` usando
 `execFile`/argv, y Git resuelve la ruta de hooks incluso en worktrees. Ralph
 valida workspace trust, IDs, estados, rutas y tamaño; los comandos se invocan
-por nombres fijos.
+por nombres fijos y la sincronización solo se confirma si el comando está
+anunciado por la extensión instalada.
 
 ### Repudiation (repudio)
 
@@ -84,7 +85,7 @@ prompts, y no se simula paralelismo sin API/scheduler público.
 
 | Amenaza | Probabilidad | Impacto | Riesgo | Mitigacion |
 |---------|--------------|---------|--------|------------|
-| VSIX incluye artefactos locales no revisados | Baja | Alto | Bajo | Mitigado: allowlist de release y `npx vsce ls --tree` con 20 ficheros. Mantener comprobacion en CI. |
+| VSIX incluye artefactos locales no revisados | Baja | Alto | Bajo | Mitigado: allowlist de release y `npx vsce ls --tree` con 22 ficheros. Mantener comprobacion en CI. |
 | `status.md` agota el host de extensiones | Baja | Medio | Bajo | Mitigado: limite previo de 64 KiB, lectura asincrona y limite de longitud renderizada. |
 | Cambio no autorizado de la preferencia global | Baja | Bajo | Bajo | Mantener enum en `contributes.configuration` y no aceptar valores desde `status.md`. |
 | Dependencia comprometida en build | Baja | Alto | Medio | Lockfile con integridad, SBOM, `npm audit` y actualizaciones revisadas. |
@@ -93,7 +94,7 @@ prompts, y no se simula paralelismo sin API/scheduler público.
 | MCP arranca sin consentimiento o ejecuta una ruta manipulada | Baja | Alto | Bajo | Provider solo con opt-in/API, definición fija y proceso iniciado bajo demanda por VS Code. |
 | Hook omite un secreto staged por leer el working tree | Baja | Alto | Bajo | Enumera con `-z` y analiza cada blob del índice mediante `git show` sin shell. |
 | Webview con contenido local inseguro | Baja | Alto | Bajo | CSP nonce, escape HTML, sin recursos remotos ni raíces locales. |
-| Ralph lee o ejecuta fuera del workspace | Baja | Alto | Bajo | Workspace trust, esquema estricto, rutas sin `..`, comandos fijos y sync limitado a issue/estado. |
+| Ralph lee o ejecuta fuera del workspace | Baja | Alto | Bajo | Workspace trust, esquema estricto, rutas sin `..`, comandos fijos y sync condicionado a una capacidad anunciada. |
 
 ## Recomendaciones
 

@@ -31,13 +31,14 @@ test('sanitiza Bearer, sk, PEM y credenciales AWS antes de persistir', () => {
     `OPENAI_API_KEY=sk-${'a'.repeat(32)}`,
     '-----BEGIN PRIVATE KEY-----\nprivate-material\n-----END PRIVATE KEY-----',
     `AWS_ACCESS_KEY_ID=AKIA${'A'.repeat(16)}`,
+    `AWS_TEMPORARY_ACCESS_KEY_ID=ASIA${'C'.repeat(16)}`,
     `AWS_SECRET_ACCESS_KEY=${'b'.repeat(40)}`,
   ].join('\n');
 
   const sanitized = sanitizeSecrets(sensitiveValues);
 
-  assert.doesNotMatch(sanitized, /header\.payload|sk-|private-material|AKIA|b{40}/);
-  assert.ok(scanSecrets(sensitiveValues).length >= 5);
+  assert.doesNotMatch(sanitized, /header\.payload|sk-|private-material|AKIA|ASIA|b{40}/);
+  assert.ok(scanSecrets(sensitiveValues).length >= 6);
 });
 
 test('la memoria desactivada no inicializa su backend', async () => {

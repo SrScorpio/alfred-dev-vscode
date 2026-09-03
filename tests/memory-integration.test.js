@@ -34,6 +34,7 @@ test('la memoria desactivada no registra MCP ni construye definiciones', () => {
 test('la memoria degrada explícitamente cuando la API MCP no está disponible', () => {
   const registered = registerMemoryMcpProvider({
     enabled: true,
+    isTrusted: true,
     serverPath: 'server.js',
     memoryPath: 'memory.json',
     version: 'test',
@@ -64,6 +65,7 @@ test('el provider MCP expone una única definición bajo demanda', () => {
   const disposable = { dispose() {} };
   const result = registerMemoryMcpProvider({
     enabled: true,
+    isTrusted: true,
     registerProvider: (_id, candidate) => { provider = candidate; return disposable; },
     createDefinition: (serverPath, memoryPath, version) => ({ serverPath, memoryPath, version }),
     serverPath: 'memoryMcpServer.js',
@@ -77,6 +79,35 @@ test('el provider MCP expone una única definición bajo demanda', () => {
     memoryPath: 'memory.json',
     version: '0.6.5',
   }]);
+});
+
+test('la memoria no registra MCP ni permite comandos en workspace no confiable', async () => {
+  let registrations = 0;
+  const registered = registerMemoryMcpProvider({
+    enabled: true,
+    isTrusted: false,
+    registerProvider: () => { registrations += 1; return { dispose() {} }; },
+    createDefinition: () => ({}),
+    serverPath: 'server.js',
+    memoryPath: 'memory.json',
+    version: 'test',
+  });
+
+  assert.equal(registered, undefined);
+  assert.equal(registrations, 0);
+
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-untrusted-'));
+  const store = new JsonMemoryStore(path.join(directory, 'memory.json'));
+  let errors = 0;
+  const handlers = createMemoryCommandHandlers(store, {
+    prompt: async () => ({ key: 'blocked', value: 'must-not-persist' }),
+    showInformation: () => {},
+    showError: () => { errors += 1; },
+  }, () => false);
+
+  await handlers.put();
+  assert.equal(errors, 1);
+  await assert.rejects(fs.access(path.join(directory, 'memory.json')));
 });
 
 test('el servidor MCP ejecuta tools/list y tools/call sobre JsonMemoryStore', async () => {

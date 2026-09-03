@@ -10,7 +10,7 @@ export const SECRET_HOOK_MARKER = '# alfred-dev-secret-guard';
 
 export const SECRET_HOOK_SCRIPT = `const cp = require('node:child_process');
 const files = cp.execFileSync('git', ['diff', '--cached', '--name-only', '--diff-filter=ACMR', '-z'], { encoding: 'utf8' }).split('\\0').filter(Boolean);
-const patterns = [/gh[pousr]_[A-Za-z0-9]{20,}/, /sk-[A-Za-z0-9_-]{20,}/, /Authorization\\s*:\\s*Bearer\\s+\\S+/i, /-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----/, /AKIA[0-9A-Z]{16}/, /(?:api[_-]?key|access[_-]?key|secret|token|password)\\s*[:=]\\s*["']?[A-Za-z0-9_./+=-]{12,}/i];
+const patterns = [/gh[pousr]_[A-Za-z0-9]{20,}/, /sk-[A-Za-z0-9_-]{20,}/, /Authorization\\s*:\\s*Bearer\\s+\\S+/i, /-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----/, /(?:AKIA|ASIA)[0-9A-Z]{16}/, /(?:api[_-]?key|access[_-]?key|secret|token|password)\\s*[:=]\\s*["']?[A-Za-z0-9_./+=-]{12,}/i];
 let findings = 0;
 for (const file of files) {
   let text;

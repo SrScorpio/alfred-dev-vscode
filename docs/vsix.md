@@ -35,7 +35,7 @@ Abre la Paleta de comandos y busca la categoría **Alfred Dev**:
 | **Alfred Dev: Abrir Kanban Ralph** | Abre el Kanban si Ralph Suite está instalada y activa. |
 | **Alfred Dev: Ejecutar tarea Ralph** | Valida un ID y delega la tarea a Ralph Suite. |
 | **Alfred Dev: Iniciar/Detener runner Ralph** | Usa los comandos opcionales de Ralph Suite si están disponibles. |
-| **Alfred Dev: Sincronizar issue con Ralph** | Envía de forma best-effort solo el número y estado GitHub seleccionados. |
+| **Alfred Dev: Sincronizar issue con Ralph** | Usa solo una capacidad explícita `ralph-suite.syncIssue`; con Ralph 1.9.1 informa que no está disponible. |
 
 ## Perfil global de modelo
 
@@ -75,7 +75,9 @@ puente valida `.ralph/config.json`, workspace trust, tamaños, IDs, estados y
 rutas; nunca ejecuta cuerpos de issues ni prompts. El comando de sincronización
 solicita solo número de issue y estado GitHub, mantiene GitHub como fuente de
 verdad y comunica por separado Ralph ausente, issue inválida o fallo del
-comando. El sync es best-effort.
+comando. Solo confirma el sync si la extensión instalada anuncia
+explícitamente `ralph-suite.syncIssue`; Ralph Suite 1.9.1 no lo publica, así
+que el resultado esperado con esa versión es no disponible.
 
 No se implementa paralelismo: Ralph Suite no expone una API/scheduler público
 que permita coordinarlo de forma verificable.

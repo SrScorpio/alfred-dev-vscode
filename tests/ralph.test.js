@@ -9,6 +9,7 @@ const {
   extractIssueIds,
   mapAlfredStatus,
   readRalphConfig,
+  runTrustedRalphAction,
   runSyncIssueCommand,
 } = require('../out/integrations/ralph.js');
 
@@ -48,19 +49,34 @@ test('los wrappers fallan claro y sincronizan de forma best-effort', async () =>
   assert.deepEqual(await unavailable.syncIssue(12, 'completed'), { synced: false, reason: 'unavailable' });
 
   const calls = [];
-  const bridge = new RalphBridge(() => ({ isActive: true }), async (...args) => {
+  const bridge = new RalphBridge(() => ({ isActive: true, commands: [
+    'ralph-suite.runTask', 'ralph-suite.startRunner', 'ralph-suite.stopRunner',
+  ] }), async (...args) => {
     calls.push(args);
   });
   await bridge.runTask('task-1');
   await bridge.startRunner();
   await bridge.stopRunner();
-  await bridge.syncIssue(12, 'completed');
+  assert.deepEqual(await bridge.syncIssue(12, 'completed'), { synced: false, reason: 'unavailable' });
   assert.deepEqual(calls.map(([command]) => command), [
     'ralph-suite.runTask',
     'ralph-suite.startRunner',
     'ralph-suite.stopRunner',
-    'ralph-suite.syncIssue',
   ]);
+});
+
+test('las acciones Ralph mutables requieren workspace de confianza', async () => {
+  let executions = 0;
+  const errors = [];
+
+  await runTrustedRalphAction({
+    isTrusted: false,
+    action: async () => { executions += 1; },
+    showError: (message) => { errors.push(message); },
+  });
+
+  assert.equal(executions, 0);
+  assert.match(errors[0], /workspace de confianza/);
 });
 
 test('el comando syncIssue exige workspace trust antes de solicitar datos', async () => {

@@ -12,6 +12,7 @@ interface MemoryMcpProvider {
 
 interface MemoryMcpRegistrationOptions {
   enabled: boolean;
+  isTrusted: boolean;
   registerProvider?: (id: string, provider: MemoryMcpProvider) => Disposable;
   createDefinition?: (serverPath: string, memoryPath: string, version: string) => unknown;
   serverPath: string;
@@ -30,6 +31,8 @@ interface MemoryCommandUi {
   showError(message: string): void;
 }
 
+type TrustCheck = () => boolean;
+
 export interface MemoryCommandHandlers {
   put(): Promise<void>;
   get(): Promise<void>;
@@ -38,7 +41,7 @@ export interface MemoryCommandHandlers {
 
 /** Registers an MCP definition only when both opt-in and the runtime API are present. */
 export function registerMemoryMcpProvider(options: MemoryMcpRegistrationOptions): Disposable | undefined {
-  if (!options.enabled || !options.registerProvider || !options.createDefinition) return undefined;
+  if (!options.enabled || !options.isTrusted || !options.registerProvider || !options.createDefinition) return undefined;
   return options.registerProvider(MEMORY_MCP_PROVIDER_ID, {
     provideMcpServerDefinitions: () => [options.createDefinition!(
       options.serverPath,
@@ -49,8 +52,12 @@ export function registerMemoryMcpProvider(options: MemoryMcpRegistrationOptions)
 }
 
 /** Exposes the same bounded store through commands on VS Code versions without MCP support. */
-export function createMemoryCommandHandlers(store: MemoryStore, ui: MemoryCommandUi): MemoryCommandHandlers {
+export function createMemoryCommandHandlers(store: MemoryStore, ui: MemoryCommandUi, isTrusted: TrustCheck = () => true): MemoryCommandHandlers {
   const requireEnabled = async (): Promise<boolean> => {
+    if (!isTrusted()) {
+      ui.showError('La memoria local requiere un workspace de confianza.');
+      return false;
+    }
     if (await store.isEnabled()) return true;
     ui.showError('Activa alfred-dev.memory.enabled para usar la memoria local.');
     return false;

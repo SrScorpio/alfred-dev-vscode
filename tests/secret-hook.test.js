@@ -62,3 +62,17 @@ test('instala el Secret Guard cuando .git es un fichero de worktree', async () =
   const hooksPath = await getHooksPath(worktreePath);
   assert.match(await fs.readFile(path.join(hooksPath, 'pre-commit'), 'utf8'), /alfred-dev-secret-guard/);
 });
+
+test('el hook bloquea identificadores AWS temporales staged', async () => {
+  const repositoryPath = await createRepository('alfred-hook-asia-');
+  const trackedPath = path.join(repositoryPath, 'aws.env');
+  await fs.writeFile(trackedPath, `AWS_ACCESS_KEY_ID=ASIA${'A'.repeat(16)}\n`);
+  await runGit(repositoryPath, ['add', 'aws.env']);
+  await installSecretHook(repositoryPath);
+
+  const guardPath = path.join(await getHooksPath(repositoryPath), 'alfred-secret-guard.js');
+  await assert.rejects(
+    execFileAsync(process.execPath, [guardPath], { cwd: repositoryPath, encoding: 'utf8' }),
+    (error) => error.code === 1 && /posibles secretos/.test(error.stderr),
+  );
+});

@@ -21,8 +21,9 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
   Secret Guard inspecciona blobs staged y admite Git worktrees.
 - MVP opcional de Issue #3A: detección y wrappers de Ralph Suite, validación
   segura de `.ralph/config.json`, asociaciones `ISSUE-123` y comando
-  `syncIssue` best-effort con workspace trust y resultados accionables.
-  El paralelismo no se simula porque no existe API/scheduler público.
+  `syncIssue` condicionado a una capacidad anunciada, con workspace trust y
+  resultados accionables. Ralph Suite 1.9.1 no publica esa capacidad. El
+  paralelismo no se simula porque no existe API/scheduler público.
 - Índice público de documentación, guía del catálogo, guía de la extensión
   VS Code y políticas de contribución y seguridad.
 - TreeView nativo en la Activity Bar para leer el snapshot local

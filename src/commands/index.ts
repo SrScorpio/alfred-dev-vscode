@@ -14,7 +14,7 @@ import type { ModelProfile } from './modelProfiles';
 import { openAlfredChat } from './chatCommand';
 import { openStyleGallery } from '../gallery/styleGalleryPanel';
 import { installSecretHook } from '../security/secretHook';
-import { RalphBridge, runSyncIssueCommand } from '../integrations/ralph';
+import { RalphBridge, runSyncIssueCommand, runTrustedRalphAction } from '../integrations/ralph';
 import type { AlfredStatus } from '../integrations/ralph';
 import { createMemoryCommandHandlers } from '../memory/memoryIntegration';
 import type { MemoryStore } from '../memory/memoryStore';
@@ -30,7 +30,13 @@ import type { MemoryStore } from '../memory/memoryStore';
 export function registerCommands(context: vscode.ExtensionContext, statusProvider: StatusTreeProvider, memoryStore: MemoryStore) {
   const getWorkspaceRoot = (): string | undefined => vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   const getRalphBridge = () => new RalphBridge(
-    () => vscode.extensions.all.find((extension) => hasRalphCommands(extension.packageJSON)),
+    () => {
+      const extension = vscode.extensions.all.find((candidate) => hasRalphCommands(candidate.packageJSON));
+      return extension ? {
+        isActive: extension.isActive,
+        commands: getRalphCommandIds(extension.packageJSON),
+      } : undefined;
+    },
     (command, ...args) => vscode.commands.executeCommand(command, ...args),
   );
 
@@ -116,7 +122,7 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
     },
     showInformation: (message) => { void vscode.window.showInformationMessage(message); },
     showError: (message) => { void vscode.window.showErrorMessage(message); },
-  });
+  }, () => vscode.workspace.isTrusted);
   const memoryPutCommand = vscode.commands.registerCommand('alfred-dev.memory.put', () => {
     void executeMemory(() => memoryHandlers.put());
   });
@@ -127,17 +133,33 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
     void executeMemory(() => memoryHandlers.search());
   });
   const ralphOpenKanbanCommand = vscode.commands.registerCommand('alfred-dev.ralph.openKanban', () => {
-    void executeRalph(() => getRalphBridge().openKanban());
+    void runTrustedRalphAction({
+      isTrusted: vscode.workspace.isTrusted,
+      action: () => getRalphBridge().openKanban(),
+      showError: (message) => { void vscode.window.showErrorMessage(message); },
+    });
   });
   const ralphRunTaskCommand = vscode.commands.registerCommand('alfred-dev.ralph.runTask', async () => {
     const taskId = await vscode.window.showInputBox({ prompt: 'ID de tarea Ralph', validateInput: (value) => /^[a-z0-9][a-z0-9-]{0,63}$/.test(value) ? undefined : 'Usa un ID alfanumérico con guiones.' });
-    if (taskId) void executeRalph(() => getRalphBridge().runTask(taskId));
+    if (taskId) void runTrustedRalphAction({
+      isTrusted: vscode.workspace.isTrusted,
+      action: () => getRalphBridge().runTask(taskId),
+      showError: (message) => { void vscode.window.showErrorMessage(message); },
+    });
   });
   const ralphStartRunnerCommand = vscode.commands.registerCommand('alfred-dev.ralph.startRunner', () => {
-    void executeRalph(() => getRalphBridge().startRunner());
+    void runTrustedRalphAction({
+      isTrusted: vscode.workspace.isTrusted,
+      action: () => getRalphBridge().startRunner(),
+      showError: (message) => { void vscode.window.showErrorMessage(message); },
+    });
   });
   const ralphStopRunnerCommand = vscode.commands.registerCommand('alfred-dev.ralph.stopRunner', () => {
-    void executeRalph(() => getRalphBridge().stopRunner());
+    void runTrustedRalphAction({
+      isTrusted: vscode.workspace.isTrusted,
+      action: () => getRalphBridge().stopRunner(),
+      showError: (message) => { void vscode.window.showErrorMessage(message); },
+    });
   });
   const ralphSyncIssueCommand = vscode.commands.registerCommand('alfred-dev.ralph.syncIssue', () => {
     const bridge = getRalphBridge();
@@ -177,7 +199,6 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
     ralphSyncIssueCommand,
   );
 }
-
 async function executeMemory(action: () => Promise<void>): Promise<void> {
   try {
     await action();
@@ -187,18 +208,16 @@ async function executeMemory(action: () => Promise<void>): Promise<void> {
 }
 
 function hasRalphCommands(packageJson: unknown): boolean {
-  if (typeof packageJson !== 'object' || packageJson === null) return false;
-  const contributes = (packageJson as { contributes?: { commands?: unknown } }).contributes;
-  if (!contributes || !Array.isArray(contributes.commands)) return false;
-  return contributes.commands.some((command) => typeof command === 'object' && command !== null
-    && typeof (command as { command?: unknown }).command === 'string'
-    && (command as { command: string }).command.startsWith('ralph-suite.'));
+  return getRalphCommandIds(packageJson).some((command) => command.startsWith('ralph-suite.'));
 }
 
-async function executeRalph(action: () => Promise<void>): Promise<void> {
-  try {
-    await action();
-  } catch (error: unknown) {
-    vscode.window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo ejecutar la acción Ralph.');
-  }
+function getRalphCommandIds(packageJson: unknown): string[] {
+  if (typeof packageJson !== 'object' || packageJson === null) return [];
+  const contributes = (packageJson as { contributes?: { commands?: unknown } }).contributes;
+  if (!contributes || !Array.isArray(contributes.commands)) return [];
+  return contributes.commands
+    .filter((command) => typeof command === 'object' && command !== null
+    && typeof (command as { command?: unknown }).command === 'string'
+    && (command as { command: string }).command.startsWith('ralph-suite.'))
+    .map((command) => (command as { command: string }).command);
 }

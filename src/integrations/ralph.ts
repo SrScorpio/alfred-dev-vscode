@@ -78,6 +78,7 @@ export async function readRalphConfig(workspaceRoot: string, isTrusted: boolean)
 
 interface RalphExtension {
   isActive: boolean;
+  commands?: string[];
 }
 type ExtensionLookup = () => RalphExtension | undefined;
 type CommandExecutor = (command: string, ...args: unknown[]) => PromiseLike<unknown>;
@@ -92,7 +93,10 @@ export class RalphBridge {
   async stopRunner(): Promise<void> { await this.run('ralph-suite.stopRunner'); }
 
   async syncIssue(issueId: number, status: RalphStatus): Promise<RalphSyncResult> {
-    if (!this.lookup()?.isActive) return { synced: false, reason: 'unavailable' };
+    const extension = this.lookup();
+    if (!extension?.isActive || !extension.commands?.includes('ralph-suite.syncIssue')) {
+      return { synced: false, reason: 'unavailable' };
+    }
     if (!Number.isInteger(issueId) || issueId < 1 || issueId > 999999) {
       return { synced: false, reason: 'invalid-issue' };
     }
@@ -157,4 +161,23 @@ function validateTaskId(taskId: string): void {
 
 function isFileNotFoundError(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
+}
+
+interface TrustedRalphActionOptions {
+  isTrusted: boolean;
+  action(): Promise<void>;
+  showError(message: string): void;
+}
+
+/** Blocks Ralph operations that can mutate or execute workspace state in Restricted Mode. */
+export async function runTrustedRalphAction(options: TrustedRalphActionOptions): Promise<void> {
+  if (!options.isTrusted) {
+    options.showError('Las acciones Ralph requieren un workspace de confianza.');
+    return;
+  }
+  try {
+    await options.action();
+  } catch (error: unknown) {
+    options.showError(error instanceof Error ? error.message : 'No se pudo ejecutar la acción Ralph.');
+  }
 }
