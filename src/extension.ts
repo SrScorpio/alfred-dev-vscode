@@ -11,9 +11,13 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { StatusTreeProvider } from './providers/statusTreeProvider';
 import { registerCommands } from './commands';
-import { createLazyMemoryStore, JsonMemoryStore } from './memory/memoryStore';
+import {
+  createLazyMemoryStore,
+  JsonMemoryStore,
+  SecretStorageMemoryEncryptionKeyProvider,
+} from './memory/memoryStore';
 import type { MemoryStore } from './memory/memoryStore';
-import { registerMemoryMcpProvider } from './memory/memoryIntegration';
+import { registerMemoryMcpProviderOnTrust } from './memory/memoryIntegration';
 import { registerSecretDiagnostics } from './security/diagnostics';
 
 let configuredMemoryStore: MemoryStore | undefined;
@@ -37,33 +41,43 @@ export function activate(context: vscode.ExtensionContext) {
 
   const memoryEnabled = vscode.workspace.getConfiguration('alfred-dev.memory').get<boolean>('enabled', false);
   const memoryPath = path.join(context.globalStorageUri.fsPath, 'memory.json');
-  configuredMemoryStore = createLazyMemoryStore(memoryEnabled, async () => new JsonMemoryStore(memoryPath));
+  const memoryKeyProvider = new SecretStorageMemoryEncryptionKeyProvider(context.secrets);
+  configuredMemoryStore = createLazyMemoryStore(
+    memoryEnabled,
+    async () => new JsonMemoryStore(memoryPath, memoryKeyProvider),
+  );
   const optionalMcpApi = (vscode as typeof vscode & { lm?: typeof vscode.lm }).lm as (typeof vscode.lm & {
     registerMcpServerDefinitionProvider?: typeof vscode.lm.registerMcpServerDefinitionProvider;
   }) | undefined;
   const optionalMcpDefinition = (vscode as typeof vscode & {
     McpStdioServerDefinition?: typeof vscode.McpStdioServerDefinition;
   }).McpStdioServerDefinition;
-  const mcpRegistration = registerMemoryMcpProvider({
+  registerMemoryMcpProviderOnTrust({
     enabled: memoryEnabled,
-    isTrusted: vscode.workspace.isTrusted,
+    isTrusted: () => vscode.workspace.isTrusted,
+    onDidGrantWorkspaceTrust: (listener) => vscode.workspace.onDidGrantWorkspaceTrust(listener),
+    addSubscription: (disposable) => { context.subscriptions.push(disposable); },
     registerProvider: typeof optionalMcpApi?.registerMcpServerDefinitionProvider === 'function'
       ? (id, provider) => optionalMcpApi.registerMcpServerDefinitionProvider!(id, provider as vscode.McpServerDefinitionProvider)
       : undefined,
     createDefinition: typeof optionalMcpDefinition === 'function'
-      ? (serverPath, configuredMemoryPath, version) => new optionalMcpDefinition(
+      ? (serverPath, configuredMemoryPath, encryptionKey, version) => new optionalMcpDefinition(
         'Alfred Dev Memory',
         process.execPath,
         [serverPath],
-        { ELECTRON_RUN_AS_NODE: '1', ALFRED_DEV_MEMORY_PATH: configuredMemoryPath },
+        {
+          ELECTRON_RUN_AS_NODE: '1',
+          ALFRED_DEV_MEMORY_PATH: configuredMemoryPath,
+          ALFRED_DEV_MEMORY_KEY: encryptionKey.toString('base64'),
+        },
         version,
       )
       : undefined,
+    keyProvider: memoryKeyProvider,
     serverPath: context.asAbsolutePath(path.join('out', 'memory', 'memoryMcpServer.js')),
     memoryPath,
     version: '0.6.5',
   });
-  if (mcpRegistration) context.subscriptions.push(mcpRegistration);
   const diagnosticsEnabled = vscode.workspace.getConfiguration('alfred-dev').get<boolean>('secretGuard.diagnostics', true);
   if (diagnosticsEnabled) registerSecretDiagnostics(context);
   registerCommands(context, statusTreeProvider, configuredMemoryStore);

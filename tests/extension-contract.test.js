@@ -46,7 +46,9 @@ test('cablea la memoria configurada a MCP con feature detection y comandos fallb
   const extension = readRepositoryFile('src/extension.ts');
   const commands = readRepositoryFile('src/commands/index.ts');
 
-  assert.match(extension, /registerMemoryMcpProvider\(/);
+  assert.match(extension, /registerMemoryMcpProviderOnTrust\(/);
+  assert.match(extension, /onDidGrantWorkspaceTrust/);
+  assert.match(extension, /SecretStorageMemoryEncryptionKeyProvider\(context\.secrets\)/);
   assert.match(extension, /registerMcpServerDefinitionProvider/);
   assert.match(extension, /McpStdioServerDefinition/);
   assert.match(extension, /optionalMcpApi\?\.registerMcpServerDefinitionProvider/);

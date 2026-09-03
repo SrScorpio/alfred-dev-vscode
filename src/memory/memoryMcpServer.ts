@@ -94,7 +94,13 @@ function isObject(value: unknown): value is Record<string, unknown> {
 async function runServer(): Promise<void> {
   const memoryPath = process.env.ALFRED_DEV_MEMORY_PATH;
   if (!memoryPath) throw new Error('Falta ALFRED_DEV_MEMORY_PATH');
-  const store = new JsonMemoryStore(memoryPath);
+  const encodedEncryptionKey = process.env.ALFRED_DEV_MEMORY_KEY;
+  if (!encodedEncryptionKey) throw new Error('Falta ALFRED_DEV_MEMORY_KEY');
+  const encryptionKey = Buffer.from(encodedEncryptionKey, 'base64');
+  if (encryptionKey.length !== 32 || encryptionKey.toString('base64') !== encodedEncryptionKey) {
+    throw new Error('ALFRED_DEV_MEMORY_KEY no es válida');
+  }
+  const store = new JsonMemoryStore(memoryPath, { getKey: async () => encryptionKey });
   const input = readline.createInterface({ input: process.stdin, terminal: false });
   for await (const line of input) {
     if (!line.trim()) continue;

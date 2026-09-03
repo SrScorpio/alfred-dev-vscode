@@ -1,4 +1,4 @@
-import type { MemoryRecord, MemoryStore } from './memoryStore';
+import type { MemoryEncryptionKeyProvider, MemoryRecord, MemoryStore } from './memoryStore';
 
 const MEMORY_MCP_PROVIDER_ID = 'alfred-dev.memory';
 
@@ -7,17 +7,24 @@ interface Disposable {
 }
 
 interface MemoryMcpProvider {
-  provideMcpServerDefinitions(): unknown[];
+  provideMcpServerDefinitions(): Promise<unknown[]>;
 }
 
 interface MemoryMcpRegistrationOptions {
   enabled: boolean;
   isTrusted: boolean;
   registerProvider?: (id: string, provider: MemoryMcpProvider) => Disposable;
-  createDefinition?: (serverPath: string, memoryPath: string, version: string) => unknown;
+  createDefinition?: (serverPath: string, memoryPath: string, encryptionKey: Buffer, version: string) => unknown;
+  keyProvider: MemoryEncryptionKeyProvider;
   serverPath: string;
   memoryPath: string;
   version: string;
+}
+
+interface MemoryMcpTrustRegistrationOptions extends Omit<MemoryMcpRegistrationOptions, 'isTrusted'> {
+  isTrusted(): boolean;
+  onDidGrantWorkspaceTrust(listener: () => void): Disposable;
+  addSubscription(disposable: Disposable): void;
 }
 
 export interface MemoryCommandPromptResult {
@@ -43,12 +50,29 @@ export interface MemoryCommandHandlers {
 export function registerMemoryMcpProvider(options: MemoryMcpRegistrationOptions): Disposable | undefined {
   if (!options.enabled || !options.isTrusted || !options.registerProvider || !options.createDefinition) return undefined;
   return options.registerProvider(MEMORY_MCP_PROVIDER_ID, {
-    provideMcpServerDefinitions: () => [options.createDefinition!(
-      options.serverPath,
-      options.memoryPath,
-      options.version,
-    )],
+    provideMcpServerDefinitions: async () => {
+      const encryptionKey = await options.keyProvider.getKey();
+      if (!encryptionKey) throw new Error('La clave de cifrado no está disponible');
+      return [options.createDefinition!(options.serverPath, options.memoryPath, encryptionKey, options.version)];
+    },
   });
+}
+
+/** Registers MCP immediately or once when VS Code grants workspace trust. */
+export function registerMemoryMcpProviderOnTrust(options: MemoryMcpTrustRegistrationOptions): void {
+  let registered = false;
+  const registerOnce = (): void => {
+    if (registered || !options.isTrusted()) return;
+    const registration = registerMemoryMcpProvider({ ...options, isTrusted: true });
+    if (!registration) return;
+    registered = true;
+    options.addSubscription(registration);
+  };
+
+  registerOnce();
+  if (!registered && options.enabled && options.registerProvider && options.createDefinition) {
+    options.addSubscription(options.onDidGrantWorkspaceTrust(registerOnce));
+  }
 }
 
 /** Exposes the same bounded store through commands on VS Code versions without MCP support. */

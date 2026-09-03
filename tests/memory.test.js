@@ -14,6 +14,12 @@ const {
   scanSecrets,
 } = require('../out/security/secretScanner.js');
 
+const TEST_ENCRYPTION_KEY = Buffer.alloc(32, 7);
+
+function createKeyProvider(key = TEST_ENCRYPTION_KEY) {
+  return { getKey: async () => key };
+}
+
 test('detecta y sanitiza credenciales sin devolver su valor', () => {
   const content = 'token=ghp_abcdefghijklmnopqrstuvwxyz1234567890';
   const findings = scanSecrets(content);
@@ -52,9 +58,10 @@ test('la memoria desactivada no inicializa su backend', async () => {
   assert.equal(factoryCalls, 0);
 });
 
-test('la memoria JSON persiste de forma acotada y sanitizada', async () => {
+test('la memoria persiste cifrada, acotada y sanitizada', async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-'));
-  const store = new JsonMemoryStore(path.join(directory, 'memory.json'), {
+  const memoryPath = path.join(directory, 'memory.json');
+  const store = new JsonMemoryStore(memoryPath, createKeyProvider(), {
     maxEntries: 2,
     maxValueLength: 100,
   });
@@ -65,13 +72,36 @@ test('la memoria JSON persiste de forma acotada y sanitizada', async () => {
   assert.equal(await store.get('decision'), 'token=[REDACTED]');
   assert.deepEqual(await store.search('context'), [{ key: 'second', value: 'local context' }]);
   await assert.rejects(store.put('third', 'overflow'), /límite máximo de 2 entradas/);
-  assert.doesNotMatch(await fs.readFile(path.join(directory, 'memory.json'), 'utf8'), /ghp_/);
+  const persisted = await fs.readFile(memoryPath, 'utf8');
+  assert.doesNotMatch(persisted, /ghp_|decision|local context|REDACTED/);
+  assert.equal(JSON.parse(persisted).version, 2);
+});
+
+test('la memoria falla cerrada cuando la clave de cifrado no está disponible', async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-no-key-'));
+  const memoryPath = path.join(directory, 'memory.json');
+  const store = new JsonMemoryStore(memoryPath, { getKey: async () => undefined });
+
+  await assert.rejects(store.put('decision', 'local context'), /clave de cifrado no está disponible/);
+  await assert.rejects(fs.access(memoryPath));
+});
+
+test('la memoria rechaza explícitamente ficheros legados sin cifrar', async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-legacy-'));
+  const memoryPath = path.join(directory, 'memory.json');
+  await fs.writeFile(memoryPath, JSON.stringify({
+    version: 1,
+    entries: [{ key: 'legacy', value: 'plaintext', updatedAt: new Date().toISOString() }],
+  }));
+  const store = new JsonMemoryStore(memoryPath, createKeyProvider());
+
+  await assert.rejects(store.get('legacy'), /formato legado no cifrado/);
 });
 
 test('la memoria nunca escribe un JSON superior al límite de lectura', async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-size-'));
   const memoryPath = path.join(directory, 'memory.json');
-  const store = new JsonMemoryStore(memoryPath, { maxEntries: 100, maxValueLength: 4000 });
+  const store = new JsonMemoryStore(memoryPath, createKeyProvider(), { maxEntries: 100, maxValueLength: 4000 });
   let sizeLimitReached = false;
 
   for (let index = 0; index < 100; index += 1) {
