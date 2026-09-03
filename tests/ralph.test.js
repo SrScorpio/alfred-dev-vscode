@@ -5,10 +5,13 @@ const path = require('node:path');
 const test = require('node:test');
 
 const {
+  RALPH_SUITE_EXTENSION_ID,
   RalphBridge,
   extractIssueIds,
   mapAlfredStatus,
   readRalphConfig,
+  resolveRalphSuiteExtension,
+  runRalphTaskCommand,
   runTrustedRalphAction,
   runSyncIssueCommand,
 } = require('../out/integrations/ralph.js');
@@ -65,6 +68,34 @@ test('los wrappers fallan claro y sincronizan de forma best-effort', async () =>
   ]);
 });
 
+test('resuelve únicamente el proveedor Ralph Suite por su ID canónico', () => {
+  const requestedIds = [];
+  const expectedExtension = { isActive: true, commands: ['ralph-suite.openKanban'] };
+  const resolved = resolveRalphSuiteExtension((extensionId) => {
+    requestedIds.push(extensionId);
+    return extensionId === 'ralph-suite.ralph-suite' ? expectedExtension : undefined;
+  });
+
+  assert.equal(RALPH_SUITE_EXTENSION_ID, 'ralph-suite.ralph-suite');
+  assert.equal(resolved, expectedExtension);
+  assert.deepEqual(requestedIds, ['ralph-suite.ralph-suite']);
+  assert.equal(resolveRalphSuiteExtension(() => undefined), undefined);
+});
+
+test('cada wrapper exige que Ralph anuncie la capacidad exacta', async () => {
+  const calls = [];
+  const bridge = new RalphBridge(
+    () => ({ isActive: true, commands: ['ralph-suite.runTask'] }),
+    async (...args) => { calls.push(args); },
+  );
+
+  await bridge.runTask('task-1');
+  await assert.rejects(bridge.openKanban(), /no anuncia la capacidad ralph-suite\.openKanban/);
+  await assert.rejects(bridge.startRunner(), /no anuncia la capacidad ralph-suite\.startRunner/);
+  await assert.rejects(bridge.stopRunner(), /no anuncia la capacidad ralph-suite\.stopRunner/);
+  assert.deepEqual(calls, [['ralph-suite.runTask', 'task-1']]);
+});
+
 test('las acciones Ralph mutables requieren workspace de confianza', async () => {
   let executions = 0;
   const errors = [];
@@ -75,6 +106,23 @@ test('las acciones Ralph mutables requieren workspace de confianza', async () =>
     showError: (message) => { errors.push(message); },
   });
 
+  assert.equal(executions, 0);
+  assert.match(errors[0], /workspace de confianza/);
+});
+
+test('el comando runTask exige workspace trust antes de solicitar el ID', async () => {
+  let prompts = 0;
+  let executions = 0;
+  const errors = [];
+
+  await runRalphTaskCommand({
+    isTrusted: false,
+    promptTaskId: async () => { prompts += 1; return 'task-1'; },
+    runTask: async () => { executions += 1; },
+    showError: (message) => { errors.push(message); },
+  });
+
+  assert.equal(prompts, 0);
   assert.equal(executions, 0);
   assert.match(errors[0], /workspace de confianza/);
 });

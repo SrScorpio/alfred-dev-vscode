@@ -15,6 +15,7 @@ export interface RalphConfig {
 const MAX_RALPH_CONFIG_SIZE = 64 * 1024;
 const MAX_RALPH_TASKS = 200;
 const TASK_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
+export const RALPH_SUITE_EXTENSION_ID = 'ralph-suite.ralph-suite';
 const ALFRED_STATUSES = {
   backlog: 'todo',
   'in-progress': 'inprogress',
@@ -76,12 +77,19 @@ export async function readRalphConfig(workspaceRoot: string, isTrusted: boolean)
   }
 }
 
-interface RalphExtension {
+export interface RalphExtension {
   isActive: boolean;
   commands?: string[];
 }
 type ExtensionLookup = () => RalphExtension | undefined;
 type CommandExecutor = (command: string, ...args: unknown[]) => PromiseLike<unknown>;
+
+/** Resolves only the canonical Ralph Suite extension, never command lookalikes. */
+export function resolveRalphSuiteExtension(
+  getExtension: (extensionId: string) => RalphExtension | undefined,
+): RalphExtension | undefined {
+  return getExtension(RALPH_SUITE_EXTENSION_ID);
+}
 
 /** Provides feature-detected wrappers; absence of Ralph never blocks Alfred. */
 export class RalphBridge {
@@ -109,7 +117,11 @@ export class RalphBridge {
   }
 
   private async run(command: string, ...args: unknown[]): Promise<void> {
-    if (!this.lookup()?.isActive) throw new Error('Ralph Suite no está instalada o activa; instala la extensión para usar esta acción');
+    const extension = this.lookup();
+    if (!extension?.isActive) throw new Error('Ralph Suite no está instalada o activa; instala la extensión para usar esta acción');
+    if (!extension.commands?.includes(command)) {
+      throw new Error(`Ralph Suite no anuncia la capacidad ${command}`);
+    }
     try {
       await this.execute(command, ...args);
     } catch {
@@ -167,6 +179,29 @@ interface TrustedRalphActionOptions {
   isTrusted: boolean;
   action(): Promise<void>;
   showError(message: string): void;
+}
+
+interface RalphTaskCommandOptions {
+  isTrusted: boolean;
+  promptTaskId(): Promise<string | undefined>;
+  runTask(taskId: string): Promise<void>;
+  showError(message: string): void;
+}
+
+/** Requests a task only after the workspace trust gate has passed. */
+export async function runRalphTaskCommand(options: RalphTaskCommandOptions): Promise<void> {
+  if (!options.isTrusted) {
+    options.showError('Las acciones Ralph requieren un workspace de confianza.');
+    return;
+  }
+  const taskId = await options.promptTaskId();
+  if (!taskId) return;
+  try {
+    validateTaskId(taskId);
+    await options.runTask(taskId);
+  } catch (error: unknown) {
+    options.showError(error instanceof Error ? error.message : 'No se pudo ejecutar la tarea Ralph.');
+  }
 }
 
 /** Blocks Ralph operations that can mutate or execute workspace state in Restricted Mode. */

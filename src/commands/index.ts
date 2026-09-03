@@ -14,7 +14,13 @@ import type { ModelProfile } from './modelProfiles';
 import { openAlfredChat } from './chatCommand';
 import { openStyleGallery } from '../gallery/styleGalleryPanel';
 import { installSecretHook } from '../security/secretHook';
-import { RalphBridge, runSyncIssueCommand, runTrustedRalphAction } from '../integrations/ralph';
+import {
+  RalphBridge,
+  resolveRalphSuiteExtension,
+  runRalphTaskCommand,
+  runSyncIssueCommand,
+  runTrustedRalphAction,
+} from '../integrations/ralph';
 import type { AlfredStatus } from '../integrations/ralph';
 import { createMemoryCommandHandlers } from '../memory/memoryIntegration';
 import type { MemoryStore } from '../memory/memoryStore';
@@ -30,13 +36,13 @@ import type { MemoryStore } from '../memory/memoryStore';
 export function registerCommands(context: vscode.ExtensionContext, statusProvider: StatusTreeProvider, memoryStore: MemoryStore) {
   const getWorkspaceRoot = (): string | undefined => vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   const getRalphBridge = () => new RalphBridge(
-    () => {
-      const extension = vscode.extensions.all.find((candidate) => hasRalphCommands(candidate.packageJSON));
+    () => resolveRalphSuiteExtension((extensionId) => {
+      const extension = vscode.extensions.getExtension(extensionId);
       return extension ? {
         isActive: extension.isActive,
         commands: getRalphCommandIds(extension.packageJSON),
       } : undefined;
-    },
+    }),
     (command, ...args) => vscode.commands.executeCommand(command, ...args),
   );
 
@@ -139,11 +145,14 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
       showError: (message) => { void vscode.window.showErrorMessage(message); },
     });
   });
-  const ralphRunTaskCommand = vscode.commands.registerCommand('alfred-dev.ralph.runTask', async () => {
-    const taskId = await vscode.window.showInputBox({ prompt: 'ID de tarea Ralph', validateInput: (value) => /^[a-z0-9][a-z0-9-]{0,63}$/.test(value) ? undefined : 'Usa un ID alfanumérico con guiones.' });
-    if (taskId) void runTrustedRalphAction({
+  const ralphRunTaskCommand = vscode.commands.registerCommand('alfred-dev.ralph.runTask', () => {
+    void runRalphTaskCommand({
       isTrusted: vscode.workspace.isTrusted,
-      action: () => getRalphBridge().runTask(taskId),
+      promptTaskId: async () => vscode.window.showInputBox({
+        prompt: 'ID de tarea Ralph',
+        validateInput: (value) => /^[a-z0-9][a-z0-9-]{0,63}$/.test(value) ? undefined : 'Usa un ID alfanumérico con guiones.',
+      }),
+      runTask: (taskId) => getRalphBridge().runTask(taskId),
       showError: (message) => { void vscode.window.showErrorMessage(message); },
     });
   });
@@ -205,10 +214,6 @@ async function executeMemory(action: () => Promise<void>): Promise<void> {
   } catch (error: unknown) {
     vscode.window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo usar la memoria local.');
   }
-}
-
-function hasRalphCommands(packageJson: unknown): boolean {
-  return getRalphCommandIds(packageJson).some((command) => command.startsWith('ralph-suite.'));
 }
 
 function getRalphCommandIds(packageJson: unknown): string[] {
