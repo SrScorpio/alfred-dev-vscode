@@ -1,4 +1,6 @@
 const assert = require('node:assert/strict');
+const { spawn } = require('node:child_process');
+const { once } = require('node:events');
 const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
@@ -99,4 +101,46 @@ test('el servidor MCP ejecuta tools/list y tools/call sobre JsonMemoryStore', as
     params: { name: 'memory_get', arguments: { key: 'decision' } },
   }, store);
   assert.doesNotMatch(fetched.result.content[0].text, /a{32}/);
+});
+
+test('el proceso MCP stdio persiste mediante el backend de producción', async (testContext) => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-mcp-stdio-'));
+  const memoryPath = path.join(directory, 'memory.json');
+  const server = spawn(process.execPath, [path.resolve(__dirname, '../out/memory/memoryMcpServer.js')], {
+    env: { ...process.env, ALFRED_DEV_MEMORY_PATH: memoryPath },
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+  testContext.after(() => server.kill());
+  server.stdout.setEncoding('utf8');
+
+  const request = async (message) => {
+    const response = once(server.stdout, 'data');
+    server.stdin.write(`${JSON.stringify(message)}\n`);
+    return JSON.parse((await response)[0].trim());
+  };
+
+  const initialized = await request({
+    jsonrpc: '2.0',
+    id: 1,
+    method: 'initialize',
+    params: { protocolVersion: '2024-11-05' },
+  });
+  assert.equal(initialized.result.serverInfo.name, 'alfred-dev-memory');
+
+  await request({
+    jsonrpc: '2.0',
+    id: 2,
+    method: 'tools/call',
+    params: { name: 'memory_put', arguments: { key: 'decision', value: `sk-${'a'.repeat(32)}` } },
+  });
+  const fetched = await request({
+    jsonrpc: '2.0',
+    id: 3,
+    method: 'tools/call',
+    params: { name: 'memory_get', arguments: { key: 'decision' } },
+  });
+
+  assert.equal(fetched.result.content[0].text, '[REDACTED]');
+  assert.doesNotMatch(await fs.readFile(memoryPath, 'utf8'), /sk-/);
+  server.stdin.end();
 });
