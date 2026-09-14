@@ -60,13 +60,16 @@ runtime expone `registerMcpServerDefinitionProvider`, registra un servidor MCP
 stdio con `memory_put`, `memory_get` y `memory_search`; exige workspace trust,
 reacciona a una concesión de confianza sin recarga, escucha
 `alfred-dev.memory.enabled` para registrar o liberar el provider y evita el
-doble registro. Un fallo al leer la clave no se cachea. El hijo recibe solo
-el path del JSON y `ALFRED_DEV_MEMORY_KEY_SOCKET`; la clave cruza por un
-socket local de un solo uso (32 bytes, un accept, timeout corto). Tras
+doble registro. Un fallo al leer la clave no se cachea. El listado MCP
+(`provideMcpServerDefinitions`) no abre el listener ni inyecta
+`ALFRED_DEV_MEMORY_KEY_SOCKET`. En `resolveMcpServerDefinition`, justo antes
+del spawn, el hijo recibe el path del JSON y el socket; la clave cruza por
+IPC local de un solo uso (32 bytes, un accept, timeout corto). Tras
 **Borrar memoria local** se dispone y, si sigue el opt-in con trust, se
-vuelve a registrar el provider. Residual: el path del socket es visible en el
-entorno del hijo durante el arranque; VS Code no permite inyectar un
-descriptor. El proceso solo se arranca al utilizarlo. VS Code `^1.85.0` sigue
+vuelve a registrar el provider reutilizando el mismo handle de suscripción.
+Residual: el path del socket es visible en el entorno del hijo durante el
+arranque; VS Code no permite inyectar un descriptor. El proceso solo se
+arranca al utilizarlo. VS Code `^1.85.0` sigue
 soportado mediante los comandos equivalentes, incluido el borrado local,
 cuando esa API no existe. No hay red propia.
 

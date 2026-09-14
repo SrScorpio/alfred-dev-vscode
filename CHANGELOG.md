@@ -38,6 +38,12 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Fixed
 
+- El listado MCP (`provideMcpServerDefinitions`) ya no abre el socket
+  one-shot: VS Code lo llama con ansia para enumerar y el hijo aún no existe.
+  `resolveMcpServerDefinition` ofrece la clave e inyecta
+  `ALFRED_DEV_MEMORY_KEY_SOCKET` justo antes del spawn.
+- `recycle` del provider MCP reutiliza el mismo handle de suscripción y no
+  apila disposables zombies en `context.subscriptions` en cada wipe.
 - `alfred-dev.memory.clear` recicla el provider MCP tras borrar fichero y
   clave: dispone el registro y, si el opt-in y el trust siguen activos, lo
   vuelve a registrar una sola vez. Un hijo ya arrancado no conserva la clave
@@ -55,9 +61,10 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 - El hijo MCP ya no recibe `ALFRED_DEV_MEMORY_KEY` en el entorno. El padre
   entrega 32 bytes por un socket local de un solo uso
-  (`ALFRED_DEV_MEMORY_KEY_SOCKET`) y cierra; el hijo borra esa variable tras
-  leerla. Residual: el path del socket sigue enumerable por un proceso del
-  mismo usuario durante la ventana de accept.
+  (`ALFRED_DEV_MEMORY_KEY_SOCKET`) al resolver el arranque, no al listar, y
+  cierra; el hijo borra esa variable tras leerla. Residual: el path del
+  socket sigue enumerable por un proceso del mismo usuario durante la ventana
+  de accept.
 - El provider MCP de memoria reacciona a `alfred-dev.memory.enabled` durante la
   sesión: registra con trust y API, se libera al desactivar y evita el doble
   registro.
