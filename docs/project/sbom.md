@@ -3,7 +3,7 @@
 **Proyecto:** alfred-dev-vscode
 **Version:** 0.6.5
 **Commit revisado:** entrega actual
-**Fecha:** 2026-09-03
+**Fecha:** 2026-09-14
 **Autor:** senior-dev (generación técnica reproducible)
 **Formato verificable:** `docs/project/sbom.cdx.json`, CycloneDX 1.5 generado y validado desde `package-lock.json`.
 
@@ -46,7 +46,7 @@ Las versiones resueltas, PURLs, licencias, relaciones y transitivas estan en `do
 
 | Fuente | Critica | Alta | Moderada | Baja | Resultado |
 |--------|----------|------|----------|------|-----------|
-| `npm audit --audit-level=high` | 0 | 0 | 0 | 0 | `found 0 vulnerabilities`, incluida la herramienta CycloneDX y sus transitivas |
+| `npm audit --audit-level=high` (2026-09-14, tras `npm ci`) | 0 | 0 | 0 | 0 | `found 0 vulnerabilities`; `js-yaml` transitiva en 4.3.2 (GHSA-2883-xcg3-v3hh cerrado) |
 
 ## Conformidad CRA
 

@@ -2,7 +2,7 @@
 
 No es un dictamen juridico. Es un registro tecnico con evidencia de la revision actual de la extension nativa para VSIX.
 
-**Fecha:** 2026-09-03
+**Fecha:** 2026-09-14
 **Autor:** senior-dev (revisión técnica; no sustituye la gate de security-officer)
 
 ## Alcance
@@ -18,7 +18,7 @@ No es un dictamen juridico. Es un registro tecnico con evidencia de la revision 
 | Control | Marco | Estado | Evidencia |
 |---------|-------|--------|-----------|
 | Inventario de componentes directos y transitivos | CRA | cumple | `npm run sbom` genera y valida `docs/project/sbom.cdx.json` CycloneDX 1.5 desde `package-lock.json`: 357 componentes, 404 relaciones y 0 componentes sin licencia. La herramienta 6.0.1 está fijada como dependencia de desarrollo. |
-| Analisis de vulnerabilidades conocidas | CRA / NIS2 | cumple | `npm audit --audit-level=high` del 2026-09-03: `found 0 vulnerabilities` tras actualizar las transitivas `fast-uri` 3.1.5 -> 3.1.7 y `qs` 6.15.3 -> 6.16.0. |
+| Analisis de vulnerabilidades conocidas | CRA / NIS2 | cumple | `npm audit --audit-level=high` del 2026-09-14, tras `npm ci`: `found 0 vulnerabilities`. Incluye el parche transitivo `js-yaml` 4.3.1 -> 4.3.2 (GHSA-2883-xcg3-v3hh) aplicado con `npm audit fix` sin `--force`. |
 | Integridad de la cadena de build | CRA / NIS2 | cumple | `package-lock.json` v3 fija integridades SHA-512. `npx vsce ls --tree` en la entrega actual enumera 22 ficheros: metadatos y 17 JavaScript bajo `out/`; excluye fuentes, tests, dependencias, skills, documentos internos y mapas. |
 | Minimizacion y finalidad de datos | RGPD art. 5 | parcial | El TreeView lee solo `docs/project/status.md`; la memoria requiere opt-in, limita el sobre cifrado a 256 KiB, limita entradas y valores, y sanitiza secretos; MCP y comandos usan el mismo almacenamiento global local; la galería guarda solo la elección confirmada. Falta inventario del tratamiento de marketplace/Copilot y aviso de privacidad del responsable. |
 | Base juridica y transparencia | RGPD arts. 6 y 13 | pendiente | No hay politica de privacidad ni evidencia de base juridica para la preferencia global o los servicios de terceros asociados. |
@@ -32,9 +32,18 @@ No es un dictamen juridico. Es un registro tecnico con evidencia de la revision 
 
 ## Hallazgos activos
 
-Ninguno con severidad critica, alta o media en el alcance de esta revision.
+Ninguno con severidad critica o alta en el alcance de esta revision. Los residuales
+de severidad media se listan en condiciones pendientes.
 
 ## Hallazgos cerrados
+
+- **Ubicacion:** `package-lock.json` (`node_modules/js-yaml`)
+- **Severidad:** ALTA (confianza: 99)
+- **Categoria:** CRA / cadena de suministro / GHSA-2883-xcg3-v3hh
+- **Hallazgo:** `js-yaml` 4.3.1, transitiva de desarrollo, no limita CPU con merge keys vacias.
+- **Vector de ataque:** YAML malicioso durante build o empaquetado (`vsce` / CycloneDX), no en el VSIX de runtime.
+- **Impacto:** Denegacion de servicio en la cadena de build.
+- **Solucion:** `npm audit fix` sin `--force` resolvio 4.3.2; `npm ci` y `npm audit --audit-level=high` del 2026-09-14 informan `found 0 vulnerabilities`. El contrato de empaquetado fija esa version.
 
 - **Ubicacion:** `src/memory/memoryStore.ts`, `src/memory/memoryIntegration.ts` y `src/extension.ts`
 - **Severidad:** ALTA (confianza: 99)

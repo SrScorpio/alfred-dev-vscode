@@ -34,6 +34,12 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 - Empaquetado VSIX local con `npm run package` mediante `@vscode/vsce` 3.9.2,
   con una allowlist de runtime para el contenido distribuido.
 
+### Fixed
+
+- La transitiva de desarrollo `js-yaml` pasa de 4.3.1 a 4.3.2 (`GHSA-2883-xcg3-v3hh`)
+  con `npm audit fix` sin `--force`. `npm audit --audit-level=high` queda en
+  `found 0 vulnerabilities` y el SBOM CycloneDX se regenera desde el lockfile.
+
 ### Changed
 
 - El selector de modelos persiste `alfred-dev.modelProfile` como preferencia

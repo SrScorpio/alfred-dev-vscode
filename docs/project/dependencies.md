@@ -2,16 +2,25 @@
 
 | Paquete | Versión | Licencia | CVEs | Transitivas | Veredicto | Fecha |
 |---------|---------|----------|------|-------------|-----------|-------|
-| `@vscode/vsce` | 3.9.2 | MIT | Ninguno en `npm audit --audit-level=high` (2026-09-03) | Compartidas en un árbol de 403 paquetes resueltos | APROBAR | 2026-09-03 |
-| `@cyclonedx/cyclonedx-npm` | 6.0.1 | Apache-2.0 | Ninguno en `npm audit --audit-level=high` (2026-09-03) | 108 paquetes añadidos al árbol de desarrollo | APROBAR | 2026-09-03 |
+| `@vscode/vsce` | 3.9.2 | MIT | Ninguno en `npm audit --audit-level=high` (2026-09-14) | Compartidas en un árbol de 403 paquetes resueltos | APROBAR | 2026-09-03 |
+| `@cyclonedx/cyclonedx-npm` | 6.0.1 | Apache-2.0 | Ninguno en `npm audit --audit-level=high` (2026-09-14) | 108 paquetes añadidos al árbol de desarrollo | APROBAR | 2026-09-03 |
+| `js-yaml` (transitiva de desarrollo) | 4.3.2 | MIT | Parche de GHSA-2883-xcg3-v3hh; `npm audit --audit-level=high` del 2026-09-14: `found 0 vulnerabilities` | 1 paquete actualizado en el lockfile (`argparse` se mantiene) | APROBAR | 2026-09-14 |
 
 `@vscode/vsce` se usa solo como dependencia de desarrollo para generar el VSIX local. La version queda fijada en `package-lock.json` v3 con integridad `sha512-XSxMosEEDO6vLxELAHVkwmhC0qe0ijZni2jB9Rcs8kQsW4lhTDQ/wMzmwFs/buotAWSnpmUp/dRWD2ufG3UYKA==`. Npm publica licencia MIT, tamano desempaquetado de 250338 bytes y actividad de metadatos el 2026-08-11. El resultado de `npm audit` cubre directas y transitivas, incluidas las de desarrollo.
 
 La auditoria del 2026-09-03 detecto cuatro advisories HIGH de `fast-uri`
 3.1.5 y dos MODERATE de `qs` 6.15.3, ambas transitivas de desarrollo de
 `@vscode/vsce`. `npm audit fix` sin `--force` actualizo solo `fast-uri` a 3.1.7
-y `qs` a 6.16.0, con sus URL e integridades en `package-lock.json`. Tras el
-cambio, `npm audit --audit-level=high` informa `found 0 vulnerabilities`.
+y `qs` a 6.16.0, con sus URL e integridades en `package-lock.json`.
+
+La auditoria del 2026-09-14 volvio a fallar en HIGH por `js-yaml` 4.3.1
+(GHSA-2883-xcg3-v3hh: `maxTotalMergeKeys` no limita CPU con merge keys vacias).
+`npm audit fix` sin `--force` resolvio a `js-yaml` 4.3.2 porque los padres
+(`^4.3.0` y `^4.1.1`) ya admiten el parche. No se uso `overrides`, `resolutions`
+ni `--force`. El lockfile fija
+`https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.2.tgz` con integridad
+`sha512-SFNOvSJ+Dgf/9An904Yx+CgSlIPCkIpao4qo51lpee25TIRejdH3rhR4EZMGoNx3/TP3O+wzWuiTFl4sqbltzA==`.
+Tras `npm ci`, `npm audit --audit-level=high` informa `found 0 vulnerabilities`.
 
 La comprobacion de contenido en el commit
 la entrega actual usa `npx vsce ls --tree` y enumera 22 ficheros: tres metadatos
@@ -28,8 +37,9 @@ licencia Apache-2.0, tamaño desempaquetado de 88.568 bytes, integridad
 y última modificación el 2026-08-11. Declara seis dependencias directas:
 `@cyclonedx/cyclonedx-library`, `commander`, `normalize-package-data`,
 `packageurl-js`, `spdx-expression-parse` y `xmlbuilder2`. La instalación se
-realizó con lifecycle scripts deshabilitados y añadió 108 paquetes al árbol;
-la auditoría posterior de 396 paquetes informó `found 0 vulnerabilities`.
+realizó con lifecycle scripts deshabilitados y añadió 108 paquetes al árbol.
+La auditoría de 396 paquetes del 2026-09-14, ya con `js-yaml` 4.3.2, informa
+`found 0 vulnerabilities`.
 
 La alternativa nativa sería construir CycloneDX manualmente a partir de
 `package-lock.json`; se rechaza porque duplicaría un estándar complejo y no
