@@ -184,7 +184,9 @@ test('el provider MCP se registra una sola vez al conceder confianza sin recarga
   trustListener();
 
   assert.equal(registrations, 1);
-  assert.deepEqual(subscriptions, [trustDisposable, providerDisposable]);
+  assert.equal(subscriptions.length, 2);
+  assert.equal(subscriptions[0], trustDisposable);
+  assert.notEqual(subscriptions[1], providerDisposable);
 });
 
 test('recycle dispone el provider MCP y lo vuelve a registrar una sola vez', () => {
@@ -214,6 +216,27 @@ test('recycle dispone el provider MCP y lo vuelve a registrar una sola vez', () 
   handle.recycle();
   assert.equal(disposals, 2);
   assert.equal(registrations, 3);
+});
+
+test('recycle no apila disposables zombies en addSubscription', () => {
+  const subscriptions = [];
+  const handle = registerMemoryMcpProviderOnTrust({
+    enabled: true,
+    isTrusted: () => true,
+    onDidGrantWorkspaceTrust: () => ({ dispose() {} }),
+    addSubscription: (disposable) => { subscriptions.push(disposable); },
+    registerProvider: () => ({ dispose() {} }),
+    createDefinition: () => ({}),
+    keyProvider: TEST_KEY_PROVIDER,
+    serverPath: 'server.js',
+    memoryPath: 'memory.json',
+    version: 'test',
+  });
+
+  const subscriptionsAfterRegister = subscriptions.length;
+  handle.recycle();
+  handle.recycle();
+  assert.equal(subscriptions.length, subscriptionsAfterRegister);
 });
 
 test('recycle no re-registra MCP si el opt-in o el trust no aplican', () => {

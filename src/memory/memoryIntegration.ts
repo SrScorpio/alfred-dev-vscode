@@ -85,11 +85,13 @@ export function registerMemoryMcpProvider(options: MemoryMcpRegistrationOptions)
 /** Registers MCP immediately or once when VS Code grants workspace trust. */
 export function registerMemoryMcpProviderOnTrust(options: MemoryMcpTrustRegistrationOptions): MemoryMcpTrustRegistration {
   let registration: Disposable | undefined;
+  let providerSubscriptionAdded = false;
   const canRegister = Boolean(options.registerProvider && options.createDefinition);
   const disposeRegistration = (): void => {
     registration?.dispose();
     registration = undefined;
   };
+  const providerSubscription: Disposable = { dispose: disposeRegistration };
   const syncRegistration = (): void => {
     if (!isMemoryEnabled(options.enabled) || !options.isTrusted()) {
       disposeRegistration();
@@ -99,7 +101,9 @@ export function registerMemoryMcpProviderOnTrust(options: MemoryMcpTrustRegistra
     const nextRegistration = registerMemoryMcpProvider({ ...options, enabled: true, isTrusted: true });
     if (!nextRegistration) return;
     registration = nextRegistration;
-    options.addSubscription(nextRegistration);
+    if (providerSubscriptionAdded) return;
+    providerSubscriptionAdded = true;
+    options.addSubscription(providerSubscription);
   };
 
   syncRegistration();
