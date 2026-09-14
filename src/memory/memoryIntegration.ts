@@ -21,10 +21,16 @@ interface MemoryMcpRegistrationOptions {
   version: string;
 }
 
-interface MemoryMcpTrustRegistrationOptions extends Omit<MemoryMcpRegistrationOptions, 'isTrusted'> {
+interface MemoryMcpTrustRegistrationOptions extends Omit<MemoryMcpRegistrationOptions, 'enabled' | 'isTrusted'> {
+  enabled: boolean | (() => boolean);
   isTrusted(): boolean;
   onDidGrantWorkspaceTrust(listener: () => void): Disposable;
+  onDidChangeConfiguration?(listener: () => void): Disposable;
   addSubscription(disposable: Disposable): void;
+}
+
+function isMemoryEnabled(enabled: boolean | (() => boolean)): boolean {
+  return typeof enabled === 'function' ? enabled() : enabled;
 }
 
 export interface MemoryCommandPromptResult {
@@ -60,18 +66,29 @@ export function registerMemoryMcpProvider(options: MemoryMcpRegistrationOptions)
 
 /** Registers MCP immediately or once when VS Code grants workspace trust. */
 export function registerMemoryMcpProviderOnTrust(options: MemoryMcpTrustRegistrationOptions): void {
-  let registered = false;
-  const registerOnce = (): void => {
-    if (registered || !options.isTrusted()) return;
-    const registration = registerMemoryMcpProvider({ ...options, isTrusted: true });
-    if (!registration) return;
-    registered = true;
-    options.addSubscription(registration);
+  let registration: Disposable | undefined;
+  const canRegister = Boolean(options.registerProvider && options.createDefinition);
+  const disposeRegistration = (): void => {
+    registration?.dispose();
+    registration = undefined;
+  };
+  const syncRegistration = (): void => {
+    if (!isMemoryEnabled(options.enabled) || !options.isTrusted()) {
+      disposeRegistration();
+      return;
+    }
+    if (registration) return;
+    const nextRegistration = registerMemoryMcpProvider({ ...options, enabled: true, isTrusted: true });
+    if (!nextRegistration) return;
+    registration = nextRegistration;
+    options.addSubscription(nextRegistration);
   };
 
-  registerOnce();
-  if (!registered && options.enabled && options.registerProvider && options.createDefinition) {
-    options.addSubscription(options.onDidGrantWorkspaceTrust(registerOnce));
+  syncRegistration();
+  if (!canRegister) return;
+  options.addSubscription(options.onDidGrantWorkspaceTrust(syncRegistration));
+  if (options.onDidChangeConfiguration) {
+    options.addSubscription(options.onDidChangeConfiguration(syncRegistration));
   }
 }
 

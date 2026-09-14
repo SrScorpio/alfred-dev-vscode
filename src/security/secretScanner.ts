@@ -5,6 +5,8 @@ export interface SecretFinding {
   redacted: string;
 }
 
+export const MAX_SECRET_DIAGNOSTICS_BYTES = 64 * 1024;
+
 const GITHUB_TOKEN = /gh[pousr]_[A-Za-z0-9]{20,}/g;
 const OPENAI_TOKEN = /\bsk-[A-Za-z0-9_-]{20,}\b/g;
 const BEARER_TOKEN = /(Authorization\s*:\s*Bearer\s+)[^\s"']+/gi;
@@ -21,6 +23,15 @@ function redactLine(line: string): string {
     .replace(AWS_ACCESS_KEY, '[REDACTED]')
     .replace(AWS_SECRET_KEY, '$1[REDACTED]')
     .replace(GENERIC_SECRET, '$1[REDACTED]');
+}
+
+/** Scans editor text only when it stays within the diagnostics size cap. */
+export function scanSecretsBounded(
+  content: string,
+  maxBytes = MAX_SECRET_DIAGNOSTICS_BYTES,
+): SecretFinding[] {
+  if (Buffer.byteLength(content, 'utf8') > maxBytes) return [];
+  return scanSecrets(content);
 }
 
 /** Finds likely credentials without returning their original values. */

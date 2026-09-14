@@ -20,6 +20,7 @@ test('declara comandos de chat y selección de perfil de modelo', () => {
   assert.ok(commands.some((command) => command.command === 'alfred-dev.memory.put'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.memory.get'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.memory.search'));
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.memory.clear'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.ralph.openKanban'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.ralph.syncIssue'));
   assert.deepEqual(packageJson.contributes.mcpServerDefinitionProviders, [{
@@ -48,12 +49,26 @@ test('cablea la memoria configurada a MCP con feature detection y comandos fallb
 
   assert.match(extension, /registerMemoryMcpProviderOnTrust\(/);
   assert.match(extension, /onDidGrantWorkspaceTrust/);
+  assert.match(extension, /onDidChangeConfiguration/);
+  assert.match(extension, /affectsConfiguration\('alfred-dev\.memory\.enabled'\)/);
   assert.match(extension, /SecretStorageMemoryEncryptionKeyProvider\(context\.secrets\)/);
   assert.match(extension, /registerMcpServerDefinitionProvider/);
   assert.match(extension, /McpStdioServerDefinition/);
   assert.match(extension, /optionalMcpApi\?\.registerMcpServerDefinitionProvider/);
   assert.match(commands, /createMemoryCommandHandlers\(/);
-  assert.match(commands, /alfred-dev\.memory\.(?:put|get|search)/);
+  assert.match(commands, /alfred-dev\.memory\.(?:put|get|search|clear)/);
+  assert.match(commands, /clearLocalMemory\(/);
+  assert.match(commands, /readRalphConfig/);
+  assert.match(commands, /runRalphTaskCommand\([\s\S]*?readConfig:\s*readRalphConfig/);
+});
+
+test('los diagnósticos de secretos limitan el tamaño antes de escanear', () => {
+  const diagnostics = readRepositoryFile('src/security/diagnostics.ts');
+  const scanner = readRepositoryFile('src/security/secretScanner.ts');
+
+  assert.match(scanner, /MAX_SECRET_DIAGNOSTICS_BYTES = 64 \* 1024/);
+  assert.match(diagnostics, /scanSecretsBounded\(/);
+  assert.doesNotMatch(diagnostics, /scanSecrets\(/);
 });
 
 test('el VSIX excluye fuentes, tests, dependencias y skills de stack', () => {

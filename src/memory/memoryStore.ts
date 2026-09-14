@@ -51,8 +51,16 @@ export class SecretStorageMemoryEncryptionKeyProvider implements MemoryEncryptio
   constructor(private readonly secretStorage: SecretStorageLike) {}
 
   async getKey(): Promise<Buffer> {
-    this.keyPromise ??= this.loadOrCreateKey();
+    this.keyPromise ??= this.loadOrCreateKey().catch((error: unknown) => {
+      this.keyPromise = undefined;
+      throw error;
+    });
     return Buffer.from(await this.keyPromise);
+  }
+
+  async deleteKey(): Promise<void> {
+    this.keyPromise = undefined;
+    await this.secretStorage.delete(MEMORY_ENCRYPTION_SECRET_KEY);
   }
 
   private async loadOrCreateKey(): Promise<Buffer> {
@@ -246,10 +254,28 @@ function isFileNotFoundError(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
 }
 
+/** Deletes the encrypted memory file and the custodian key for this profile. */
+export async function clearLocalMemory(
+  filePath: string,
+  keyProvider: { deleteKey(): Promise<void> },
+): Promise<void> {
+  try {
+    await fs.unlink(filePath);
+  } catch (error: unknown) {
+    if (!isFileNotFoundError(error)) throw error;
+  }
+  await keyProvider.deleteKey();
+}
+
 type MemoryFactory = () => Promise<MemoryStore>;
+type MemoryEnabled = boolean | (() => boolean);
+
+function isMemoryEnabled(enabled: MemoryEnabled): boolean {
+  return typeof enabled === 'function' ? enabled() : enabled;
+}
 
 /** Defers backend creation and returns a no-op store while disabled. */
-export function createLazyMemoryStore(enabled: boolean, factory: MemoryFactory): MemoryStore {
+export function createLazyMemoryStore(enabled: MemoryEnabled, factory: MemoryFactory): MemoryStore {
   let backend: Promise<MemoryStore> | undefined;
   const getBackend = async (): Promise<MemoryStore> => {
     backend ??= factory();
@@ -257,9 +283,9 @@ export function createLazyMemoryStore(enabled: boolean, factory: MemoryFactory):
   };
 
   return {
-    isEnabled: async () => enabled,
-    put: async (key, value) => { if (enabled) await (await getBackend()).put(key, value); },
-    get: async (key) => enabled ? (await getBackend()).get(key) : undefined,
-    search: async (query) => enabled ? (await getBackend()).search(query) : [],
+    isEnabled: async () => isMemoryEnabled(enabled),
+    put: async (key, value) => { if (isMemoryEnabled(enabled)) await (await getBackend()).put(key, value); },
+    get: async (key) => isMemoryEnabled(enabled) ? (await getBackend()).get(key) : undefined,
+    search: async (query) => isMemoryEnabled(enabled) ? (await getBackend()).search(query) : [],
   };
 }

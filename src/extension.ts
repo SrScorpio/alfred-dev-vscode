@@ -39,11 +39,11 @@ export function activate(context: vscode.ExtensionContext) {
   const statusTreeProvider = new StatusTreeProvider();
   vscode.window.registerTreeDataProvider('alfred-dev-status', statusTreeProvider);
 
-  const memoryEnabled = vscode.workspace.getConfiguration('alfred-dev.memory').get<boolean>('enabled', false);
+  const isMemoryEnabled = () => vscode.workspace.getConfiguration('alfred-dev.memory').get<boolean>('enabled', false);
   const memoryPath = path.join(context.globalStorageUri.fsPath, 'memory.json');
   const memoryKeyProvider = new SecretStorageMemoryEncryptionKeyProvider(context.secrets);
   configuredMemoryStore = createLazyMemoryStore(
-    memoryEnabled,
+    isMemoryEnabled,
     async () => new JsonMemoryStore(memoryPath, memoryKeyProvider),
   );
   const optionalMcpApi = (vscode as typeof vscode & { lm?: typeof vscode.lm }).lm as (typeof vscode.lm & {
@@ -53,9 +53,12 @@ export function activate(context: vscode.ExtensionContext) {
     McpStdioServerDefinition?: typeof vscode.McpStdioServerDefinition;
   }).McpStdioServerDefinition;
   registerMemoryMcpProviderOnTrust({
-    enabled: memoryEnabled,
+    enabled: isMemoryEnabled,
     isTrusted: () => vscode.workspace.isTrusted,
     onDidGrantWorkspaceTrust: (listener) => vscode.workspace.onDidGrantWorkspaceTrust(listener),
+    onDidChangeConfiguration: (listener) => vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration('alfred-dev.memory.enabled')) listener();
+    }),
     addSubscription: (disposable) => { context.subscriptions.push(disposable); },
     registerProvider: typeof optionalMcpApi?.registerMcpServerDefinitionProvider === 'function'
       ? (id, provider) => optionalMcpApi.registerMcpServerDefinitionProvider!(id, provider as vscode.McpServerDefinitionProvider)
@@ -80,7 +83,10 @@ export function activate(context: vscode.ExtensionContext) {
   });
   const diagnosticsEnabled = vscode.workspace.getConfiguration('alfred-dev').get<boolean>('secretGuard.diagnostics', true);
   if (diagnosticsEnabled) registerSecretDiagnostics(context);
-  registerCommands(context, statusTreeProvider, configuredMemoryStore);
+  registerCommands(context, statusTreeProvider, configuredMemoryStore, {
+    filePath: memoryPath,
+    keyProvider: memoryKeyProvider,
+  });
 }
 
 /**

@@ -12,6 +12,8 @@ const {
 const {
   sanitizeSecrets,
   scanSecrets,
+  scanSecretsBounded,
+  MAX_SECRET_DIAGNOSTICS_BYTES,
 } = require('../out/security/secretScanner.js');
 
 const TEST_ENCRYPTION_KEY = Buffer.alloc(32, 7);
@@ -19,6 +21,13 @@ const TEST_ENCRYPTION_KEY = Buffer.alloc(32, 7);
 function createKeyProvider(key = TEST_ENCRYPTION_KEY) {
   return { getKey: async () => key };
 }
+
+test('los diagnósticos no escanean contenido que supera 64 KiB', () => {
+  const secret = `sk-${'a'.repeat(32)}`;
+  assert.equal(scanSecretsBounded(secret).length, 1);
+  assert.equal(MAX_SECRET_DIAGNOSTICS_BYTES, 64 * 1024);
+  assert.deepEqual(scanSecretsBounded(`${secret}\n${'x'.repeat(MAX_SECRET_DIAGNOSTICS_BYTES)}`), []);
+});
 
 test('detecta y sanitiza credenciales sin devolver su valor', () => {
   const content = 'token=ghp_abcdefghijklmnopqrstuvwxyz1234567890';
@@ -129,4 +138,37 @@ test('las operaciones de memoria desactivada no crean el backend', async () => {
   assert.equal(await memory.get('key'), undefined);
   assert.deepEqual(await memory.search('value'), []);
   assert.equal(factoryCalls, 0);
+});
+
+test('un payload cifrado con otra clave falla al descifrar', async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-key-mismatch-'));
+  const memoryPath = path.join(directory, 'memory.json');
+  const originalStore = new JsonMemoryStore(memoryPath, createKeyProvider(Buffer.alloc(32, 7)));
+  await originalStore.put('decision', 'local context');
+
+  const foreignStore = new JsonMemoryStore(memoryPath, createKeyProvider(Buffer.alloc(32, 9)));
+  await assert.rejects(foreignStore.get('decision'), /no se pudo descifrar/);
+});
+
+test('la memoria lazy sigue el opt-in que cambia en sesión', async () => {
+  let enabled = false;
+  let factoryCalls = 0;
+  const memory = createLazyMemoryStore(() => enabled, async () => {
+    factoryCalls += 1;
+    return {
+      isEnabled: async () => true,
+      put: async () => {},
+      get: async () => 'stored',
+      search: async () => [{ key: 'decision', value: 'stored' }],
+    };
+  });
+
+  assert.equal(await memory.isEnabled(), false);
+  assert.equal(await memory.get('decision'), undefined);
+  assert.equal(factoryCalls, 0);
+
+  enabled = true;
+  assert.equal(await memory.isEnabled(), true);
+  assert.equal(await memory.get('decision'), 'stored');
+  assert.equal(factoryCalls, 1);
 });

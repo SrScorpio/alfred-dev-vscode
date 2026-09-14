@@ -65,6 +65,11 @@
         "category": "Alfred Dev"
       },
       {
+        "command": "alfred-dev.memory.clear",
+        "title": "Alfred Dev: Borrar memoria local",
+        "category": "Alfred Dev"
+      },
+      {
         "command": "alfred-dev.ralph.openKanban",
         "title": "Alfred Dev: Abrir Kanban Ralph",
         "category": "Alfred Dev"

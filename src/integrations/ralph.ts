@@ -183,20 +183,29 @@ interface TrustedRalphActionOptions {
 
 interface RalphTaskCommandOptions {
   isTrusted: boolean;
+  workspaceRoot?: string;
+  readConfig?(workspaceRoot: string, isTrusted: boolean): Promise<RalphConfig>;
   promptTaskId(): Promise<string | undefined>;
   runTask(taskId: string): Promise<void>;
   showError(message: string): void;
 }
 
-/** Requests a task only after the workspace trust gate has passed. */
+/** Requests a task only after trust and a valid Ralph config have passed. */
 export async function runRalphTaskCommand(options: RalphTaskCommandOptions): Promise<void> {
   if (!options.isTrusted) {
     options.showError('Las acciones Ralph requieren un workspace de confianza.');
     return;
   }
-  const taskId = await options.promptTaskId();
-  if (!taskId) return;
   try {
+    if (options.readConfig) {
+      if (!options.workspaceRoot) {
+        options.showError('Abre un workspace para ejecutar una tarea Ralph.');
+        return;
+      }
+      await options.readConfig(options.workspaceRoot, options.isTrusted);
+    }
+    const taskId = await options.promptTaskId();
+    if (!taskId) return;
     validateTaskId(taskId);
     await options.runTask(taskId);
   } catch (error: unknown) {

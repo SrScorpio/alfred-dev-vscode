@@ -113,10 +113,13 @@ test('las acciones Ralph mutables requieren workspace de confianza', async () =>
 test('el comando runTask exige workspace trust antes de solicitar el ID', async () => {
   let prompts = 0;
   let executions = 0;
+  let configReads = 0;
   const errors = [];
 
   await runRalphTaskCommand({
     isTrusted: false,
+    workspaceRoot: '/tmp/ralph',
+    readConfig: async () => { configReads += 1; return { tasks: [] }; },
     promptTaskId: async () => { prompts += 1; return 'task-1'; },
     runTask: async () => { executions += 1; },
     showError: (message) => { errors.push(message); },
@@ -124,7 +127,72 @@ test('el comando runTask exige workspace trust antes de solicitar el ID', async 
 
   assert.equal(prompts, 0);
   assert.equal(executions, 0);
+  assert.equal(configReads, 0);
   assert.match(errors[0], /workspace de confianza/);
+});
+
+test('el comando runTask exige un workspace abierto para validar la configuración', async () => {
+  let prompts = 0;
+  let executions = 0;
+  const errors = [];
+
+  await runRalphTaskCommand({
+    isTrusted: true,
+    readConfig: readRalphConfig,
+    promptTaskId: async () => { prompts += 1; return 'task-1'; },
+    runTask: async () => { executions += 1; },
+    showError: (message) => { errors.push(message); },
+  });
+
+  assert.equal(prompts, 0);
+  assert.equal(executions, 0);
+  assert.match(errors[0], /Abre un workspace/);
+});
+
+test('el comando runTask bloquea una configuración Ralph inválida antes de ejecutar', async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-ralph-invalid-'));
+  await fs.mkdir(path.join(directory, '.ralph'));
+  await fs.writeFile(path.join(directory, '.ralph', 'config.json'), JSON.stringify({
+    tasks: [{ id: '../escape', status: 'todo', route: '../secret' }],
+  }));
+  let prompts = 0;
+  let executions = 0;
+  const errors = [];
+
+  await runRalphTaskCommand({
+    isTrusted: true,
+    workspaceRoot: directory,
+    readConfig: readRalphConfig,
+    promptTaskId: async () => { prompts += 1; return 'task-1'; },
+    runTask: async () => { executions += 1; },
+    showError: (message) => { errors.push(message); },
+  });
+
+  assert.equal(prompts, 0);
+  assert.equal(executions, 0);
+  assert.match(errors[0], /configuración Ralph no válida/);
+});
+
+test('el comando runTask ejecuta solo tras validar la configuración de confianza', async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-ralph-valid-'));
+  await fs.mkdir(path.join(directory, '.ralph'));
+  await fs.writeFile(path.join(directory, '.ralph', 'config.json'), JSON.stringify({
+    tasks: [{ id: 'task-1', status: 'todo', route: 'tasks/task-1.md' }],
+  }));
+  const calls = [];
+  const errors = [];
+
+  await runRalphTaskCommand({
+    isTrusted: true,
+    workspaceRoot: directory,
+    readConfig: readRalphConfig,
+    promptTaskId: async () => 'task-1',
+    runTask: async (taskId) => { calls.push(taskId); },
+    showError: (message) => { errors.push(message); },
+  });
+
+  assert.deepEqual(calls, ['task-1']);
+  assert.deepEqual(errors, []);
 });
 
 test('el comando syncIssue exige workspace trust antes de solicitar datos', async () => {

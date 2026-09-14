@@ -9,6 +9,7 @@ const test = require('node:test');
 const {
   JsonMemoryStore,
   SecretStorageMemoryEncryptionKeyProvider,
+  clearLocalMemory,
 } = require('../out/memory/memoryStore.js');
 const {
   createMemoryCommandHandlers,
@@ -37,6 +38,84 @@ test('el proveedor de clave genera y reutiliza una clave custodiada por SecretSt
   assert.deepEqual(secondKey, firstKey);
   assert.equal(writes.length, 1);
   assert.equal(Buffer.from(writes[0][1], 'base64').length, 32);
+});
+
+test('el proveedor no cachea un rechazo al cargar la clave y reintenta', async () => {
+  let attempts = 0;
+  const validKey = Buffer.alloc(32, 3).toString('base64');
+  const storage = {
+    get: async () => {
+      attempts += 1;
+      if (attempts === 1) throw new Error('SecretStorage no disponible');
+      return validKey;
+    },
+    store: async () => {},
+    delete: async () => {},
+  };
+  const provider = new SecretStorageMemoryEncryptionKeyProvider(storage);
+
+  await assert.rejects(() => provider.getKey(), /SecretStorage no disponible/);
+  const recoveredKey = await provider.getKey();
+
+  assert.equal(attempts, 2);
+  assert.equal(recoveredKey.length, 32);
+  assert.equal(recoveredKey.toString('base64'), validKey);
+});
+
+test('borrar memoria local elimina el fichero, la clave y no cachea la clave anterior', async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-clear-'));
+  const memoryPath = path.join(directory, 'memory.json');
+  const secrets = new Map();
+  const storage = {
+    get: async (key) => secrets.get(key),
+    store: async (key, value) => { secrets.set(key, value); },
+    delete: async (key) => { secrets.delete(key); },
+  };
+  const provider = new SecretStorageMemoryEncryptionKeyProvider(storage);
+  const store = new JsonMemoryStore(memoryPath, provider);
+  await store.put('decision', 'local context');
+  const originalKey = await provider.getKey();
+
+  await clearLocalMemory(memoryPath, provider);
+
+  await assert.rejects(fs.access(memoryPath));
+  assert.equal(secrets.size, 0);
+  const regeneratedKey = await provider.getKey();
+  assert.equal(regeneratedKey.length, 32);
+  assert.notDeepEqual(regeneratedKey, originalKey);
+  await store.put('decision', 'new context');
+  assert.equal(await store.get('decision'), 'new context');
+});
+
+test('borrar memoria local tolera un fichero ausente', async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-clear-missing-'));
+  const secrets = new Map([['alfred-dev.memory.encryption-key.v1', Buffer.alloc(32, 4).toString('base64')]]);
+  const provider = new SecretStorageMemoryEncryptionKeyProvider({
+    get: async (key) => secrets.get(key),
+    store: async (key, value) => { secrets.set(key, value); },
+    delete: async (key) => { secrets.delete(key); },
+  });
+
+  await clearLocalMemory(path.join(directory, 'memory.json'), provider);
+  assert.equal(secrets.size, 0);
+});
+
+test('el proveedor rechaza base64 inválida o una clave de longitud incorrecta', async () => {
+  const providerFor = (value) => new SecretStorageMemoryEncryptionKeyProvider({
+    get: async () => value,
+    store: async () => {},
+    delete: async () => {},
+  });
+
+  await assert.rejects(() => providerFor('@@@').getKey(), /clave de cifrado almacenada no es válida/);
+  await assert.rejects(
+    () => providerFor(Buffer.alloc(16, 1).toString('base64')).getKey(),
+    /clave de cifrado almacenada no es válida/,
+  );
+  await assert.rejects(
+    () => providerFor(`${Buffer.alloc(32, 2).toString('base64')}extra`).getKey(),
+    /clave de cifrado almacenada no es válida/,
+  );
 });
 
 test('la memoria desactivada no registra MCP ni construye definiciones', () => {
@@ -105,6 +184,50 @@ test('el provider MCP se registra una sola vez al conceder confianza sin recarga
 
   assert.equal(registrations, 1);
   assert.deepEqual(subscriptions, [trustDisposable, providerDisposable]);
+});
+
+test('el provider MCP se registra y se libera al cambiar el opt-in sin doble registro', () => {
+  let enabled = false;
+  let trusted = true;
+  let configListener;
+  let registrations = 0;
+  let disposals = 0;
+
+  registerMemoryMcpProviderOnTrust({
+    enabled: () => enabled,
+    isTrusted: () => trusted,
+    onDidGrantWorkspaceTrust: () => ({ dispose() {} }),
+    onDidChangeConfiguration: (listener) => {
+      configListener = listener;
+      return { dispose() {} };
+    },
+    addSubscription: () => {},
+    registerProvider: () => {
+      registrations += 1;
+      return { dispose() { disposals += 1; } };
+    },
+    createDefinition: () => ({}),
+    keyProvider: TEST_KEY_PROVIDER,
+    serverPath: 'server.js',
+    memoryPath: 'memory.json',
+    version: 'test',
+  });
+
+  assert.equal(registrations, 0);
+  enabled = true;
+  configListener();
+  configListener();
+  assert.equal(registrations, 1);
+  assert.equal(disposals, 0);
+
+  enabled = false;
+  configListener();
+  assert.equal(disposals, 1);
+
+  enabled = true;
+  configListener();
+  assert.equal(registrations, 2);
+  assert.equal(disposals, 1);
 });
 
 test('el fallback por comandos persiste mediante el almacén sanitizado', async () => {

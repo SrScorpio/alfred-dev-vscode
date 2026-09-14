@@ -16,6 +16,7 @@ import { openStyleGallery } from '../gallery/styleGalleryPanel';
 import { installSecretHook } from '../security/secretHook';
 import {
   RalphBridge,
+  readRalphConfig,
   resolveRalphSuiteExtension,
   runRalphTaskCommand,
   runSyncIssueCommand,
@@ -23,17 +24,25 @@ import {
 } from '../integrations/ralph';
 import type { AlfredStatus } from '../integrations/ralph';
 import { createMemoryCommandHandlers } from '../memory/memoryIntegration';
-import type { MemoryStore } from '../memory/memoryStore';
+import { clearLocalMemory } from '../memory/memoryStore';
+import type { MemoryStore, SecretStorageMemoryEncryptionKeyProvider } from '../memory/memoryStore';
 
 /**
  * Registra los comandos de Alfred Dev y los añade a las suscripciones del contexto.
  *
  * @param context Contexto de la extensión donde se conservan las suscripciones.
  * @param statusProvider Proveedor cuyo estado puede refrescar la paleta.
+ * @param memoryStore Almacén local opt-in usado por los comandos de memoria.
+ * @param memoryPersistence Ruta y proveedor de clave para el borrado explícito.
  * @returns `void`.
  * @example `registerCommands(context, statusTreeProvider)` durante `activate`.
  */
-export function registerCommands(context: vscode.ExtensionContext, statusProvider: StatusTreeProvider, memoryStore: MemoryStore) {
+export function registerCommands(
+  context: vscode.ExtensionContext,
+  statusProvider: StatusTreeProvider,
+  memoryStore: MemoryStore,
+  memoryPersistence: { filePath: string; keyProvider: SecretStorageMemoryEncryptionKeyProvider },
+) {
   const getWorkspaceRoot = (): string | undefined => vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   const getRalphBridge = () => new RalphBridge(
     () => resolveRalphSuiteExtension((extensionId) => {
@@ -138,6 +147,24 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
   const memorySearchCommand = vscode.commands.registerCommand('alfred-dev.memory.search', () => {
     void executeMemory(() => memoryHandlers.search());
   });
+  const memoryClearCommand = vscode.commands.registerCommand('alfred-dev.memory.clear', async () => {
+    if (!vscode.workspace.isTrusted) {
+      vscode.window.showErrorMessage('La memoria local requiere un workspace de confianza.');
+      return;
+    }
+    const confirmed = await vscode.window.showWarningMessage(
+      'Esto borra la memoria local cifrada y su clave de este perfil. No se puede deshacer.',
+      { modal: true },
+      'Borrar memoria local',
+    );
+    if (confirmed !== 'Borrar memoria local') return;
+    try {
+      await clearLocalMemory(memoryPersistence.filePath, memoryPersistence.keyProvider);
+      vscode.window.showInformationMessage('Memoria local y clave eliminadas de este perfil.');
+    } catch (error: unknown) {
+      vscode.window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo borrar la memoria local.');
+    }
+  });
   const ralphOpenKanbanCommand = vscode.commands.registerCommand('alfred-dev.ralph.openKanban', () => {
     void runTrustedRalphAction({
       isTrusted: vscode.workspace.isTrusted,
@@ -148,6 +175,8 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
   const ralphRunTaskCommand = vscode.commands.registerCommand('alfred-dev.ralph.runTask', () => {
     void runRalphTaskCommand({
       isTrusted: vscode.workspace.isTrusted,
+      workspaceRoot: getWorkspaceRoot(),
+      readConfig: readRalphConfig,
       promptTaskId: async () => vscode.window.showInputBox({
         prompt: 'ID de tarea Ralph',
         validateInput: (value) => /^[a-z0-9][a-z0-9-]{0,63}$/.test(value) ? undefined : 'Usa un ID alfanumérico con guiones.',
@@ -201,6 +230,7 @@ export function registerCommands(context: vscode.ExtensionContext, statusProvide
     memoryPutCommand,
     memoryGetCommand,
     memorySearchCommand,
+    memoryClearCommand,
     ralphOpenKanbanCommand,
     ralphRunTaskCommand,
     ralphStartRunnerCommand,
