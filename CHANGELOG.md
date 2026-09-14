@@ -12,6 +12,8 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 - Correcciones de compatibilidad del parser para snapshots con viñetas,
   diagnóstico de snapshots malformados y errores accionables al abrir Copilot
   Chat.
+- Comando **Borrar memoria local**: elimina el fichero cifrado y la clave de
+  `SecretStorage` de este perfil tras confirmación. No es un wipe RGPD completo.
 - MVP de Issue #2: memoria JSON local opt-in y lazy con límites, escritura
   atómica y sanitización; Secret Guard reutilizable con avisos al guardar y
   hook pre-commit instalable explícitamente; y galería visual con tres
@@ -39,9 +41,17 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 - La transitiva de desarrollo `js-yaml` pasa de 4.3.1 a 4.3.2 (`GHSA-2883-xcg3-v3hh`)
   con `npm audit fix` sin `--force`. `npm audit --audit-level=high` queda en
   `found 0 vulnerabilities` y el SBOM CycloneDX se regenera desde el lockfile.
+- El proveedor de clave de memoria no cachea un rechazo de `SecretStorage` y
+  reintenta en el siguiente acceso.
+- `runTask` valida `.ralph/config.json` en un workspace de confianza antes de
+  pedir el ID; una configuración inválida bloquea la ejecución.
+- Los diagnósticos de Secret Guard no escanean documentos de más de 64 KiB.
 
 ### Changed
 
+- El provider MCP de memoria reacciona a `alfred-dev.memory.enabled` durante la
+  sesión: registra con trust y API, se libera al desactivar y evita el doble
+  registro. La clave sigue cruzando al hijo MCP por variable de entorno.
 - El selector de modelos persiste `alfred-dev.modelProfile` como preferencia
   global de UI/coste y marca el perfil guardado al reabrirse; no reescribe los
   arrays `model` de los agentes.

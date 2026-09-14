@@ -1,6 +1,6 @@
 # Modelo de amenazas: extension nativa VSIX
 
-**Fecha:** 2026-09-03
+**Fecha:** 2026-09-14
 **Autor:** senior-dev (revisión técnica; no sustituye la gate de security-officer)
 **Commit revisado:** entrega actual
 **Metodologia:** STRIDE
@@ -60,7 +60,8 @@ con `rename` atómico. MCP y fallback comparten ese backend; el proceso y la rut
 desde la extensión. Los ficheros legados `version: 1` se rechazan de forma
 explícita en lugar de migrar texto sensible silenciosamente. Secret Guard lee el índice con `git show :<path>` usando
 `execFile`/argv, y Git resuelve la ruta de hooks incluso en worktrees. Ralph
-valida workspace trust, IDs, estados, rutas y tamaño; solo resuelve el ID
+valida workspace trust, IDs, estados, rutas y tamaño; `runTask` lee
+`.ralph/config.json` antes de pedir el ID. Solo resuelve el ID
 `ralph-suite.ralph-suite`, cada acción exige su comando exacto y la
 sincronización solo se confirma si ese proveedor anuncia el comando.
 
@@ -70,11 +71,11 @@ No hay registro de acciones de seguridad, publicacion de VSIX ni cambios de perf
 
 ### Information Disclosure (fuga de informacion)
 
-`npx vsce ls --tree` no incluye salidas locales, `.vscode/`, documentación interna, mapas, fuentes, tests, dependencias ni skills. Los diagnósticos y la memoria redactan GitHub tokens, Bearer, `sk-*`, bloques PEM y credenciales AWS. La memoria persiste solo ciphertext AES-256-GCM; la clave se genera y custodia en `SecretStorage`, no en `memory.json`, y se entrega al proceso MCP mediante una variable de entorno. Un proceso del mismo usuario con capacidad de inspeccionar el entorno del hijo queda fuera de la protección criptográfica. El hook no imprime contenido ni rutas: solo el número de ficheros staged con hallazgos.
+`npx vsce ls --tree` no incluye salidas locales, `.vscode/`, documentación interna, mapas, fuentes, tests, dependencias ni skills. Los diagnósticos y la memoria redactan GitHub tokens, Bearer, `sk-*`, bloques PEM y credenciales AWS. La memoria persiste solo ciphertext AES-256-GCM; la clave se genera y custodia en `SecretStorage`, no en `memory.json`, y se entrega al proceso MCP mediante una variable de entorno. Este incremento no rediseña ese paso a named pipe: un proceso del mismo usuario con capacidad de inspeccionar el entorno del hijo queda fuera de la protección criptográfica. El hook no imprime contenido ni rutas: solo el número de ficheros staged con hallazgos. El comando de borrado local elimina fichero y clave de este perfil; no cubre marketplace ni Copilot.
 
 ### Denial of Service (denegacion de servicio)
 
-La lectura de `status.md` es asincrona y se rechaza antes de abrir el fichero si supera 64 KiB; solo `ENOENT` se comunica como ausencia de snapshot. La memoria rechaza antes del write cualquier JSON superior a 256 KiB; `.ralph` limita configuración y tareas. El hook limita cada blob a 1 MiB y bloquea si no puede analizarlo. No hay endpoints de red propios.
+La lectura de `status.md` es asincrona y se rechaza antes de abrir el fichero si supera 64 KiB; solo `ENOENT` se comunica como ausencia de snapshot. La memoria rechaza antes del write cualquier JSON superior a 256 KiB; `.ralph` limita configuración y tareas. Los diagnósticos de secretos no escanean documentos de más de 64 KiB. El hook limita cada blob a 1 MiB y bloquea si no puede analizarlo. No hay endpoints de red propios.
 
 ### Elevation of Privilege (elevacion de privilegios)
 
@@ -82,8 +83,9 @@ No hay comandos derivados de contenido de workspace. La configuracion declara
 el enum `luna`, `terra`, `sol`; debe mantenerse ese limite en cualquier futura
 ruta de escritura. Galería e instalación del hook exigen workspace trust. El
 provider MCP solo se registra con opt-in, feature detection y workspace trust;
-si el usuario concede trust durante la sesión, se registra una única vez sin
-recargar. En runtimes sin API queda una degradación explícita por comandos.
+si el usuario concede trust o activa `alfred-dev.memory.enabled` durante la
+sesión, se registra, y si desactiva el opt-in se libera, sin doble registro.
+En runtimes sin API queda una degradación explícita por comandos.
 Ralph recibe únicamente un
 número y un estado seleccionados por el usuario, nunca cuerpos de issues ni
 prompts, y no se simula paralelismo sin API/scheduler público.
@@ -97,16 +99,18 @@ prompts, y no se simula paralelismo sin API/scheduler público.
 | Cambio no autorizado de la preferencia global | Baja | Bajo | Bajo | Mantener enum en `contributes.configuration` y no aceptar valores desde `status.md`. |
 | Dependencia comprometida en build | Baja | Alto | Medio | Lockfile con integridad, SBOM, `npm audit` y actualizaciones revisadas. |
 | Fuga de secretos en VSIX | Baja | Alto | Medio | Escaneo de secretos y lista de archivos permitidos antes de publicar. |
-| Secreto guardado en memoria local | Baja | Alto | Bajo | Memoria apagada por defecto, sanitización, AES-256-GCM, clave en `SecretStorage`, cap previo al write y sin red. Riesgo residual: procesos del mismo usuario con acceso al entorno del hijo MCP. |
-| MCP arranca sin consentimiento o ejecuta una ruta manipulada | Baja | Alto | Bajo | Provider solo con opt-in/API/trust, registro único reactivo, definición fija y proceso iniciado bajo demanda por VS Code. |
+| Secreto guardado en memoria local | Baja | Alto | Bajo | Memoria apagada por defecto, sanitización, AES-256-GCM, clave en `SecretStorage`, cap previo al write, comando de borrado local y sin red. Residual: la clave MCP viaja por entorno, no por named pipe. |
+| MCP arranca sin consentimiento o ejecuta una ruta manipulada | Baja | Alto | Bajo | Provider solo con opt-in/API/trust, registro y dispose reactivos a configuración y trust, definición fija y proceso iniciado bajo demanda por VS Code. |
 | Hook omite un secreto staged por leer el working tree | Baja | Alto | Bajo | Enumera con `-z` y analiza cada blob del índice mediante `git show` sin shell. |
 | Webview con contenido local inseguro | Baja | Alto | Bajo | CSP nonce, escape HTML, sin recursos remotos ni raíces locales. |
 | Extensión impostora ejecuta comandos `ralph-suite.*` | Baja | Alto | Bajo | Lookup exclusivo del ID `ralph-suite.ralph-suite` y capacidad exacta por acción. |
-| Ralph lee o ejecuta fuera del workspace | Baja | Alto | Bajo | Workspace trust antes del prompt, esquema estricto, rutas sin `..`, comandos fijos y sync condicionado a una capacidad anunciada. |
+| Ralph lee o ejecuta fuera del workspace | Baja | Alto | Bajo | Workspace trust, `runTask` valida `.ralph/config.json` antes del prompt, rutas sin `..`, comandos fijos y sync condicionado a una capacidad anunciada. |
+| Diagnósticos de secretos agotan el host | Baja | Medio | Bajo | Tope de 64 KiB antes de escanear el documento guardado; el hook staged sigue en 1 MiB. |
 
 ## Recomendaciones
 
 1. Mantener en CI una comprobacion de `npx vsce ls` que permita exclusivamente runtime y metadatos de release aprobados.
 2. Anadir politica de vulnerabilidades y soporte de actualizaciones para cerrar los controles CRA/NIS2 pendientes.
 3. Mantener la confirmacion explicita de la galería, el opt-in de memoria y la instalación voluntaria del hook.
-4. Añadir un borrado explícito de memoria y clave si el producto define una política de retención; hoy la eliminación depende de los controles de almacenamiento de VS Code.
+4. Sustituir el paso de clave MCP por entorno (named pipe u otro canal no enumerable) en un incremento posterior.
+5. Completar el wipe RGPD: retención, portabilidad y evidencia sobre marketplace/Copilot. El comando local actual solo borra fichero y clave de este perfil.

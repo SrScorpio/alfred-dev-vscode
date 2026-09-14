@@ -32,8 +32,9 @@ Abre la Paleta de comandos y busca la categoría **Alfred Dev**:
 | **Alfred Dev: Abrir galería visual** | Muestra tres propuestas locales y guarda la elegida tras confirmación explícita. |
 | **Alfred Dev: Instalar Secret Guard pre-commit** | Instala voluntariamente el hook de detección de secretos del repositorio. |
 | **Alfred Dev: Guardar/Consultar/Buscar memoria local** | Usa el backend local opt-in también cuando el runtime no ofrece la API MCP. |
+| **Alfred Dev: Borrar memoria local** | Elimina el fichero cifrado y la clave de este perfil tras confirmación. |
 | **Alfred Dev: Abrir Kanban Ralph** | Abre el Kanban si Ralph Suite está instalada y activa. |
-| **Alfred Dev: Ejecutar tarea Ralph** | Valida un ID y delega la tarea a Ralph Suite. |
+| **Alfred Dev: Ejecutar tarea Ralph** | Exige workspace trust, valida `.ralph/config.json` y delega el ID a Ralph Suite. |
 | **Alfred Dev: Iniciar/Detener runner Ralph** | Usa los comandos opcionales de Ralph Suite si están disponibles. |
 | **Alfred Dev: Sincronizar issue con Ralph** | Usa solo una capacidad explícita `ralph-suite.syncIssue`; con Ralph 1.9.1 informa que no está disponible. |
 
@@ -57,11 +58,15 @@ clave aleatoria custodiada por VS Code `SecretStorage` y nunca escrita en
 sanitización de secretos; rechaza explícitamente el formato legado en claro. Si el
 runtime expone `registerMcpServerDefinitionProvider`, registra un servidor MCP
 stdio con `memory_put`, `memory_get` y `memory_search`; exige workspace trust,
-reacciona a una concesión de confianza sin recarga y evita el doble registro.
-El proceso solo se arranca al utilizarlo. VS Code `^1.85.0` sigue soportado mediante los tres
-comandos equivalentes cuando esa API no existe. No hay red propia.
+reacciona a una concesión de confianza sin recarga, escucha
+`alfred-dev.memory.enabled` para registrar o liberar el provider y evita el
+doble registro. Un fallo al leer la clave no se cachea. Residual: la clave se
+pasa al hijo MCP por entorno, no por named pipe. El proceso solo se arranca al
+utilizarlo. VS Code `^1.85.0` sigue soportado mediante los comandos equivalentes,
+incluido el borrado local, cuando esa API no existe. No hay red propia.
 
-El diagnóstico de Secret Guard se ejecuta al guardar y solo avisa. El comando
+El diagnóstico de Secret Guard se ejecuta al guardar y solo avisa; omite
+documentos de más de 64 KiB. El comando
 de instalación añade un hook `pre-commit` gestionado; no puede bloquear de
 forma universal todas las ediciones del editor. El hook inspecciona blobs del
 índice con `git show :<path>`, usa argumentos sin shell y resuelve la ruta de
@@ -75,8 +80,10 @@ escritura confirmada de `docs/style-direction.md` requieren workspace trust.
 La integración es opcional y resuelve solo el ID canónico
 `ralph-suite.ralph-suite`. GitHub
 Issues/PRs conserva la fuente colaborativa y Ralph la ejecución local. El
-puente valida `.ralph/config.json`, workspace trust antes de solicitar datos,
-tamaños, IDs, estados, rutas y la capacidad exacta de cada acción; nunca
+puente exige workspace trust antes de solicitar datos. `runTask` valida
+`.ralph/config.json` (tamaño, IDs, estados y rutas) antes de pedir el ID;
+una configuración inválida bloquea la ejecución. Cada acción exige la
+capacidad exacta anunciada por Ralph Suite; nunca
 ejecuta cuerpos de issues ni prompts. El comando de sincronización
 solicita solo número de issue y estado GitHub, mantiene GitHub como fuente de
 verdad y comunica por separado Ralph ausente, issue inválida o fallo del

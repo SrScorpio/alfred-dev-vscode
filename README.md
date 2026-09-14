@@ -288,25 +288,31 @@ payload se cifra con AES-256-GCM; la clave se genera y custodia mediante VS Code
 `SecretStorage`, fuera de `memory.json`. Se aplican un límite físico de 256
 KiB, 100 entradas y 4.000 caracteres por valor. Los ficheros legados sin
 cifrar se rechazan explícitamente y no se migran de forma silenciosa.
+**Borrar memoria local** elimina el fichero cifrado y la clave de
+`SecretStorage` de este perfil, tras confirmación; no cubre datos de
+marketplace, Copilot ni una política de retención RGPD.
 
 Cuando el runtime de VS Code expone la API MCP, la extensión registra bajo
 feature detection un servidor stdio con tres tools: `memory_put`, `memory_get`
-y `memory_search`. VS Code solo arranca ese proceso al usarlo y nunca se
-registra ni arranca mientras el ajuste esté desactivado. El provider requiere
-workspace trust y se registra una sola vez si la confianza se concede durante
-la sesión. Como el engine mínimo
+y `memory_search`. VS Code solo arranca ese proceso al usarlo. El provider
+requiere workspace trust; si el usuario activa `alfred-dev.memory.enabled`
+durante la sesión y hay API y trust, se registra, y si lo desactiva se libera,
+sin doble registro. Un rechazo al leer la clave no se cachea: el siguiente
+acceso reintenta. Residual: la clave llega al hijo MCP por variable de entorno,
+no por named pipe. Como el engine mínimo
 declarado es VS Code `^1.85.0`, las versiones sin esa API mantienen la función
-mediante los comandos **Guardar**, **Consultar** y **Buscar memoria local**,
-conectados al mismo JSON sanitizado y atómico. Ninguna ruta realiza llamadas de
-red.
+mediante los comandos **Guardar**, **Consultar**, **Buscar** y **Borrar
+memoria local**, conectados al mismo JSON sanitizado y atómico. Ninguna ruta
+realiza llamadas de red.
 
 #### Secret Guard y galería visual
 
 `Alfred Dev: Instalar Secret Guard pre-commit` instala un hook gestionado solo
 cuando el usuario lo solicita. Los avisos de posibles secretos al guardar son
 no bloqueantes y se pueden desactivar con `alfred-dev.secretGuard.diagnostics`.
-El scanner no intercepta todas las ediciones de VS Code ni promete bloqueo
-universal; el hook obtiene con Git el blob real de cada fichero staged, sin
+Los avisos al guardar no escanean documentos de más de 64 KiB. El scanner no
+intercepta todas las ediciones de VS Code ni promete bloqueo universal; el hook
+obtiene con Git el blob real de cada fichero staged (tope 1 MiB), sin
 interpolación por shell ni impresión de secretos. La instalación resuelve
 `hooks` con `git rev-parse --git-path hooks`, por lo que admite worktrees. Tanto
 esta instalación como la escritura de la galería requieren workspace trust.
@@ -327,8 +333,11 @@ estado GitHub, exige workspace trust y da un resultado accionable si Ralph no
 está disponible o rechaza el comando. `ISSUE-123` es la asociación soportada y
 los estados se mapean como
 `backlog -> todo`, `in-progress -> inprogress`, `blocked -> blocked` y cierre
-de GitHub -> `completed`. Ralph lee `.ralph/config.json` únicamente en un
-workspace de confianza y valida IDs, estados, rutas y tamaño.
+de GitHub -> `completed`. **Ejecutar tarea Ralph** exige workspace trust y
+valida `.ralph/config.json` (tamaño, IDs, estados y rutas dentro del
+workspace) antes de pedir el ID o delegar en Ralph Suite. Si el fichero no
+existe, la validación trata la lista como vacía y continúa; una configuración
+inválida bloquea `runTask`.
 
 Con Ralph Suite 1.9.1, los wrappers de Kanban y runner son utilizables, pero la
 sincronización de issues permanece en modo no disponible porque esa versión no
