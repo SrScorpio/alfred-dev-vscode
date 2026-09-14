@@ -2,36 +2,56 @@
 
 > Snapshot local duplicado desde GitHub Issues y PRs. La fuente de verdad
 > colaborativa son las issues y los PRs; este fichero es el respaldo offline.
-> Lo escribe `tech-writer`. Actualizado: 2026-08-21.
+> Lo escribe `tech-writer`. Actualizado: 2026-09-14.
 
 ## Flujo activo
 
-- **Flujo:** sin flujo activo.
-- **Feature / descripción:** feature #1 completada: extensión VSIX nativa con TreeView de estado, comandos de Alfred, perfil global de modelos y empaquetado VSIX local.
-- **Fase actual:** completada.
-- **Gate pendiente:** ninguna para #1; la CI/gobernanza y la documentación pública están fusionadas.
-- **Siguiente acción:** priorizar issue #2 cuando el usuario lo solicite.
+- **Flujo:** sin flujo de implementación activo.
+- **Feature / descripción:** feature #2 completada: memoria MCP, Secret Guard y galería visual, fusionada en `main` por PR #16. Queda el residual de la issue #3 (Ralph Suite), sin trabajo de implementación en curso.
+- **Fase actual:** completada para #2.
+- **Gate pendiente:** ninguna de implementación para #2. Residuales de seguridad y CRA/NIS2 (ver Bloqueos); no constituyen un flujo abierto.
+- **Siguiente acción:** la issue #3 permanece abierta con label `backlog`. No priorizar implementación hasta que Ralph Suite publique APIs verificables (`ralph-suite.syncIssue` y scheduler paralelo).
 
 ## Issues
 
 | Issue | Historia | Estado | PR |
 |-------|----------|--------|----|
-| #1 | Extensión VSIX nativa: UI de estado y selector de modelos | done | #9 merged |
-| #2 | Memoria MCP, Secret Guards y Galería Visual | backlog | — |
-| #3 | Integración con Ralph Suite (Runner + Kanban) | backlog | — |
+| #1 | Extensión VSIX nativa: UI de estado y selector de modelos | done | [#9](https://github.com/SrScorpio/alfred-dev-vscode/pull/9) merged |
+| #2 | Memoria MCP, Secret Guards y Galería Visual | done (closed/completed) | [#16](https://github.com/SrScorpio/alfred-dev-vscode/pull/16) merged |
+| #3 | Integración con Ralph Suite (Runner + Kanban) | backlog (open) | — |
+
+Notas verificadas en GitHub el 2026-09-14:
+
+- [#2](https://github.com/SrScorpio/alfred-dev-vscode/issues/2) está `closed` con `state_reason: completed` (cierre 2026-09-14T17:43:37Z por SrScorpio). El label `in-progress` sigue presente en la issue cerrada; no se ha cambiado desde este snapshot.
+- [#3](https://github.com/SrScorpio/alfred-dev-vscode/issues/3) está `open` con label `backlog`. Comentario del 2026-09-03: bloqueada por capacidad upstream de Ralph Suite 1.9.1 (sin `ralph-suite.syncIssue` ni scheduler paralelo). El label de GitHub es `backlog`, no `blocked`.
+
+## PRs
+
+| PR | Título | Estado |
+|----|--------|--------|
+| [#16](https://github.com/SrScorpio/alfred-dev-vscode/pull/16) | feat: memoria MCP, Secret Guard y galería visual (#2) | merged (squash) el 2026-09-14; commit [`30d980e4336a07ea4e0905163901a6259c788440`](https://github.com/SrScorpio/alfred-dev-vscode/commit/30d980e4336a07ea4e0905163901a6259c788440) |
+| [#15](https://github.com/SrScorpio/alfred-dev-vscode/pull/15) | chore(deps-dev): bump js-yaml from 4.3.1 to 4.3.2 | closed, no merged (2026-09-14). Comentario de Dependabot: js-yaml ya está actualizado (el bump 4.3.2 entra por #16) |
+| [#14](https://github.com/SrScorpio/alfred-dev-vscode/pull/14) | chore(deps-dev): bump fast-uri from 3.1.5 to 3.1.7 | closed, no merged (2026-09-14). Comentario de Dependabot: fast-uri ya está actualizado |
+
+No hay PRs abiertas en el repositorio en el momento de este snapshot (antes de la PR de sincronización de este fichero).
 
 ## Historial de gates
 
 | Fecha | Fase | Veredicto | Evidencia |
-|-------|----------|-----------|-----------|
+|-------|------|-----------|-----------|
 | 2026-08-21 | 4 — calidad | APROBADO | Comentario de cierre de QA en issue #1 y PR #9; CI `test` verde en [job 96904158050](https://github.com/SrScorpio/alfred-dev-vscode/actions/runs/32524695685/job/96904158050), commit `337747d`. |
 | 2026-08-21 | 4 — seguridad | APROBADO CON CONDICIONES | `docs/project/compliance.md`, `docs/project/dependencies.md`, `docs/project/sbom.md` y `docs/project/threat-model.md`; no se considera una gate de seguridad completa: faltan el SLA, la matriz formal de versiones soportadas, la política de actualizaciones y el protocolo completo de incidentes. |
 | 2026-08-21 | 5 — documentación | APROBADO | La documentación de la fase está sincronizada con las issues y PRs verificadas en GitHub. |
 | 2026-08-21 | 4 — entrega y merge | APROBADO | PR #9 fusionada por squash; commit `a91fd0195c1ef0d45b326b1fe2b5bfce51bbfa81`; CI de `main` correcto en [workflow run 32525800934](https://github.com/SrScorpio/alfred-dev-vscode/actions/runs/32525800934). |
 | 2026-08-21 | 4 — gobernanza/CI | APROBADO | PR #12 fusionada; CI reproducible y protección de `main` integradas. |
 | 2026-08-21 | 5 — documentación pública | APROBADO | PR #11 fusionada; índice, guías públicas y política de seguridad disponibles, con los controles CRA/NIS2 aún parciales indicados en esta página. |
+| 2026-09-14 | 4 — calidad (#2) | APROBADO | QA: 73/73, VSIX 22 ficheros, `npm audit --audit-level=high` a 0. CI de PR #16: `test`, `security` y `package` SUCCESS en [workflow run 34876379968](https://github.com/SrScorpio/alfred-dev-vscode/actions/runs/34876379968). |
+| 2026-09-14 | 4 — seguridad (#2) | APROBADO CON CONDICIONES | Sin HIGH/CRITICAL. Residuales MEDIA: clave MCP por entorno `ALFRED_DEV_MEMORY_KEY`; wipe incompleto si el hijo MCP sigue vivo; SLA CRA/NIS2, matriz de versiones y protocolo 24/72 h pendientes (ya existían). Comentario en issue #2 y cuerpo de PR #16. |
+| 2026-09-14 | 4 — entrega y merge (#2) | APROBADO | PR #16 fusionada por squash a `main`; commit `30d980e4336a07ea4e0905163901a6259c788440`; issue #2 closed/completed. |
+| 2026-09-14 | 5 — documentación (#2) | APROBADO | Este snapshot replica Issues y PRs verificadas en GitHub; no reescribe compliance, threat-model ni changelog. |
 
 ## Bloqueos
 
-- Ninguno de producto.
-- Residual CRA/NIS2: existe `SECURITY.md` como canal público, pero faltan el SLA, la matriz formal de versiones soportadas, la política de actualizaciones y el protocolo completo de incidentes.
+- Issue [#3](https://github.com/SrScorpio/alfred-dev-vscode/issues/3): abierta, label `backlog`. Comentario del 2026-09-03: el manifiesto público de Ralph Suite 1.9.1 no expone `ralph-suite.syncIssue` ni scheduler de dispatch paralelo. El bridge local solo puede integrar `openKanban`, `runTask`, `startRunner` y `stopRunner` con ID canónico `ralph-suite.ralph-suite`. No hay label `blocked` en GitHub.
+- Residual CRA/NIS2 (arrastrado desde #1 y reiterado en la gate de seguridad de #2): existe `SECURITY.md` como canal público, pero faltan el SLA, la matriz formal de versiones soportadas, la política de actualizaciones y el protocolo completo de incidentes (24/72 h).
+- Residuales MEDIA de #2: clave del servidor MCP por variable de entorno `ALFRED_DEV_MEMORY_KEY`; wipe incompleto si el proceso hijo MCP sigue vivo.
