@@ -38,6 +38,67 @@
         "command": "alfred-dev.selectModelProfile",
         "title": "Alfred Dev: Seleccionar perfil de modelo",
         "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.openStyleGallery",
+        "title": "Alfred Dev: Abrir galería visual",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.installSecretHook",
+        "title": "Alfred Dev: Instalar Secret Guard pre-commit",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.memory.put",
+        "title": "Alfred Dev: Guardar memoria local",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.memory.get",
+        "title": "Alfred Dev: Consultar memoria local",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.memory.search",
+        "title": "Alfred Dev: Buscar memoria local",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.memory.clear",
+        "title": "Alfred Dev: Borrar memoria local",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.ralph.openKanban",
+        "title": "Alfred Dev: Abrir Kanban Ralph",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.ralph.runTask",
+        "title": "Alfred Dev: Ejecutar tarea Ralph",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.ralph.startRunner",
+        "title": "Alfred Dev: Iniciar runner Ralph",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.ralph.stopRunner",
+        "title": "Alfred Dev: Detener runner Ralph",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.ralph.syncIssue",
+        "title": "Alfred Dev: Sincronizar issue con Ralph",
+        "category": "Alfred Dev"
+      }
+    ],
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "alfred-dev.memory",
+        "label": "Alfred Dev Memory"
       }
     ],
     "configuration": {
@@ -53,6 +114,16 @@
           ],
           "default": "luna",
           "description": "Perfil visual de coste preferido para los agentes de Alfred Dev."
+        },
+        "alfred-dev.memory.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Activa la memoria local de Alfred Dev. Usa MCP cuando VS Code lo soporta y comandos como degradación compatible."
+        },
+        "alfred-dev.secretGuard.diagnostics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Muestra avisos no bloqueantes al guardar posibles secretos."
         }
       }
     },
@@ -81,9 +152,11 @@
     "pretest": "npm run compile",
     "test": "node --test tests/*.test.js",
     "verify-package": "node tests/package-contract.test.js",
+    "sbom": "cyclonedx-npm --package-lock-only --output-reproducible --spec-version 1.5 --output-format JSON --output-file docs/project/sbom.cdx.json --validate",
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {
+    "@cyclonedx/cyclonedx-npm": "6.0.1",
     "@vscode/vsce": "3.9.2",
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",

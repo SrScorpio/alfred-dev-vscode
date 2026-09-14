@@ -22,6 +22,22 @@ test('parsea los campos del snapshot y conserva Siguiente acción', () => {
   });
 });
 
+test('parsea los campos cuando el snapshot real usa viñetas Markdown', () => {
+  const status = parseProjectStatus(`
+- **Flujo:** Feature
+- **Fase actual:** Desarrollo
+- **Gate pendiente:** Tests verdes
+- **Siguiente acción:** Revisar PR
+`);
+
+  assert.deepEqual(status, {
+    flow: 'Feature',
+    phase: 'Desarrollo',
+    pendingGate: 'Tests verdes',
+    nextAction: 'Revisar PR',
+  });
+});
+
 test('conserva Próxima acción cuando el snapshot usa esa etiqueta', () => {
   const status = parseProjectStatus('**Próxima acción recomendada:** Abrir PR');
 
@@ -32,6 +48,14 @@ test('devuelve el mensaje de GitHub Issues si falta el snapshot', () => {
   const status = parseProjectStatus(undefined);
 
   assert.equal(status.message, 'Sin snapshot local. El estado vive en GitHub Issues.');
+});
+
+test('diagnostica un snapshot malformado sin inventar estado', () => {
+  const status = parseProjectStatus('- **Estado desconocido:** algo');
+
+  assert.deepEqual(status, {
+    message: 'Snapshot local malformado: no se reconocieron campos de estado.',
+  });
 });
 
 test('limita la longitud de los campos que llegan al TreeView', () => {

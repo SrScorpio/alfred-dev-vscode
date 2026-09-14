@@ -278,6 +278,77 @@ El trabajo nunca depende de una sola persona ni de un chat que se pierde. El est
 
 **Para retomar** tras un corte: habla con `alfred` y dile «retoma». Su protocolo de arranque reconstruye el estado real (issues → PRs → `status.md`) y continúa exactamente donde estaba: fase, gate pendiente y siguiente acción.
 
+#### Memoria local opt-in
+
+La VSIX incluye un backend local cifrado y acotado para memoria auxiliar. Se
+activa explícitamente con `alfred-dev.memory.enabled`; está desactivado por
+defecto, se inicializa de forma lazy y no sustituye a GitHub Issues ni a
+`docs/project/status.md`. Los valores se sanitizan antes de persistirse y el
+payload se cifra con AES-256-GCM; la clave se genera y custodia mediante VS Code
+`SecretStorage`, fuera de `memory.json`. Se aplican un límite físico de 256
+KiB, 100 entradas y 4.000 caracteres por valor. Los ficheros legados sin
+cifrar se rechazan explícitamente y no se migran de forma silenciosa.
+**Borrar memoria local** elimina el fichero cifrado y la clave de
+`SecretStorage` de este perfil, tras confirmación; no cubre datos de
+marketplace, Copilot ni una política de retención RGPD.
+
+Cuando el runtime de VS Code expone la API MCP, la extensión registra bajo
+feature detection un servidor stdio con tres tools: `memory_put`, `memory_get`
+y `memory_search`. VS Code solo arranca ese proceso al usarlo. El provider
+requiere workspace trust; si el usuario activa `alfred-dev.memory.enabled`
+durante la sesión y hay API y trust, se registra, y si lo desactiva se libera,
+sin doble registro. Un rechazo al leer la clave no se cachea: el siguiente
+acceso reintenta. Residual: la clave llega al hijo MCP por variable de entorno,
+no por named pipe. Como el engine mínimo
+declarado es VS Code `^1.85.0`, las versiones sin esa API mantienen la función
+mediante los comandos **Guardar**, **Consultar**, **Buscar** y **Borrar
+memoria local**, conectados al mismo JSON sanitizado y atómico. Ninguna ruta
+realiza llamadas de red.
+
+#### Secret Guard y galería visual
+
+`Alfred Dev: Instalar Secret Guard pre-commit` instala un hook gestionado solo
+cuando el usuario lo solicita. Los avisos de posibles secretos al guardar son
+no bloqueantes y se pueden desactivar con `alfred-dev.secretGuard.diagnostics`.
+Los avisos al guardar no escanean documentos de más de 64 KiB. El scanner no
+intercepta todas las ediciones de VS Code ni promete bloqueo universal; el hook
+obtiene con Git el blob real de cada fichero staged (tope 1 MiB), sin
+interpolación por shell ni impresión de secretos. La instalación resuelve
+`hooks` con `git rev-parse --git-path hooks`, por lo que admite worktrees. Tanto
+esta instalación como la escritura de la galería requieren workspace trust.
+
+`Alfred Dev: Abrir galería visual` muestra tres propuestas sin recursos
+remotos, con CSP y nonce. Puede leer opcionalmente
+`.style-options/style-options.json`; solo guarda `docs/style-direction.md`
+después de la confirmación explícita del usuario.
+
+#### MVP opcional de Ralph Suite
+
+La integración detecta exclusivamente la extensión con ID
+`ralph-suite.ralph-suite`, sin convertirla en dependencia obligatoria.
+Expone wrappers para abrir el Kanban, ejecutar una tarea e iniciar o detener
+el runner, y cada wrapper comprueba que el proveedor anuncia su comando exacto
+antes de ejecutarlo. El comando **Sincronizar issue con Ralph** pide solo el número y el
+estado GitHub, exige workspace trust y da un resultado accionable si Ralph no
+está disponible o rechaza el comando. `ISSUE-123` es la asociación soportada y
+los estados se mapean como
+`backlog -> todo`, `in-progress -> inprogress`, `blocked -> blocked` y cierre
+de GitHub -> `completed`. **Ejecutar tarea Ralph** exige workspace trust y
+valida `.ralph/config.json` (tamaño, IDs, estados y rutas dentro del
+workspace) antes de pedir el ID o delegar en Ralph Suite. Si el fichero no
+existe, la validación trata la lista como vacía y continúa; una configuración
+inválida bloquea `runTask`.
+
+Con Ralph Suite 1.9.1, los wrappers de Kanban y runner son utilizables, pero la
+sincronización de issues permanece en modo no disponible porque esa versión no
+publica `ralph-suite.syncIssue`. Alfred solo confirmará una sincronización si
+una versión instalada anuncia explícitamente ese comando. GitHub sigue siendo
+la fuente colaborativa; Ralph es ejecución local. Los cuerpos de issues y
+prompts no se convierten en comandos. No existe una API o scheduler público de
+Ralph Suite para coordinar paralelismo, por lo que este MVP no lo simula ni
+afirma paridad con el plugin original. Si faltan la extensión o sus comandos,
+Alfred muestra un error accionable y continúa funcionando sin Ralph.
+
 ### Subagentes
 
 `alfred`, `senior-dev` y `qa-engineer` pueden lanzar subagentes (campo `agents`): por ejemplo, qa-engineer lanza a security-officer en paralelo durante la fase de calidad, o senior-dev lo lanza para auditar una dependencia nueva.
@@ -315,6 +386,7 @@ Bridge (`openai-codex`) es el modelo de chat, no el binario `codex`.
 - `docs/test/` — planes de testing (qa-engineer)
 - `docs/project/` — arquitectura viva, threat-model, compliance, dependencies, sbom (architect, security-officer)
 - `.style-options/` — propuestas visuales temporales (selina, se limpia al elegir)
+- `.ralph/config.json` — configuración local opcional y validada de Ralph Suite
 
 ## Estructura del repo
 
@@ -365,15 +437,24 @@ alfred-dev-vscode/
 - [x] **Fase 1** — Los 12 agentes con multi-modelo, handoffs y subagentes (junior/senior incluido).
 - [x] **Fase 2** — Flujo GitHub: issues desde las historias del PRD, ramas de feature, PRs y revisión como gate de calidad. Estado del trabajo en issues (labels) + snapshot local `status.md`.
 - [x] **Fase 3a** — 8 skills de proceso en `skills/core/`. Archivo Claude (`memory`, `style-direction`, `sonarqube`) solo en `skills/source-claude/`, no se instala.
-- [ ] **Fase 3b** — Memoria MCP / companion visual / SonarQube si algún día hay equivalente nativo. Hooks de seguridad.
+- [x] **Fase 3b MVP** — Memoria local opt-in con provider MCP opcional y comandos fallback, Secret Guard no bloqueante/hook explícito y galería visual nativa.
 - [x] **Fase 4** — Extensión VSIX local con UI de estado en la Activity Bar,
   perfil global de modelos y empaquetado reproducible; no incluye publicación
   en Marketplace.
-- [ ] **Fase 5** — Integración con Ralph Suite (kanban + runner).
+- [x] **Fase 5 MVP opcional** — Detección, wrappers y sync condicionado a la capacidad pública anunciada por Ralph Suite. Con Ralph Suite 1.9.1 el sync permanece no disponible; el paralelismo queda fuera por falta de API/scheduler público.
 
 ## Créditos y licencia
 
 **Basado en [alfred-dev](https://github.com/686f6c61/alfred-dev)** — plugin de ingeniería de software automatizada para Claude Code, creado por **[686f6c61](https://github.com/686f6c61)** bajo licencia MIT. [Documentación completa del proyecto original](https://alfred-dev.com/).
+
+### Relación con el proyecto original
+
+- **Upstream de referencia:** [686f6c61/alfred-dev](https://github.com/686f6c61/alfred-dev).
+- Este repositorio es una **adaptación independiente para VS Code**, con otro runtime, formato de agentes, sistema de instalación, integración nativa y roadmap.
+- No es un fork técnico de GitHub, ni un proyecto oficial, afiliado, patrocinado o respaldado automáticamente por el autor del proyecto original.
+- No existe sincronización automática con upstream. Cuando un cambio del proyecto original sea relevante, se revisará y adaptará manualmente en este port.
+
+La relación descrita aquí no sustituye la atribución legal: el aviso de copyright original y la licencia MIT se conservan. La licencia de este port permite reutilizar, modificar y redistribuir el software conforme a sus términos.
 
 | Viene del trabajo original (todo el crédito a su autor) | Añadido en este port a VS Code |
 |---|---|

@@ -17,6 +17,16 @@ extensión nativa.
 Explica en la descripción del PR el alcance y evita mezclar cambios de
 producto con una reorganización documental sin relación.
 
+## Procedencia y atribución
+
+Este repositorio es un port independiente de
+[alfred-dev](https://github.com/686f6c61/alfred-dev) para VS Code. Si una
+contribución reutiliza o adapta contenido del proyecto original, conserva sus
+avisos de copyright, respeta la licencia MIT y menciona la procedencia en la
+descripción del PR cuando no sea evidente. No presentes este port como un
+proyecto oficial ni atribuyas al autor original cambios que pertenecen a esta
+adaptación.
+
 ## Rama y cambios locales
 
 No trabajes directamente sobre `main`. Actualiza la referencia remota y crea

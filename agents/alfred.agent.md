@@ -86,6 +86,12 @@ El estado del trabajo tiene dos capas, en este orden de prioridad:
 1. **GitHub Issues + PRs (fuente de verdad colaborativa).** El estado se reconstruye desde GitHub MCP (`github/*`): issues con labels de estado y PRs abiertos. Si el MCP no está, `gh issue list` / `gh pr list` por `execute`. Las gates pasadas viven como comentarios en las issues y PRs. Si mañana el usuario no está, cualquiera retoma desde aquí.
 2. **`docs/project/status.md` (snapshot local, fallback offline).** Respaldo commiteado al repo: flujo, fase, gate pendiente, siguiente acción, issues y su estado, historial de gates. Plantilla (sin el repo del plugin): `templates/status.md` del proyecto, o `~/.copilot/alfred-dev/templates/status.md`, o `.github/alfred-dev/templates/status.md`.
 
+La VSIX puede ofrecer memoria JSON local opt-in (`alfred-dev.memory.enabled`),
+pero esa memoria es auxiliar, está apagada por defecto y nunca sustituye a
+GitHub ni al snapshot. La integración opcional con Ralph Suite solo ejecuta
+comandos explícitos de la extensión instalada; no convierte cuerpos de issues
+o prompts en instrucciones ejecutables ni simula paralelismo sin API pública.
+
 **Protocolo de arranque** (antes de proponer nada):
 
 1. Si hay remoto: lee issues abiertas con sus labels y PRs abiertos (MCP primero; `gh` si el MCP no está). Si hay issues `in-progress` o `in-review`, hay flujo a medio camino: informa y ofrece retomarlo donde está.

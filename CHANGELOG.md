@@ -9,6 +9,23 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
+- Correcciones de compatibilidad del parser para snapshots con viñetas,
+  diagnóstico de snapshots malformados y errores accionables al abrir Copilot
+  Chat.
+- Comando **Borrar memoria local**: elimina el fichero cifrado y la clave de
+  `SecretStorage` de este perfil tras confirmación. No es un wipe RGPD completo.
+- MVP de Issue #2: memoria JSON local opt-in y lazy con límites, escritura
+  atómica y sanitización; Secret Guard reutilizable con avisos al guardar y
+  hook pre-commit instalable explícitamente; y galería visual con tres
+  propuestas, CSP/nonce, catálogo fallback y confirmación antes de persistir.
+- Provider MCP opcional de memoria con tools mínimas `put/get/search` y
+  degradación explícita a comandos en versiones de VS Code sin la API; el
+  Secret Guard inspecciona blobs staged y admite Git worktrees.
+- MVP opcional de Issue #3A: detección y wrappers de Ralph Suite, validación
+  segura de `.ralph/config.json`, asociaciones `ISSUE-123` y comando
+  `syncIssue` condicionado a una capacidad anunciada, con workspace trust y
+  resultados accionables. Ralph Suite 1.9.1 no publica esa capacidad. El
+  paralelismo no se simula porque no existe API/scheduler público.
 - Índice público de documentación, guía del catálogo, guía de la extensión
   VS Code y políticas de contribución y seguridad.
 - TreeView nativo en la Activity Bar para leer el snapshot local
@@ -19,11 +36,35 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 - Empaquetado VSIX local con `npm run package` mediante `@vscode/vsce` 3.9.2,
   con una allowlist de runtime para el contenido distribuido.
 
+### Fixed
+
+- La transitiva de desarrollo `js-yaml` pasa de 4.3.1 a 4.3.2 (`GHSA-2883-xcg3-v3hh`)
+  con `npm audit fix` sin `--force`. `npm audit --audit-level=high` queda en
+  `found 0 vulnerabilities` y el SBOM CycloneDX se regenera desde el lockfile.
+- El proveedor de clave de memoria no cachea un rechazo de `SecretStorage` y
+  reintenta en el siguiente acceso.
+- `runTask` valida `.ralph/config.json` en un workspace de confianza antes de
+  pedir el ID; una configuración inválida bloquea la ejecución.
+- Los diagnósticos de Secret Guard no escanean documentos de más de 64 KiB.
+
 ### Changed
 
+- El provider MCP de memoria reacciona a `alfred-dev.memory.enabled` durante la
+  sesión: registra con trust y API, se libera al desactivar y evita el doble
+  registro. La clave sigue cruzando al hijo MCP por variable de entorno.
 - El selector de modelos persiste `alfred-dev.modelProfile` como preferencia
   global de UI/coste y marca el perfil guardado al reabrirse; no reescribe los
   arrays `model` de los agentes.
+- La memoria opt-in persiste ahora únicamente un sobre AES-256-GCM; la clave se
+  custodia con VS Code `SecretStorage`, los formatos legados en claro se
+  rechazan y el provider MCP reacciona una sola vez al concederse workspace
+  trust.
+- El bridge Ralph fija la identidad `ralph-suite.ralph-suite`, exige la
+  capacidad exacta de cada acción y bloquea `runTask` antes de solicitar datos
+  en un workspace no confiable. Ralph Suite 1.9.1 sigue sin API pública de
+  `syncIssue` ni scheduler paralelo.
+- La generación CycloneDX usa `@cyclonedx/cyclonedx-npm` 6.0.1 fijado como
+  dependencia de desarrollo y el script reproducible `npm run sbom`.
 
 ## [0.6.5] - 2026-08-21
 
