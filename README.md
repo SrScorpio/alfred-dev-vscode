@@ -289,7 +289,8 @@ payload se cifra con AES-256-GCM; la clave se genera y custodia mediante VS Code
 KiB, 100 entradas y 4.000 caracteres por valor. Los ficheros legados sin
 cifrar se rechazan explícitamente y no se migran de forma silenciosa.
 **Borrar memoria local** elimina el fichero cifrado y la clave de
-`SecretStorage` de este perfil, tras confirmación; no cubre datos de
+`SecretStorage` de este perfil, tras confirmación, y recicla el provider MCP
+para que un hijo ya arrancado no conserve la clave anterior. No cubre datos de
 marketplace, Copilot ni una política de retención RGPD.
 
 Cuando el runtime de VS Code expone la API MCP, la extensión registra bajo
@@ -298,12 +299,15 @@ y `memory_search`. VS Code solo arranca ese proceso al usarlo. El provider
 requiere workspace trust; si el usuario activa `alfred-dev.memory.enabled`
 durante la sesión y hay API y trust, se registra, y si lo desactiva se libera,
 sin doble registro. Un rechazo al leer la clave no se cachea: el siguiente
-acceso reintenta. Residual: la clave llega al hijo MCP por variable de entorno,
-no por named pipe. Como el engine mínimo
-declarado es VS Code `^1.85.0`, las versiones sin esa API mantienen la función
-mediante los comandos **Guardar**, **Consultar**, **Buscar** y **Borrar
-memoria local**, conectados al mismo JSON sanitizado y atómico. Ninguna ruta
-realiza llamadas de red.
+acceso reintenta. La clave no viaja en el entorno del hijo: el padre abre un
+socket local de un solo uso (`ALFRED_DEV_MEMORY_KEY_SOCKET`), envía 32 bytes y
+cierra. Residual: el path del socket sigue en el entorno durante el arranque y
+un proceso del mismo usuario podría ganar la primera conexión en esa ventana;
+la API MCP de VS Code no permite inyectar un descriptor heredado. Como el
+engine mínimo declarado es VS Code `^1.85.0`, las versiones sin esa API
+mantienen la función mediante los comandos **Guardar**, **Consultar**,
+**Buscar** y **Borrar memoria local**, conectados al mismo JSON sanitizado y
+atómico. Ninguna ruta realiza llamadas de red.
 
 #### Secret Guard y galería visual
 
