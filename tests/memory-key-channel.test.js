@@ -77,6 +77,15 @@ test('el entorno del hijo MCP no incluye ALFRED_DEV_MEMORY_KEY', () => {
   assert.equal('ALFRED_DEV_MEMORY_KEY' in env, false);
 });
 
+test('el entorno de listado MCP no incluye socket ni clave', () => {
+  const env = createMemoryMcpChildEnvironment('memory.json');
+
+  assert.equal(env.ALFRED_DEV_MEMORY_PATH, 'memory.json');
+  assert.equal(env.ELECTRON_RUN_AS_NODE, '1');
+  assert.equal(MEMORY_KEY_SOCKET_ENV in env, false);
+  assert.equal('ALFRED_DEV_MEMORY_KEY' in env, false);
+});
+
 test('el cliente rechaza una entrega que no tiene 32 bytes', async () => {
   const socketPath = createMemoryKeySocketPath();
   const server = net.createServer((socket) => {

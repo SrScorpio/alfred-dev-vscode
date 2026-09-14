@@ -47,13 +47,14 @@ export function createMemoryKeySocketPath(): string {
   return path.join(os.tmpdir(), `alfred-dev-memory-${entropy}.sock`);
 }
 
-/** Environment passed to the MCP child: path and socket only, never the key. */
-export function createMemoryMcpChildEnvironment(memoryPath: string, socketPath: string): Record<string, string> {
-  return {
+/** Environment passed to the MCP child: path always, socket only when resolving spawn. */
+export function createMemoryMcpChildEnvironment(memoryPath: string, socketPath?: string): Record<string, string> {
+  const env: Record<string, string> = {
     ELECTRON_RUN_AS_NODE: '1',
     ALFRED_DEV_MEMORY_PATH: memoryPath,
-    [MEMORY_KEY_SOCKET_ENV]: socketPath,
   };
+  if (socketPath) env[MEMORY_KEY_SOCKET_ENV] = socketPath;
+  return env;
 }
 
 async function unlinkUnixSocket(socketPath: string): Promise<void> {

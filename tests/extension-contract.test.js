@@ -57,6 +57,9 @@ test('cablea la memoria configurada a MCP con feature detection y comandos fallb
   assert.match(extension, /optionalMcpApi\?\.registerMcpServerDefinitionProvider/);
   assert.match(extension, /ALFRED_DEV_MEMORY_KEY_SOCKET|createMemoryMcpChildEnvironment/);
   assert.match(extension, /\.recycle\(/);
+  const memoryIntegration = readRepositoryFile('src/memory/memoryIntegration.ts');
+  assert.match(memoryIntegration, /provideMcpServerDefinitions/);
+  assert.match(memoryIntegration, /resolveMcpServerDefinition/);
   assert.doesNotMatch(extension, /ALFRED_DEV_MEMORY_KEY:/);
   assert.match(commands, /createMemoryCommandHandlers\(/);
   assert.match(commands, /alfred-dev\.memory\.(?:put|get|search|clear)/);

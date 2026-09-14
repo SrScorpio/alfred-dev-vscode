@@ -65,7 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
       ? (id, provider) => optionalMcpApi.registerMcpServerDefinitionProvider!(id, provider as vscode.McpServerDefinitionProvider)
       : undefined,
     createDefinition: typeof optionalMcpDefinition === 'function'
-      ? (serverPath, configuredMemoryPath, socketPath, version) => new optionalMcpDefinition(
+      ? (serverPath, configuredMemoryPath, version, socketPath) => new optionalMcpDefinition(
         'Alfred Dev Memory',
         process.execPath,
         [serverPath],

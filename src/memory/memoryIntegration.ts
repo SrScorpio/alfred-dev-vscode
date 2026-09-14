@@ -9,6 +9,7 @@ interface Disposable {
 
 interface MemoryMcpProvider {
   provideMcpServerDefinitions(): Promise<unknown[]>;
+  resolveMcpServerDefinition(definition: unknown): Promise<unknown>;
 }
 
 interface MemoryKeyHandoffHandle {
@@ -19,7 +20,7 @@ interface MemoryMcpRegistrationOptions {
   enabled: boolean;
   isTrusted: boolean;
   registerProvider?: (id: string, provider: MemoryMcpProvider) => Disposable;
-  createDefinition?: (serverPath: string, memoryPath: string, socketPath: string, version: string) => unknown;
+  createDefinition?: (serverPath: string, memoryPath: string, version: string, socketPath?: string) => unknown;
   offerEncryptionKey?: (encryptionKey: Buffer) => Promise<MemoryKeyHandoffHandle>;
   keyProvider: MemoryEncryptionKeyProvider;
   serverPath: string;
@@ -67,12 +68,16 @@ export interface MemoryCommandHandlers {
 export function registerMemoryMcpProvider(options: MemoryMcpRegistrationOptions): Disposable | undefined {
   if (!options.enabled || !options.isTrusted || !options.registerProvider || !options.createDefinition) return undefined;
   const offerKey = options.offerEncryptionKey ?? offerMemoryEncryptionKey;
+  const createDefinition = options.createDefinition;
   return options.registerProvider(MEMORY_MCP_PROVIDER_ID, {
-    provideMcpServerDefinitions: async () => {
+    provideMcpServerDefinitions: async () => [
+      createDefinition(options.serverPath, options.memoryPath, options.version),
+    ],
+    resolveMcpServerDefinition: async () => {
       const encryptionKey = await options.keyProvider.getKey();
       if (!encryptionKey) throw new Error('La clave de cifrado no está disponible');
       const handoff = await offerKey(encryptionKey);
-      return [options.createDefinition!(options.serverPath, options.memoryPath, handoff.socketPath, options.version)];
+      return createDefinition(options.serverPath, options.memoryPath, options.version, handoff.socketPath);
     },
   });
 }
