@@ -23,8 +23,7 @@ import {
   runTrustedRalphAction,
 } from '../integrations/ralph';
 import type { AlfredStatus } from '../integrations/ralph';
-import { createMemoryCommandHandlers } from '../memory/memoryIntegration';
-import { clearLocalMemory } from '../memory/memoryStore';
+import { clearLocalMemoryAndRecycleMcp, createMemoryCommandHandlers } from '../memory/memoryIntegration';
 import type { MemoryStore, SecretStorageMemoryEncryptionKeyProvider } from '../memory/memoryStore';
 
 /**
@@ -41,7 +40,11 @@ export function registerCommands(
   context: vscode.ExtensionContext,
   statusProvider: StatusTreeProvider,
   memoryStore: MemoryStore,
-  memoryPersistence: { filePath: string; keyProvider: SecretStorageMemoryEncryptionKeyProvider },
+  memoryPersistence: {
+    filePath: string;
+    keyProvider: SecretStorageMemoryEncryptionKeyProvider;
+    recycleMemoryMcp?: () => void;
+  },
 ) {
   const getWorkspaceRoot = (): string | undefined => vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   const getRalphBridge = () => new RalphBridge(
@@ -159,7 +162,11 @@ export function registerCommands(
     );
     if (confirmed !== 'Borrar memoria local') return;
     try {
-      await clearLocalMemory(memoryPersistence.filePath, memoryPersistence.keyProvider);
+      await clearLocalMemoryAndRecycleMcp(
+        memoryPersistence.filePath,
+        memoryPersistence.keyProvider,
+        memoryPersistence.recycleMemoryMcp,
+      );
       vscode.window.showInformationMessage('Memoria local y clave eliminadas de este perfil.');
     } catch (error: unknown) {
       vscode.window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo borrar la memoria local.');

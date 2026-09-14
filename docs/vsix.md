@@ -32,7 +32,7 @@ Abre la Paleta de comandos y busca la categoría **Alfred Dev**:
 | **Alfred Dev: Abrir galería visual** | Muestra tres propuestas locales y guarda la elegida tras confirmación explícita. |
 | **Alfred Dev: Instalar Secret Guard pre-commit** | Instala voluntariamente el hook de detección de secretos del repositorio. |
 | **Alfred Dev: Guardar/Consultar/Buscar memoria local** | Usa el backend local opt-in también cuando el runtime no ofrece la API MCP. |
-| **Alfred Dev: Borrar memoria local** | Elimina el fichero cifrado y la clave de este perfil tras confirmación. |
+| **Alfred Dev: Borrar memoria local** | Elimina el fichero cifrado y la clave de este perfil tras confirmación, y recicla el provider MCP. |
 | **Alfred Dev: Abrir Kanban Ralph** | Abre el Kanban si Ralph Suite está instalada y activa. |
 | **Alfred Dev: Ejecutar tarea Ralph** | Exige workspace trust, valida `.ralph/config.json` y delega el ID a Ralph Suite. |
 | **Alfred Dev: Iniciar/Detener runner Ralph** | Usa los comandos opcionales de Ralph Suite si están disponibles. |
@@ -60,10 +60,18 @@ runtime expone `registerMcpServerDefinitionProvider`, registra un servidor MCP
 stdio con `memory_put`, `memory_get` y `memory_search`; exige workspace trust,
 reacciona a una concesión de confianza sin recarga, escucha
 `alfred-dev.memory.enabled` para registrar o liberar el provider y evita el
-doble registro. Un fallo al leer la clave no se cachea. Residual: la clave se
-pasa al hijo MCP por entorno, no por named pipe. El proceso solo se arranca al
-utilizarlo. VS Code `^1.85.0` sigue soportado mediante los comandos equivalentes,
-incluido el borrado local, cuando esa API no existe. No hay red propia.
+doble registro. Un fallo al leer la clave no se cachea. El listado MCP
+(`provideMcpServerDefinitions`) no abre el listener ni inyecta
+`ALFRED_DEV_MEMORY_KEY_SOCKET`. En `resolveMcpServerDefinition`, justo antes
+del spawn, el hijo recibe el path del JSON y el socket; la clave cruza por
+IPC local de un solo uso (32 bytes, un accept, timeout corto). Tras
+**Borrar memoria local** se dispone y, si sigue el opt-in con trust, se
+vuelve a registrar el provider reutilizando el mismo handle de suscripción.
+Residual: el path del socket es visible en el entorno del hijo durante el
+arranque; VS Code no permite inyectar un descriptor. El proceso solo se
+arranca al utilizarlo. VS Code `^1.85.0` sigue
+soportado mediante los comandos equivalentes, incluido el borrado local,
+cuando esa API no existe. No hay red propia.
 
 El diagnóstico de Secret Guard se ejecuta al guardar y solo avisa; omite
 documentos de más de 64 KiB. El comando

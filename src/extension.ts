@@ -18,6 +18,7 @@ import {
 } from './memory/memoryStore';
 import type { MemoryStore } from './memory/memoryStore';
 import { registerMemoryMcpProviderOnTrust } from './memory/memoryIntegration';
+import { createMemoryMcpChildEnvironment } from './memory/memoryKeyChannel';
 import { registerSecretDiagnostics } from './security/diagnostics';
 
 let configuredMemoryStore: MemoryStore | undefined;
@@ -52,7 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
   const optionalMcpDefinition = (vscode as typeof vscode & {
     McpStdioServerDefinition?: typeof vscode.McpStdioServerDefinition;
   }).McpStdioServerDefinition;
-  registerMemoryMcpProviderOnTrust({
+  const memoryMcp = registerMemoryMcpProviderOnTrust({
     enabled: isMemoryEnabled,
     isTrusted: () => vscode.workspace.isTrusted,
     onDidGrantWorkspaceTrust: (listener) => vscode.workspace.onDidGrantWorkspaceTrust(listener),
@@ -64,15 +65,11 @@ export function activate(context: vscode.ExtensionContext) {
       ? (id, provider) => optionalMcpApi.registerMcpServerDefinitionProvider!(id, provider as vscode.McpServerDefinitionProvider)
       : undefined,
     createDefinition: typeof optionalMcpDefinition === 'function'
-      ? (serverPath, configuredMemoryPath, encryptionKey, version) => new optionalMcpDefinition(
+      ? (serverPath, configuredMemoryPath, version, socketPath) => new optionalMcpDefinition(
         'Alfred Dev Memory',
         process.execPath,
         [serverPath],
-        {
-          ELECTRON_RUN_AS_NODE: '1',
-          ALFRED_DEV_MEMORY_PATH: configuredMemoryPath,
-          ALFRED_DEV_MEMORY_KEY: encryptionKey.toString('base64'),
-        },
+        createMemoryMcpChildEnvironment(configuredMemoryPath, socketPath),
         version,
       )
       : undefined,
@@ -86,6 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
   registerCommands(context, statusTreeProvider, configuredMemoryStore, {
     filePath: memoryPath,
     keyProvider: memoryKeyProvider,
+    recycleMemoryMcp: () => { memoryMcp.recycle(); },
   });
 }
 

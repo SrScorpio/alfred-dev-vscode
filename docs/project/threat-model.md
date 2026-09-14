@@ -18,7 +18,7 @@ flowchart LR
   extension -->|opt-in y feature detection| mcp[Servidor MCP stdio]
   extension -->|fallback compatible| commands[Comandos de memoria]
   extension -->|custodia de clave| secrets[VS Code SecretStorage]
-  extension -->|clave en entorno del proceso| mcp
+  extension -->|socket one-shot 32 bytes| mcp
   mcp -->|put get search cifrados| memory[Sobre JSON AES-256-GCM]
   commands -->|put get search| memory
   gitindex[Indice Git no confiable] -->|git show con argv| hook[Secret Guard]
@@ -51,7 +51,7 @@ No se implementa autenticacion propia. Los comandos de chat se registran con ide
 
 ### Tampering (manipulacion)
 
-`status.md` es controlable por el workspace, pero sus valores solo se convierten en etiquetas y no seleccionan comandos ni rutas. La cadena de empaquetado usa una allowlist que parte de `*` y `npx vsce ls --tree` confirma que solo distribuye 22 ficheros de runtime y metadatos.
+`status.md` es controlable por el workspace, pero sus valores solo se convierten en etiquetas y no seleccionan comandos ni rutas. La cadena de empaquetado usa una allowlist que parte de `*` y `npx vsce ls --tree` confirma que solo distribuye runtime y metadatos.
 
 La galería escapa texto, usa nonce y CSP sin recursos remotos. La memoria
 sanitiza credenciales comunes, cifra cada payload con AES-256-GCM e IV aleatorio,
@@ -71,7 +71,7 @@ No hay registro de acciones de seguridad, publicacion de VSIX ni cambios de perf
 
 ### Information Disclosure (fuga de informacion)
 
-`npx vsce ls --tree` no incluye salidas locales, `.vscode/`, documentación interna, mapas, fuentes, tests, dependencias ni skills. Los diagnósticos y la memoria redactan GitHub tokens, Bearer, `sk-*`, bloques PEM y credenciales AWS. La memoria persiste solo ciphertext AES-256-GCM; la clave se genera y custodia en `SecretStorage`, no en `memory.json`, y se entrega al proceso MCP mediante una variable de entorno. Este incremento no rediseña ese paso a named pipe: un proceso del mismo usuario con capacidad de inspeccionar el entorno del hijo queda fuera de la protección criptográfica. El hook no imprime contenido ni rutas: solo el número de ficheros staged con hallazgos. El comando de borrado local elimina fichero y clave de este perfil; no cubre marketplace ni Copilot.
+`npx vsce ls --tree` no incluye salidas locales, `.vscode/`, documentación interna, mapas, fuentes, tests, dependencias ni skills. Los diagnósticos y la memoria redactan GitHub tokens, Bearer, `sk-*`, bloques PEM y credenciales AWS. La memoria persiste solo ciphertext AES-256-GCM; la clave se genera y custodia en `SecretStorage`, no en `memory.json`. El hijo MCP recibe solo la ruta del JSON y `ALFRED_DEV_MEMORY_KEY_SOCKET`; la clave cruza por IPC local de un solo uso (32 bytes, un accept, timeout corto) porque la API stdio de VS Code no permite inyectar un descriptor. Residual: un proceso del mismo usuario que conozca el path durante esa ventana podría ganar la primera conexión. El hook no imprime contenido ni rutas: solo el número de ficheros staged con hallazgos. El comando de borrado local elimina fichero y clave de este perfil y recicla el provider MCP; no cubre marketplace ni Copilot.
 
 ### Denial of Service (denegacion de servicio)
 
@@ -85,6 +85,8 @@ ruta de escritura. Galería e instalación del hook exigen workspace trust. El
 provider MCP solo se registra con opt-in, feature detection y workspace trust;
 si el usuario concede trust o activa `alfred-dev.memory.enabled` durante la
 sesión, se registra, y si desactiva el opt-in se libera, sin doble registro.
+Tras `alfred-dev.memory.clear` se dispone el registro y, si el opt-in y el
+trust siguen, se vuelve a registrar una sola vez.
 En runtimes sin API queda una degradación explícita por comandos.
 Ralph recibe únicamente un
 número y un estado seleccionados por el usuario, nunca cuerpos de issues ni
@@ -94,12 +96,12 @@ prompts, y no se simula paralelismo sin API/scheduler público.
 
 | Amenaza | Probabilidad | Impacto | Riesgo | Mitigacion |
 |---------|--------------|---------|--------|------------|
-| VSIX incluye artefactos locales no revisados | Baja | Alto | Bajo | Mitigado: allowlist de release y `npx vsce ls --tree` con 22 ficheros. Mantener comprobacion en CI. |
+| VSIX incluye artefactos locales no revisados | Baja | Alto | Bajo | Mitigado: allowlist de release y `npx vsce ls --tree` con runtime y metadatos. Mantener comprobacion en CI. |
 | `status.md` agota el host de extensiones | Baja | Medio | Bajo | Mitigado: limite previo de 64 KiB, lectura asincrona y limite de longitud renderizada. |
 | Cambio no autorizado de la preferencia global | Baja | Bajo | Bajo | Mantener enum en `contributes.configuration` y no aceptar valores desde `status.md`. |
 | Dependencia comprometida en build | Baja | Alto | Medio | Lockfile con integridad, SBOM, `npm audit` y actualizaciones revisadas. |
 | Fuga de secretos en VSIX | Baja | Alto | Medio | Escaneo de secretos y lista de archivos permitidos antes de publicar. |
-| Secreto guardado en memoria local | Baja | Alto | Bajo | Memoria apagada por defecto, sanitización, AES-256-GCM, clave en `SecretStorage`, cap previo al write, comando de borrado local y sin red. Residual: la clave MCP viaja por entorno, no por named pipe. |
+| Secreto guardado en memoria local | Baja | Alto | Bajo | Memoria apagada por defecto, sanitización, AES-256-GCM, clave en `SecretStorage`, cap previo al write, comando de borrado local con recycle MCP y sin red. Residual: el path del socket one-shot sigue en el entorno del hijo durante el arranque. |
 | MCP arranca sin consentimiento o ejecuta una ruta manipulada | Baja | Alto | Bajo | Provider solo con opt-in/API/trust, registro y dispose reactivos a configuración y trust, definición fija y proceso iniciado bajo demanda por VS Code. |
 | Hook omite un secreto staged por leer el working tree | Baja | Alto | Bajo | Enumera con `-z` y analiza cada blob del índice mediante `git show` sin shell. |
 | Webview con contenido local inseguro | Baja | Alto | Bajo | CSP nonce, escape HTML, sin recursos remotos ni raíces locales. |
@@ -112,5 +114,5 @@ prompts, y no se simula paralelismo sin API/scheduler público.
 1. Mantener en CI una comprobacion de `npx vsce ls` que permita exclusivamente runtime y metadatos de release aprobados.
 2. Anadir politica de vulnerabilidades y soporte de actualizaciones para cerrar los controles CRA/NIS2 pendientes.
 3. Mantener la confirmacion explicita de la galería, el opt-in de memoria y la instalación voluntaria del hook.
-4. Sustituir el paso de clave MCP por entorno (named pipe u otro canal no enumerable) en un incremento posterior.
-5. Completar el wipe RGPD: retención, portabilidad y evidencia sobre marketplace/Copilot. El comando local actual solo borra fichero y clave de este perfil.
+4. El canal one-shot sustituye la clave en entorno. Residual restante: el path del socket es visible en el entorno del hijo y el IPC es local al usuario; VS Code no permite un descriptor heredado.
+5. Completar el wipe RGPD: retención, portabilidad y evidencia sobre marketplace/Copilot. El comando local borra fichero, clave de este perfil y recicla el provider MCP.
