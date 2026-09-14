@@ -12,6 +12,7 @@ const {
   clearLocalMemory,
 } = require('../out/memory/memoryStore.js');
 const {
+  clearLocalMemoryAndRecycleMcp,
   createMemoryCommandHandlers,
   registerMemoryMcpProvider,
   registerMemoryMcpProviderOnTrust,
@@ -186,6 +187,87 @@ test('el provider MCP se registra una sola vez al conceder confianza sin recarga
   assert.deepEqual(subscriptions, [trustDisposable, providerDisposable]);
 });
 
+test('recycle dispone el provider MCP y lo vuelve a registrar una sola vez', () => {
+  let registrations = 0;
+  let disposals = 0;
+  const handle = registerMemoryMcpProviderOnTrust({
+    enabled: true,
+    isTrusted: () => true,
+    onDidGrantWorkspaceTrust: () => ({ dispose() {} }),
+    addSubscription: () => {},
+    registerProvider: () => {
+      registrations += 1;
+      return { dispose() { disposals += 1; } };
+    },
+    createDefinition: () => ({}),
+    keyProvider: TEST_KEY_PROVIDER,
+    serverPath: 'server.js',
+    memoryPath: 'memory.json',
+    version: 'test',
+  });
+
+  assert.equal(typeof handle.recycle, 'function');
+  assert.equal(registrations, 1);
+  handle.recycle();
+  assert.equal(disposals, 1);
+  assert.equal(registrations, 2);
+  handle.recycle();
+  assert.equal(disposals, 2);
+  assert.equal(registrations, 3);
+});
+
+test('recycle no re-registra MCP si el opt-in o el trust no aplican', () => {
+  let enabled = true;
+  let registrations = 0;
+  let disposals = 0;
+  const handle = registerMemoryMcpProviderOnTrust({
+    enabled: () => enabled,
+    isTrusted: () => true,
+    onDidGrantWorkspaceTrust: () => ({ dispose() {} }),
+    addSubscription: () => {},
+    registerProvider: () => {
+      registrations += 1;
+      return { dispose() { disposals += 1; } };
+    },
+    createDefinition: () => ({}),
+    keyProvider: TEST_KEY_PROVIDER,
+    serverPath: 'server.js',
+    memoryPath: 'memory.json',
+    version: 'test',
+  });
+
+  enabled = false;
+  handle.recycle();
+  assert.equal(disposals, 1);
+  assert.equal(registrations, 1);
+});
+
+test('clearLocalMemoryAndRecycleMcp recicla solo tras un wipe con éxito', async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-recycle-'));
+  const memoryPath = path.join(directory, 'memory.json');
+  const secrets = new Map([['alfred-dev.memory.encryption-key.v1', Buffer.alloc(32, 9).toString('base64')]]);
+  const provider = new SecretStorageMemoryEncryptionKeyProvider({
+    get: async (key) => secrets.get(key),
+    store: async (key, value) => { secrets.set(key, value); },
+    delete: async (key) => { secrets.delete(key); },
+  });
+  await fs.writeFile(memoryPath, 'cipher');
+  let recycled = 0;
+
+  await clearLocalMemoryAndRecycleMcp(memoryPath, provider, () => { recycled += 1; });
+  assert.equal(recycled, 1);
+  await assert.rejects(fs.access(memoryPath));
+  assert.equal(secrets.size, 0);
+
+  await assert.rejects(
+    () => clearLocalMemoryAndRecycleMcp(memoryPath, {
+      deleteKey: async () => { throw new Error('SecretStorage no disponible'); },
+    }, () => { recycled += 1; }),
+    /SecretStorage no disponible/,
+  );
+  assert.equal(recycled, 1);
+});
+
 test('el provider MCP se registra y se libera al cambiar el opt-in sin doble registro', () => {
   let enabled = false;
   let trusted = true;
@@ -247,17 +329,22 @@ test('el fallback por comandos persiste mediante el almacén sanitizado', async 
   assert.match(messages.at(-1), /\[REDACTED\]/);
 });
 
-test('el provider MCP expone una única definición con la clave fuera del fichero', async () => {
+test('el provider MCP expone una única definición sin la clave en el entorno', async () => {
   let provider;
+  let offeredKey;
   const disposable = { dispose() {} };
   const result = registerMemoryMcpProvider({
     enabled: true,
     isTrusted: true,
     registerProvider: (_id, candidate) => { provider = candidate; return disposable; },
-    createDefinition: (serverPath, memoryPath, encryptionKey, version) => ({
+    offerEncryptionKey: async (encryptionKey) => {
+      offeredKey = encryptionKey;
+      return { socketPath: '\\\\.\\pipe\\alfred-dev-memory-test' };
+    },
+    createDefinition: (serverPath, memoryPath, socketPath, version) => ({
       serverPath,
       memoryPath,
-      encryptionKey: encryptionKey.toString('base64'),
+      socketPath,
       version,
     }),
     keyProvider: TEST_KEY_PROVIDER,
@@ -270,9 +357,10 @@ test('el provider MCP expone una única definición con la clave fuera del fiche
   assert.deepEqual(await provider.provideMcpServerDefinitions(), [{
     serverPath: 'memoryMcpServer.js',
     memoryPath: 'memory.json',
-    encryptionKey: TEST_ENCRYPTION_KEY.toString('base64'),
+    socketPath: '\\\\.\\pipe\\alfred-dev-memory-test',
     version: '0.6.5',
   }]);
+  assert.deepEqual(offeredKey, TEST_ENCRYPTION_KEY);
 });
 
 test('la memoria no registra MCP ni permite comandos en workspace no confiable', async () => {
@@ -330,13 +418,22 @@ test('el servidor MCP ejecuta tools/list y tools/call sobre JsonMemoryStore', as
 });
 
 test('el proceso MCP stdio persiste mediante el backend de producción', async (testContext) => {
+  const {
+    MEMORY_KEY_SOCKET_ENV,
+    createMemoryMcpChildEnvironment,
+    offerMemoryEncryptionKey,
+  } = require('../out/memory/memoryKeyChannel.js');
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-mcp-stdio-'));
   const memoryPath = path.join(directory, 'memory.json');
+  const handoff = await offerMemoryEncryptionKey(TEST_ENCRYPTION_KEY);
+  testContext.after(() => handoff.close());
+  const childEnv = createMemoryMcpChildEnvironment(memoryPath, handoff.socketPath);
+  assert.equal('ALFRED_DEV_MEMORY_KEY' in childEnv, false);
   const server = spawn(process.execPath, [path.resolve(__dirname, '../out/memory/memoryMcpServer.js')], {
     env: {
       ...process.env,
-      ALFRED_DEV_MEMORY_PATH: memoryPath,
-      ALFRED_DEV_MEMORY_KEY: TEST_ENCRYPTION_KEY.toString('base64'),
+      ...childEnv,
+      [MEMORY_KEY_SOCKET_ENV]: handoff.socketPath,
     },
     stdio: ['pipe', 'pipe', 'pipe'],
   });

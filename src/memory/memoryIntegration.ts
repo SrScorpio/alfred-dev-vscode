@@ -1,4 +1,5 @@
-import type { MemoryEncryptionKeyProvider, MemoryRecord, MemoryStore } from './memoryStore';
+import { offerMemoryEncryptionKey } from './memoryKeyChannel';
+import { clearLocalMemory, type MemoryEncryptionKeyProvider, type MemoryRecord, type MemoryStore } from './memoryStore';
 
 const MEMORY_MCP_PROVIDER_ID = 'alfred-dev.memory';
 
@@ -10,11 +11,16 @@ interface MemoryMcpProvider {
   provideMcpServerDefinitions(): Promise<unknown[]>;
 }
 
+interface MemoryKeyHandoffHandle {
+  socketPath: string;
+}
+
 interface MemoryMcpRegistrationOptions {
   enabled: boolean;
   isTrusted: boolean;
   registerProvider?: (id: string, provider: MemoryMcpProvider) => Disposable;
-  createDefinition?: (serverPath: string, memoryPath: string, encryptionKey: Buffer, version: string) => unknown;
+  createDefinition?: (serverPath: string, memoryPath: string, socketPath: string, version: string) => unknown;
+  offerEncryptionKey?: (encryptionKey: Buffer) => Promise<MemoryKeyHandoffHandle>;
   keyProvider: MemoryEncryptionKeyProvider;
   serverPath: string;
   memoryPath: string;
@@ -27,6 +33,11 @@ interface MemoryMcpTrustRegistrationOptions extends Omit<MemoryMcpRegistrationOp
   onDidGrantWorkspaceTrust(listener: () => void): Disposable;
   onDidChangeConfiguration?(listener: () => void): Disposable;
   addSubscription(disposable: Disposable): void;
+}
+
+export interface MemoryMcpTrustRegistration {
+  dispose(): void;
+  recycle(): void;
 }
 
 function isMemoryEnabled(enabled: boolean | (() => boolean)): boolean {
@@ -55,17 +66,19 @@ export interface MemoryCommandHandlers {
 /** Registers an MCP definition only when both opt-in and the runtime API are present. */
 export function registerMemoryMcpProvider(options: MemoryMcpRegistrationOptions): Disposable | undefined {
   if (!options.enabled || !options.isTrusted || !options.registerProvider || !options.createDefinition) return undefined;
+  const offerKey = options.offerEncryptionKey ?? offerMemoryEncryptionKey;
   return options.registerProvider(MEMORY_MCP_PROVIDER_ID, {
     provideMcpServerDefinitions: async () => {
       const encryptionKey = await options.keyProvider.getKey();
       if (!encryptionKey) throw new Error('La clave de cifrado no está disponible');
-      return [options.createDefinition!(options.serverPath, options.memoryPath, encryptionKey, options.version)];
+      const handoff = await offerKey(encryptionKey);
+      return [options.createDefinition!(options.serverPath, options.memoryPath, handoff.socketPath, options.version)];
     },
   });
 }
 
 /** Registers MCP immediately or once when VS Code grants workspace trust. */
-export function registerMemoryMcpProviderOnTrust(options: MemoryMcpTrustRegistrationOptions): void {
+export function registerMemoryMcpProviderOnTrust(options: MemoryMcpTrustRegistrationOptions): MemoryMcpTrustRegistration {
   let registration: Disposable | undefined;
   const canRegister = Boolean(options.registerProvider && options.createDefinition);
   const disposeRegistration = (): void => {
@@ -85,11 +98,30 @@ export function registerMemoryMcpProviderOnTrust(options: MemoryMcpTrustRegistra
   };
 
   syncRegistration();
-  if (!canRegister) return;
-  options.addSubscription(options.onDidGrantWorkspaceTrust(syncRegistration));
-  if (options.onDidChangeConfiguration) {
-    options.addSubscription(options.onDidChangeConfiguration(syncRegistration));
+  if (canRegister) {
+    options.addSubscription(options.onDidGrantWorkspaceTrust(syncRegistration));
+    if (options.onDidChangeConfiguration) {
+      options.addSubscription(options.onDidChangeConfiguration(syncRegistration));
+    }
   }
+
+  return {
+    dispose: disposeRegistration,
+    recycle: () => {
+      disposeRegistration();
+      syncRegistration();
+    },
+  };
+}
+
+/** Deletes local memory and recycles the MCP child so it cannot keep the old key. */
+export async function clearLocalMemoryAndRecycleMcp(
+  filePath: string,
+  keyProvider: { deleteKey(): Promise<void> },
+  recycle?: () => void,
+): Promise<void> {
+  await clearLocalMemory(filePath, keyProvider);
+  recycle?.();
 }
 
 /** Exposes the same bounded store through commands on VS Code versions without MCP support. */
