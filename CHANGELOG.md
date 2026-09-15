@@ -9,6 +9,14 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.7.0] - 2026-09-15
+
+### Added
+
 - Correcciones de compatibilidad del parser para snapshots con viñetas,
   diagnóstico de snapshots malformados y errores accionables al abrir Copilot
   Chat.
