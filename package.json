@@ -40,6 +40,26 @@
         "category": "Alfred Dev"
       },
       {
+        "command": "alfred-dev.progress",
+        "title": "Alfred Dev: Ver progreso",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.pause",
+        "title": "Alfred Dev: Pausar trabajo",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.retomar",
+        "title": "Alfred Dev: Retomar trabajo",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.openSettings",
+        "title": "Alfred Dev: Ajustes",
+        "category": "Alfred Dev"
+      },
+      {
         "command": "alfred-dev.selectModelProfile",
         "title": "Alfred Dev: Seleccionar perfil de modelo",
         "category": "Alfred Dev"

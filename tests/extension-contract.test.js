@@ -15,6 +15,10 @@ test('declara comandos de chat y selección de perfil de modelo', () => {
 
   assert.ok(commands.some((command) => command.command === 'alfred-dev.startFlow'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.checkUpdate'));
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.progress'));
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.pause'));
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.retomar'));
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.openSettings'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.openChat'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.selectModelProfile'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.openStyleGallery'));
@@ -53,6 +57,8 @@ test('cablea la memoria configurada a MCP con feature detection y comandos fallb
   assert.match(extension, /onDidGrantWorkspaceTrust/);
   assert.match(extension, /onDidChangeConfiguration/);
   assert.match(extension, /affectsConfiguration\('alfred-dev\.memory\.enabled'\)/);
+  assert.match(extension, /registerSecretDiagnosticsOnChange\(/);
+  assert.match(extension, /affectsConfiguration\('alfred-dev\.secretGuard\.diagnostics'\)/);
   assert.match(extension, /SecretStorageMemoryEncryptionKeyProvider\(context\.secrets\)/);
   assert.match(extension, /registerMcpServerDefinitionProvider/);
   assert.match(extension, /McpStdioServerDefinition/);
@@ -64,6 +70,12 @@ test('cablea la memoria configurada a MCP con feature detection y comandos fallb
   assert.match(memoryIntegration, /resolveMcpServerDefinition/);
   assert.doesNotMatch(extension, /ALFRED_DEV_MEMORY_KEY:/);
   assert.match(commands, /runStartFlowCommand\(/);
+  assert.match(commands, /runContinuityCommand\(/);
+  assert.match(commands, /runAjustesCommand\(/);
+  assert.match(commands, /alfred-dev\.progress/);
+  assert.match(commands, /alfred-dev\.pause/);
+  assert.match(commands, /alfred-dev\.retomar/);
+  assert.match(commands, /alfred-dev\.openSettings/);
   assert.match(commands, /alfred-dev\.checkUpdate/);
   assert.match(commands, /checkForUpdate\(/);
   assert.match(commands, /createMemoryCommandHandlers\(/);
@@ -109,6 +121,16 @@ test('el proveedor carga status.md de forma asíncrona', () => {
 
   assert.match(provider, /async getChildren\(/);
   assert.doesNotMatch(provider, /existsSync|readFileSync/);
+});
+
+test('el TreeView expone acciones Progress y Retomar con los comandos nuevos', () => {
+  const provider = readRepositoryFile('src/providers/statusTreeProvider.ts');
+
+  assert.match(provider, /alfred-dev\.progress/);
+  assert.match(provider, /alfred-dev\.retomar/);
+  assert.match(provider, /alfred-dev\.refreshStatus/);
+  assert.match(provider, /alfred-dev\.openChat/);
+  assert.match(provider, /alfred-dev\.selectModelProfile/);
 });
 
 test('SECURITY.md publica versiones soportadas y plazos de 24/72 h', () => {

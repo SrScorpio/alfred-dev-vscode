@@ -42,6 +42,11 @@ export const ALFRED_FLOWS: readonly AlfredFlow[] = [
     prompt: '@alfred Arranca el flujo Discuss (refinar idea antes de un PRD)',
   },
   {
+    id: 'map-codebase',
+    label: 'Map codebase (brownfield, sin implementar)',
+    prompt: '@alfred Arranca el flujo Map-codebase: analiza el repo existente, deja artefactos de descubrimiento (docs/ADR/status) y no implementes código de producto.',
+  },
+  {
     id: 'audit',
     label: 'Audit (seguridad + calidad)',
     prompt: '@alfred Arranca el flujo Audit (Seguridad + Calidad)',

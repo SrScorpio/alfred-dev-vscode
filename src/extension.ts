@@ -19,7 +19,7 @@ import {
 import type { MemoryStore } from './memory/memoryStore';
 import { registerMemoryMcpProviderOnTrust } from './memory/memoryIntegration';
 import { createMemoryMcpChildEnvironment } from './memory/memoryKeyChannel';
-import { registerSecretDiagnostics } from './security/diagnostics';
+import { registerSecretDiagnostics, registerSecretDiagnosticsOnChange } from './security/diagnostics';
 
 let configuredMemoryStore: MemoryStore | undefined;
 
@@ -78,8 +78,14 @@ export function activate(context: vscode.ExtensionContext) {
     memoryPath,
     version: '0.7.0',
   });
-  const diagnosticsEnabled = vscode.workspace.getConfiguration('alfred-dev').get<boolean>('secretGuard.diagnostics', true);
-  if (diagnosticsEnabled) registerSecretDiagnostics(context);
+  registerSecretDiagnosticsOnChange({
+    enabled: () => vscode.workspace.getConfiguration('alfred-dev').get<boolean>('secretGuard.diagnostics', true) ?? true,
+    register: () => registerSecretDiagnostics(context),
+    onDidChangeConfiguration: (listener) => vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration('alfred-dev.secretGuard.diagnostics')) listener();
+    }),
+    addSubscription: (disposable) => { context.subscriptions.push(disposable); },
+  });
   registerCommands(context, statusTreeProvider, configuredMemoryStore, {
     filePath: memoryPath,
     keyProvider: memoryKeyProvider,

@@ -10,8 +10,16 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 ### Added
 
 - Paleta **Iniciar Flujo** con los ids estables del original Claude Code
-  (`feature`, `quick`, `fix`, `spike`, `discuss`, `audit`, `uat`, `ship`,
-  `lucius`) y prompts `@alfred` fijos. Sin Ralph ni memory-ui.
+  (`feature`, `quick`, `fix`, `spike`, `discuss`, `map-codebase`, `audit`,
+  `uat`, `ship`, `lucius`) y prompts `@alfred` fijos. Sin Ralph ni memory-ui.
+- Continuidad nativa: **Alfred Dev: Ver progreso**, **Pausar trabajo** y
+  **Retomar trabajo** (`alfred-dev.progress`, `alfred-dev.pause`,
+  `alfred-dev.retomar`). Prompts `@alfred` fijos; Progress y Retomar también
+  en el TreeView. No hay fetch de issues en la extensión.
+- **Alfred Dev: Ajustes** (`alfred-dev.openSettings`): QuickPick que reutiliza
+  el perfil de modelo, los toggles `alfred-dev.memory.enabled` y
+  `alfred-dev.secretGuard.diagnostics` (alcance Global) y el comando de
+  instalar Secret Guard. Sin settings nuevos.
 - Comando **Alfred Dev: Comprobar actualización** (`alfred-dev.checkUpdate`):
   GET HTTPS a `https://api.github.com/repos/SrScorpio/alfred-dev-vscode/releases/latest`
   con `User-Agent: alfred-dev-vscode`, sin token y bajo demanda (no es
