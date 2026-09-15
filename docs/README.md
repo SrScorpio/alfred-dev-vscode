@@ -28,8 +28,10 @@ manual y de contrato de la extensión nativa.
 
 - [Estado del proyecto](project/status.md): snapshot local de Issues y PRs.
   GitHub sigue siendo la fuente de verdad colaborativa.
-- [Política de seguridad](../SECURITY.md): alcance, canales de reporte y
-  límites del soporte.
+- [Política de seguridad](../SECURITY.md): alcance, versiones soportadas,
+  SLA de divulgación, protocolo NIS2 art. 23 y límites del soporte.
+- [Registro de incidentes](project/incidents/README.md): plantilla de
+  postmortem; no hay casos reales archivados.
 - [Compliance](project/compliance.md), [modelo de amenazas](project/threat-model.md),
   [dependencias](project/dependencies.md) y [SBOM](project/sbom.md): artefactos
   técnicos de seguridad y cumplimiento.
@@ -45,6 +47,7 @@ manual y de contrato de la extensión nativa.
 | Extensión nativa | [Guía de la VSIX](vsix.md) |
 | Contribución | [`CONTRIBUTING.md`](../CONTRIBUTING.md) |
 | Seguridad | [`SECURITY.md`](../SECURITY.md) |
+| Incidentes | [`docs/project/incidents/`](project/incidents/README.md) |
 
 ## Límites documentales actuales
 

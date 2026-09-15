@@ -105,3 +105,16 @@ test('el proveedor carga status.md de forma asíncrona', () => {
   assert.match(provider, /async getChildren\(/);
   assert.doesNotMatch(provider, /existsSync|readFileSync/);
 });
+
+test('SECURITY.md publica versiones soportadas y plazos de 24/72 h', () => {
+  const security = readRepositoryFile('SECURITY.md');
+  const incidents = readRepositoryFile('docs/project/incidents/README.md');
+
+  assert.match(security, /versiones soportadas/i);
+  assert.match(security, /24/);
+  assert.match(security, /72/);
+  assert.match(security, /0\.6\.5/);
+  assert.match(security, /\^1\.85\.0/);
+  assert.match(security, /NIS2/);
+  assert.match(incidents, /YYYY-MM-DD-<slug>/);
+});
