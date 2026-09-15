@@ -36,6 +36,17 @@ test('incluye los flujos nuevos y los clásicos de Feature/Fix/Audit/Ship', () =
     byId.quick.prompt,
     '@alfred Arranca el flujo Quick: cambio pequeño o bien delimitado, menos ceremonia que Feature, TDD igual.',
   );
+  assert.equal(byId.spike.prompt, '@alfred Arranca el flujo Spike (investigación sin implementar)');
+  assert.equal(byId.discuss.prompt, '@alfred Arranca el flujo Discuss (refinar idea antes de un PRD)');
+  assert.equal(byId.uat.prompt, '@alfred Arranca el flujo UAT (confirmación humana, no tests)');
+  assert.equal(byId.lucius.prompt, '@alfred Arranca el flujo Lucius (segunda opinión en solo lectura)');
+});
+
+test('los prompts de la paleta son únicos', () => {
+  const FLOW_OPTIONS = ALFRED_FLOWS;
+  const prompts = FLOW_OPTIONS.map((flow) => flow.prompt);
+
+  assert.equal(new Set(prompts).size, FLOW_OPTIONS.length);
 });
 
 test('el QuickPick reutiliza id, label y prompt del catálogo', () => {
