@@ -112,7 +112,7 @@ prompts, y no se simula paralelismo sin API/scheduler público.
 ## Recomendaciones
 
 1. Mantener en CI una comprobacion de `npx vsce ls` que permita exclusivamente runtime y metadatos de release aprobados.
-2. Anadir politica de vulnerabilidades y soporte de actualizaciones para cerrar los controles CRA/NIS2 pendientes.
+2. `SECURITY.md` (2026-09-15) documenta matriz de versiones soportadas, SLA de divulgación y protocolo NIS2 art. 23. Residual: no hay GitHub Release, Marketplace ni clasificación NIS2 del titular; GHAS/CodeQL no está habilitado.
 3. Mantener la confirmacion explicita de la galería, el opt-in de memoria y la instalación voluntaria del hook.
 4. El canal one-shot sustituye la clave en entorno. Residual restante: el path del socket es visible en el entorno del hijo y el IPC es local al usuario; VS Code no permite un descriptor heredado.
 5. Completar el wipe RGPD: retención, portabilidad y evidencia sobre marketplace/Copilot. El comando local borra fichero, clave de este perfil y recicla el provider MCP.

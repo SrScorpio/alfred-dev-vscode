@@ -2,16 +2,16 @@
 
 No es un dictamen juridico. Es un registro tecnico con evidencia de la revision actual de la extension nativa para VSIX.
 
-**Fecha:** 2026-09-14
-**Autor:** senior-dev (revisión técnica; no sustituye la gate de security-officer)
+**Fecha:** 2026-09-15
+**Autor:** security-officer (revisión técnica de proceso CRA/NIS2; no es dictamen jurídico)
 
 ## Alcance
 
 | Marco | Aplica | Motivo |
 |-------|--------|--------|
 | RGPD | parcial | El codigo lee Markdown del workspace, puede guardar memoria local solo con opt-in y guarda una preferencia global (`alfred-dev.modelProfile`) en VS Code. No hay llamadas de red ni telemetria propias en `src/`, pero no hay evidencia sobre la base juridica, informacion al usuario, retencion o tratamiento realizado por el marketplace, VS Code y Copilot. |
-| NIS2 | pendiente | La condicion de entidad esencial/importante o proveedor sujeto a NIS2 depende del titular y del despliegue; no existe clasificacion del servicio ni evidencia de protocolo de incidentes. |
-| CRA | parcial | Una extension VSIX distribuida puede ser un producto con elementos digitales si se comercializa o distribuye en la UE. Hay SBOM CycloneDX, audit de dependencias y un canal publico de reporte en `SECURITY.md`, pero SLA, versiones soportadas formales y proceso de actualizaciones de seguridad siguen pendientes. |
+| NIS2 | pendiente | La condicion de entidad esencial/importante o proveedor sujeto a NIS2 sigue sin clasificar por el titular. `SECURITY.md` (2026-09-15) documenta relojes de alerta 24 h / notificacion 72 h / informe final 1 mes alineados con el art. 23; no hay evidencia de notificacion a CSIRT, ENISA ni de que esas obligaciones juridicas recaigan sobre este publicador. |
+| CRA | parcial | Una extension VSIX distribuida puede ser un producto con elementos digitales si se comercializa o distribuye en la UE. Hay SBOM CycloneDX, audit de dependencias, canal de reporte, matriz de versiones soportadas, SLA de divulgacion y politica de actualizaciones en `SECURITY.md`. No hay GitHub Release, no hay Marketplace y este registro no declara conformidad juridica. |
 
 ## Controles
 
@@ -25,10 +25,10 @@ No es un dictamen juridico. Es un registro tecnico con evidencia de la revision 
 | Derechos de acceso, supresion y portabilidad | RGPD arts. 15, 17 y 20 | parcial | El comando `alfred-dev.memory.clear` borra el fichero cifrado y la clave de `SecretStorage` de este perfil, con confirmación, y recicla el provider MCP. No hay portabilidad formal ni evidencia sobre datos tratados por publicador, marketplace o Copilot. |
 | Seguridad del tratamiento | RGPD art. 32 | parcial | Memoria local opt-in cifrada con AES-256-GCM e IV aleatorio, clave de 256 bits custodiada por `SecretStorage`, escritura atómica, límites y sanitización de Bearer, `sk-*`, PEM, GitHub y AWS. El formato legado en claro se rechaza. Secret Guard es explícito; la galería usa CSP/nonce; memoria y Ralph exigen workspace trust. La clave MCP no viaja en el entorno del hijo: cruza por un socket local de un solo uso. Residual: el path del socket sigue en el entorno durante el arranque. |
 | Secretos y ejecución local | CRA / NIS2 | parcial | El hook obtiene blobs staged mediante `git show` con argumentos sin shell, no imprime valores y resuelve hooks con Git para admitir worktrees. Los diagnósticos al guardar no escanean más de 64 KiB. El MCP solo se registra con opt-in, API y trust; reacciona a `onDidGrantWorkspaceTrust` y a `alfred-dev.memory.enabled`, expone tres tools y no usa red. Ralph solo resuelve `ralph-suite.ralph-suite`, valida `.ralph/config.json` antes de `runTask` y no procesa contenido remoto como instrucciones. `syncIssue` y paralelismo siguen no disponibles en Ralph Suite 1.9.1. |
-| Gestion de riesgos y cadena de suministro | NIS2 arts. 20 y 21 | parcial | Audit, lockfile y modelo STRIDE presentes. Faltan propietario de riesgo, clasificacion NIS2, politica de proveedores y procedimiento de respuesta. |
-| Notificacion de incidentes | NIS2 art. 23 | parcial | `SECURITY.md` documenta un canal de reporte privado recomendado y una alternativa de contacto; faltan protocolo de alerta temprana en 24 h, informe en 72 h e informe final. |
-| Gestion y divulgacion de vulnerabilidades | CRA | parcial | `SECURITY.md` publica el canal y la coordinacion de divulgacion; no hay SLA de acuse, analisis o correccion, ni matriz formal de versiones soportadas. |
-| Actualizaciones de seguridad | CRA | pendiente | No hay evidencia de politica de soporte, canal de actualizacion ni periodo de correcciones para VSIX publicados. |
+| Gestion de riesgos y cadena de suministro | NIS2 arts. 20 y 21 | parcial | Audit, lockfile, modelo STRIDE y protocolo de incidentes en `SECURITY.md` y `docs/project/incidents/`. Faltan propietario de riesgo, clasificacion NIS2 del titular y politica formal de proveedores. |
+| Notificacion de incidentes | NIS2 art. 23 | parcial | `SECURITY.md` fija alerta temprana 24 h, notificacion 72 h e informe final 1 mes desde el conocimiento efectivo, con archivo en `docs/project/incidents/`. Canal: Security Advisories y perfil GitHub. No hay evidencia de envio a CSIRT/ENISA ni clasificacion del titular; no hay SOC 24/7. Este estado no es conformidad juridica. |
+| Gestion y divulgacion de vulnerabilidades | CRA | parcial | `SECURITY.md` publica canal, SLA de acuse 24 h, analisis inicial 72 h y correccion o mitigacion segun severidad (7/14/30 dias), mas matriz de versiones soportadas (`0.6.5`, VS Code `^1.85.0`, sin GitHub Releases a 2026-09-15). No se marca `cumple` juridico: no hay Release, no hay Marketplace y el formulario de Advisories puede no estar habilitado. |
+| Actualizaciones de seguridad | CRA | parcial | `SECURITY.md` compromete correcciones o mitigaciones de la linea soportada en el repositorio y, cuando existan, Releases. A 2026-09-15 no hay GitHub Release ni VSIX en Marketplace; el canal verificable es `main`. No se garantiza actualizacion en Marketplace. |
 
 ## Hallazgos activos
 
@@ -87,12 +87,17 @@ de severidad media se listan en condiciones pendientes.
 
 ## Condiciones pendientes
 
-- GitHub Advanced Security no está habilitado en el repositorio, por lo que no
-	hay evidencia de secret scanning remoto. Esta revisión usa el scanner local
-	de producción sobre los 17 JavaScript empaquetables; no se presenta como
-	sustituto de GHAS.
-- La divulgacion y correccion coordinada de vulnerabilidades CRA tiene un canal publico en `SECURITY.md`, pero faltan SLA de acuse, analisis y correccion, y una matriz formal de versiones soportadas. Severidad MEDIA de proceso, no bloqueante para esta PR de documentacion.
-- `SECURITY.md` no establece un contacto directo ni un SLA aprobado; la evidencia disponible se limita al canal publico recomendado y a la coordinacion posible de la divulgacion.
-- La politica de actualizaciones de seguridad CRA sigue pendiente de evidencia del publicador.
+- GitHub Advanced Security / CodeQL no está evidenciado como SAST completo.
+	La API del repositorio (2026-09-15) reporta `secret_scanning` y
+	`secret_scanning_push_protection` habilitados, y Dependabot security
+	updates. Eso no sustituye GHAS ni el scanner local de los 17 JavaScript
+	empaquetables.
+- El titular no está clasificado como entidad esencial, importante ni
+	proveedor sujeto a NIS2. Los relojes del art. 23 en `SECURITY.md` son
+	proceso interno; no hay evidencia de notificación a CSIRT o ENISA.
+- No hay política de privacidad ni evidencia de base jurídica para el
+	tratamiento de marketplace, VS Code o Copilot. Fuera del alcance de #21.
+- No hay GitHub Release ni VSIX en Marketplace. La política de
+	actualizaciones no puede cumplir un canal de publicación que no existe.
 - El path del socket one-shot (`ALFRED_DEV_MEMORY_KEY_SOCKET`) sigue en el entorno del hijo durante el arranque. Un proceso del mismo usuario podría ganar la primera conexión en esa ventana. VS Code no permite inyectar un descriptor heredado. Residual MEDIA de IPC local, no de clave en entorno.
 - El comando de borrado local cubre fichero, clave de este perfil y recycle del provider MCP. Falta política de retención, portabilidad y wipe de datos tratados por marketplace o Copilot.
