@@ -68,7 +68,12 @@ IPC local de un solo uso (32 bytes, un accept, timeout corto). Tras
 **Borrar memoria local** se dispone y, si sigue el opt-in con trust, se
 vuelve a registrar el provider reutilizando el mismo handle de suscripción.
 Residual: el path del socket es visible en el entorno del hijo durante el
-arranque; VS Code no permite inyectar un descriptor. El proceso solo se
+arranque; VS Code no permite inyectar un descriptor. En Unix el inode
+queda `0o600` (solo el uid del proceso). En Windows se usa
+`listen({ path, exclusive: true })`; Node `net` no expone DACL nativa y
+no se finge el control: named pipes de sesión de usuario no suelen ser
+world-connectable entre sesiones, pero Everyone puede ser un problema en
+máquinas compartidas. El proceso solo se
 arranca al utilizarlo. VS Code `^1.85.0` sigue
 soportado mediante los comandos equivalentes, incluido el borrado local,
 cuando esa API no existe. No hay red propia.

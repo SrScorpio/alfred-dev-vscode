@@ -308,7 +308,10 @@ no se cachea: el siguiente acceso reintenta. La clave no viaja en el entorno
 del hijo. Residual: el path del socket sigue en el entorno durante el
 arranque y un proceso del mismo usuario podría ganar la primera conexión en
 esa ventana; la API MCP de VS Code no permite inyectar un descriptor
-heredado. Como el engine mínimo declarado es VS Code `^1.85.0`, las versiones
+heredado. En Unix el socket queda `0o600` tras `listen`. En Windows el
+listener usa `exclusive: true`; Node `net` no permite fijar la DACL del
+named pipe sin FFI, así que no se promete un ACL de solo el usuario actual
+(Everyone puede ser un problema en máquinas compartidas). Como el engine mínimo declarado es VS Code `^1.85.0`, las versiones
 sin esa API mantienen la función mediante los comandos **Guardar**,
 **Consultar**, **Buscar** y **Borrar memoria local**, conectados al mismo JSON
 sanitizado y atómico. Ninguna ruta realiza llamadas de red.
