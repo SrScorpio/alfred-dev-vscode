@@ -66,6 +66,19 @@ async function unlinkUnixSocket(socketPath: string): Promise<void> {
   }
 }
 
+/** Unix: owner-only after listen. Windows: Node net has no DACL API; exclusive listen only. */
+async function restrictUnixSocketToCurrentUser(socketPath: string): Promise<void> {
+  if (process.platform === 'win32') return;
+  await fs.chmod(socketPath, 0o600);
+}
+
+function listenOnMemoryKeySocket(server: net.Server, socketPath: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen({ path: socketPath, exclusive: true }, resolve);
+  });
+}
+
 function isFileNotFoundError(error: unknown): boolean {
   return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
 }
@@ -131,10 +144,8 @@ export async function offerMemoryEncryptionKey(
   });
 
   try {
-    await new Promise<void>((resolve, reject) => {
-      server.once('error', reject);
-      server.listen(socketPath, resolve);
-    });
+    await listenOnMemoryKeySocket(server, socketPath);
+    await restrictUnixSocketToCurrentUser(socketPath);
   } catch (error: unknown) {
     settle(error instanceof Error ? error : new Error('No se pudo abrir el canal de clave'));
     await close();

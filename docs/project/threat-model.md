@@ -1,6 +1,6 @@
 # Modelo de amenazas: extension nativa VSIX
 
-**Fecha:** 2026-09-14
+**Fecha:** 2026-09-15
 **Autor:** senior-dev (revisión técnica; no sustituye la gate de security-officer)
 **Commit revisado:** entrega actual
 **Metodologia:** STRIDE
@@ -71,7 +71,7 @@ No hay registro de acciones de seguridad, publicacion de VSIX ni cambios de perf
 
 ### Information Disclosure (fuga de informacion)
 
-`npx vsce ls --tree` no incluye salidas locales, `.vscode/`, documentación interna, mapas, fuentes, tests, dependencias ni skills. Los diagnósticos y la memoria redactan GitHub tokens, Bearer, `sk-*`, bloques PEM y credenciales AWS. La memoria persiste solo ciphertext AES-256-GCM; la clave se genera y custodia en `SecretStorage`, no en `memory.json`. El hijo MCP recibe solo la ruta del JSON y `ALFRED_DEV_MEMORY_KEY_SOCKET`; la clave cruza por IPC local de un solo uso (32 bytes, un accept, timeout corto) porque la API stdio de VS Code no permite inyectar un descriptor. Residual: un proceso del mismo usuario que conozca el path durante esa ventana podría ganar la primera conexión. El hook no imprime contenido ni rutas: solo el número de ficheros staged con hallazgos. El comando de borrado local elimina fichero y clave de este perfil y recicla el provider MCP; no cubre marketplace ni Copilot.
+`npx vsce ls --tree` no incluye salidas locales, `.vscode/`, documentación interna, mapas, fuentes, tests, dependencias ni skills. Los diagnósticos y la memoria redactan GitHub tokens, Bearer, `sk-*`, bloques PEM y credenciales AWS. La memoria persiste solo ciphertext AES-256-GCM; la clave se genera y custodia en `SecretStorage`, no en `memory.json`. El hijo MCP recibe solo la ruta del JSON y `ALFRED_DEV_MEMORY_KEY_SOCKET`; la clave cruza por IPC local de un solo uso (32 bytes, un accept, timeout corto) porque la API stdio de VS Code no permite inyectar un descriptor. Tras `listen`, el socket Unix queda `0o600`; el path sigue enumerable por el mismo usuario. En Windows el listener usa `exclusive: true`; Node `net` no expone DACL del named pipe y no se finge un ACL de solo el usuario actual (Everyone puede ser residual en máquinas compartidas). Residual: un proceso del mismo usuario que conozca el path durante esa ventana podría ganar la primera conexión. El hook no imprime contenido ni rutas: solo el número de ficheros staged con hallazgos. El comando de borrado local elimina fichero y clave de este perfil y recicla el provider MCP; no cubre marketplace ni Copilot.
 
 ### Denial of Service (denegacion de servicio)
 
@@ -101,7 +101,7 @@ prompts, y no se simula paralelismo sin API/scheduler público.
 | Cambio no autorizado de la preferencia global | Baja | Bajo | Bajo | Mantener enum en `contributes.configuration` y no aceptar valores desde `status.md`. |
 | Dependencia comprometida en build | Baja | Alto | Medio | Lockfile con integridad, SBOM, `npm audit` y actualizaciones revisadas. |
 | Fuga de secretos en VSIX | Baja | Alto | Medio | Escaneo de secretos y lista de archivos permitidos antes de publicar. |
-| Secreto guardado en memoria local | Baja | Alto | Bajo | Memoria apagada por defecto, sanitización, AES-256-GCM, clave en `SecretStorage`, cap previo al write, comando de borrado local con recycle MCP y sin red. Residual: el path del socket one-shot sigue en el entorno del hijo durante el arranque. |
+| Secreto guardado en memoria local | Baja | Alto | Bajo | Memoria apagada por defecto, sanitización, AES-256-GCM, clave en `SecretStorage`, cap previo al write, comando de borrado local con recycle MCP y sin red. Residual: el path del socket one-shot sigue enumerable por el mismo usuario durante el arranque (Unix `0o600`; Windows sin DACL explícita). |
 | MCP arranca sin consentimiento o ejecuta una ruta manipulada | Baja | Alto | Bajo | Provider solo con opt-in/API/trust, registro y dispose reactivos a configuración y trust, definición fija y proceso iniciado bajo demanda por VS Code. |
 | Hook omite un secreto staged por leer el working tree | Baja | Alto | Bajo | Enumera con `-z` y analiza cada blob del índice mediante `git show` sin shell. |
 | Webview con contenido local inseguro | Baja | Alto | Bajo | CSP nonce, escape HTML, sin recursos remotos ni raíces locales. |
@@ -114,5 +114,5 @@ prompts, y no se simula paralelismo sin API/scheduler público.
 1. Mantener en CI una comprobacion de `npx vsce ls` que permita exclusivamente runtime y metadatos de release aprobados.
 2. `SECURITY.md` (2026-09-15) documenta matriz de versiones soportadas, SLA de divulgación y protocolo NIS2 art. 23. Residual: no hay GitHub Release, Marketplace ni clasificación NIS2 del titular; GHAS/CodeQL no está habilitado.
 3. Mantener la confirmacion explicita de la galería, el opt-in de memoria y la instalación voluntaria del hook.
-4. El canal one-shot sustituye la clave en entorno. Residual restante: el path del socket es visible en el entorno del hijo y el IPC es local al usuario; VS Code no permite un descriptor heredado.
+4. El canal one-shot sustituye la clave en entorno. Unix aplica `chmod 0o600` tras `listen`. Residual restante: el path del socket es visible en el entorno del hijo; un proceso del mismo usuario puede ganar el `accept`; VS Code no permite un descriptor heredado. En Windows no hay DACL nativa vía Node `net`.
 5. Completar el wipe RGPD: retención, portabilidad y evidencia sobre marketplace/Copilot. El comando local borra fichero, clave de este perfil y recicla el provider MCP.

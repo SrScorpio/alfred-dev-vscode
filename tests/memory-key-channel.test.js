@@ -1,5 +1,7 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const net = require('node:net');
+const path = require('node:path');
 const test = require('node:test');
 
 const {
@@ -11,6 +13,11 @@ const {
   MEMORY_KEY_BYTES,
   MEMORY_KEY_SOCKET_ENV,
 } = require('../out/memory/memoryKeyChannel.js');
+
+const MEMORY_KEY_CHANNEL_SOURCE = fs.readFileSync(
+  path.join(__dirname, '../src/memory/memoryKeyChannel.ts'),
+  'utf8',
+);
 
 const TEST_ENCRYPTION_KEY = Buffer.alloc(MEMORY_KEY_BYTES, 11);
 
@@ -42,6 +49,30 @@ test('el padre entrega 32 bytes y el hijo los recibe sin dejar la clave en env',
     await handoff.close();
     if (previousSocket === undefined) delete process.env[MEMORY_KEY_SOCKET_ENV];
     else process.env[MEMORY_KEY_SOCKET_ENV] = previousSocket;
+  }
+});
+
+test('el canal one-shot aplica chmod 0o600 en Unix y listen exclusive', () => {
+  assert.match(MEMORY_KEY_CHANNEL_SOURCE, /chmod(?:Sync)?\([^)]*0o600/);
+  assert.match(MEMORY_KEY_CHANNEL_SOURCE, /listen\(\s*\{[\s\S]*exclusive:\s*true/);
+  assert.doesNotMatch(MEMORY_KEY_CHANNEL_SOURCE, /\b(?:ffi|koffi|napi)\b/);
+});
+
+test('el socket Unix queda 0o600 tras listen y el round-trip de 32 bytes sigue', async (t) => {
+  if (process.platform === 'win32') {
+    t.skip('chmod de socket Unix no aplica en Windows; Node net no expone DACL del named pipe');
+    return;
+  }
+
+  const handoff = await offerMemoryEncryptionKey(TEST_ENCRYPTION_KEY);
+
+  try {
+    assert.equal(fs.statSync(handoff.socketPath).mode & 0o777, 0o600);
+    const receivedKey = await receiveMemoryEncryptionKey(handoff.socketPath);
+    await handoff.delivered;
+    assert.deepEqual(receivedKey, TEST_ENCRYPTION_KEY);
+  } finally {
+    await handoff.close();
   }
 });
 

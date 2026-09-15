@@ -46,6 +46,12 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Fixed
 
+- El socket Unix del canal one-shot de clave MCP queda `0o600` tras
+  `listen`, no `0777 & ~umask`. En Windows se usa
+  `listen({ path, exclusive: true })`; Node `net` no expone la DACL del
+  named pipe sin FFI y no se finge ese control. Residual: el path sigue
+  enumerable por el mismo usuario; en máquinas Windows compartidas Everyone
+  puede seguir en la DACL por defecto.
 - El listado MCP (`provideMcpServerDefinitions`) ya no abre el socket
   one-shot: VS Code lo llama con ansia para enumerar y el hijo aún no existe.
   `resolveMcpServerDefinition` ofrece la clave e inyecta
@@ -78,7 +84,7 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
   (`ALFRED_DEV_MEMORY_KEY_SOCKET`) al resolver el arranque, no al listar, y
   cierra; el hijo borra esa variable tras leerla. Residual: el path del
   socket sigue enumerable por un proceso del mismo usuario durante la ventana
-  de accept.
+  de accept. En Unix el inode es `0o600`; en Windows no hay DACL explícita.
 - El provider MCP de memoria reacciona a `alfred-dev.memory.enabled` durante la
   sesión: registra con trust y API, se libera al desactivar y evita el doble
   registro.

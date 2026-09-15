@@ -57,3 +57,9 @@ explícita; `docs/security/` no se crea porque mover allí la documentación
 rompería las rutas de las skills existentes. La política pública vive en
 [`SECURITY.md`](../SECURITY.md) y los artefactos técnicos permanecen en
 `docs/project/`.
+
+Residual del canal one-shot de clave MCP (`ALFRED_DEV_MEMORY_KEY_SOCKET`):
+en Unix el socket queda `0o600` tras `listen`; el path sigue enumerable
+por el mismo usuario. En Windows Node `net` no expone DACL del named pipe
+sin FFI; no se finge ese control. La matriz de `SECURITY.md` sigue en
+`0.7.0`.
