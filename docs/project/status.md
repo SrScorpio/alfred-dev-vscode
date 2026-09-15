@@ -6,11 +6,11 @@
 
 ## Flujo activo
 
-- **Flujo:** ship 0.7.0 cerrado en GitHub (tag anotado `v0.7.0` y GitHub Release). No hay Marketplace. Sin flujo de implementación activo.
-- **Feature / descripción:** feature #2 completada (PR #16). Residual MEDIA de clave MCP en entorno y wipe incompleto del hijo cerrado en `main` por PR #18. ACL Unix `0o600` del socket one-shot cerrado en `main` por PR #26 (`Closes #25`). Proceso CRA/NIS2 cerrado en #21 (PR #23). Manifiesto y changelog congelados en 0.7.0 por #20 (PR #22). Queda el residual de la issue #3 (Ralph Suite), sin trabajo de implementación en curso.
-- **Fase actual:** ship 0.7.0 publicado como GitHub Release. `origin/main` HEAD `1c0d09acc1d591b5cfb183aca881fbea4f92d54b` (squash PR #26). Tag anotado `v0.7.0` en ese commit. Marketplace fuera de alcance.
-- **Gate pendiente:** ninguna HARD-GATE de despliegue GitHub. Marketplace no forma parte de este ship. Residual MEDIA del path del socket (mismo usuario) y backlog #3.
-- **Siguiente acción:** no hay implementación activa. La issue #3 permanece abierta con label `backlog`. No priorizar implementación hasta que Ralph Suite publique APIs verificables (`ralph-suite.syncIssue` y scheduler paralelo). El residual MEDIA del path `ALFRED_DEV_MEMORY_KEY_SOCKET` no tiene issue abierta.
+- **Flujo:** ninguno de implementación. El ship 0.7.0 sigue publicado (tag anotado `v0.7.0` y GitHub Release). Tras ese tag, `main` incorpora la paleta de flujos y `checkUpdate` (#28 / PR #29) en `[Unreleased]`. Sin Marketplace.
+- **Feature / descripción:** feature #28 completada (PR #29): paleta de 9 flujos (`feature`, `quick`, `fix`, `spike`, `discuss`, `audit`, `uat`, `ship`, `lucius`) y comando `alfred-dev.checkUpdate` (GET a GitHub Releases; sin Marketplace). Residual MEDIA de clave MCP en entorno y wipe incompleto del hijo cerrado en `main` por PR #18. ACL Unix `0o600` del socket one-shot cerrado en `main` por PR #26 (`Closes #25`). Proceso CRA/NIS2 cerrado en #21 (PR #23). Manifiesto y changelog congelados en 0.7.0 por #20 (PR #22). Queda el residual de la issue #3 (Ralph Suite), sin trabajo de implementación en curso.
+- **Fase actual:** documentación post-merge de #29. `origin/main` HEAD `9ea1062fe47cbcb8cafbc49ec078d381d4fa6701` (squash PR #29, Closes #28). El tag anotado `v0.7.0` sigue en `1c0d09acc1d591b5cfb183aca881fbea4f92d54b`; este cambio es posterior al tag y no lo mueve. Marketplace fuera de alcance.
+- **Gate pendiente:** ninguna HARD-GATE de implementación para #28. Residual MEDIA del path del socket (mismo usuario) y backlog #3. El label `in-review` de #28 permanece en GitHub tras el cierre.
+- **Siguiente acción:** no hay implementación activa. La issue #3 permanece abierta con label `backlog`. No priorizar implementación hasta que Ralph Suite publique APIs verificables (`ralph-suite.syncIssue` y scheduler paralelo). El residual MEDIA del path `ALFRED_DEV_MEMORY_KEY_SOCKET` no tiene issue abierta. Unreleased en `main` no implica bump ni retag de 0.7.0.
 
 ## Issues
 
@@ -22,6 +22,7 @@
 | #20 | Ship Release 0.7.0: changelog, tag y VSIX versionado | done (closed/completed) | [#22](https://github.com/SrScorpio/alfred-dev-vscode/pull/22) merged; el tag y GitHub Release se crearon después, fuera de esa PR |
 | #21 | SLA, versiones soportadas y protocolo de incidentes CRA/NIS2 | done (closed/completed) | [#23](https://github.com/SrScorpio/alfred-dev-vscode/pull/23) merged |
 | #25 | Restringir ACL del canal one-shot de clave MCP | done (closed/completed) | [#26](https://github.com/SrScorpio/alfred-dev-vscode/pull/26) merged |
+| #28 | Paleta de flujos fiel al original y comando update | done (closed/completed) | [#29](https://github.com/SrScorpio/alfred-dev-vscode/pull/29) merged |
 
 Notas verificadas en GitHub el 2026-09-15:
 
@@ -30,11 +31,14 @@ Notas verificadas en GitHub el 2026-09-15:
 - [#20](https://github.com/SrScorpio/alfred-dev-vscode/issues/20) está `closed` con `state_reason: completed` (cierre 2026-09-15T11:28:04Z por SrScorpio). Labels actuales: `[]` (el `in-progress` residual del snapshot de PR #24 ya no está). Cerrada por PR #22. El tag y GitHub Release no formaban parte de esa PR; se crearon después sobre `1c0d09a`. Marketplace no se publica.
 - [#21](https://github.com/SrScorpio/alfred-dev-vscode/issues/21) está `closed` con `state_reason: completed` (cierre 2026-09-15T11:15:31Z por SrScorpio). Labels actuales: `[]`. Cerrada por PR #23 (`Closes #21`). GitHub también lista PR #22 y PR #24 como referencias de cierre porque el rebase de #22 incorpora el squash de #23 y #24 sincroniza el snapshot; el cierre semántico de #21 es PR #23.
 - [#25](https://github.com/SrScorpio/alfred-dev-vscode/issues/25) está `closed` con `state_reason: completed` (cierre 2026-09-15T13:37:25Z por SrScorpio). Labels actuales: `[]`. Cerrada por PR #26 (`Closes #25`). Residual documentado: el path sigue enumerable por el mismo usuario; Windows no finge DACL.
+- [#28](https://github.com/SrScorpio/alfred-dev-vscode/issues/28) está `closed` con `state_reason: completed` (cierre 2026-09-15T17:39:14Z por SrScorpio). Labels actuales: `["in-review"]` (residual tras el merge; no se retiró al cerrar). Cerrada por PR #29 (`Closes #28`). Alcance: paleta de 9 flujos y `alfred-dev.checkUpdate` contra GitHub Releases. Fuera: Ralph (#3), Marketplace, hooks PreToolUse.
 
 ## PRs
 
 | PR | Título | Estado |
 |----|--------|--------|
+| [#29](https://github.com/SrScorpio/alfred-dev-vscode/pull/29) | feat: paleta de flujos Claude y comando comprobar actualizacion | merged (squash) el 2026-09-15T17:39:12Z; commit [`9ea1062fe47cbcb8cafbc49ec078d381d4fa6701`](https://github.com/SrScorpio/alfred-dev-vscode/commit/9ea1062fe47cbcb8cafbc49ec078d381d4fa6701). Closes #28. HEAD de la rama: `5c31da1af63fcaf38a8044edde5e86675f99aa1e` |
+| [#27](https://github.com/SrScorpio/alfred-dev-vscode/pull/27) | chore: update flow status | merged (squash) el 2026-09-15T13:47:01Z; commit [`8b3d20457c6dfd262d5c8fcda0cdc1b3130b4c64`](https://github.com/SrScorpio/alfred-dev-vscode/commit/8b3d20457c6dfd262d5c8fcda0cdc1b3130b4c64). Snapshot post-ship 0.7.0 (#25/#26, tag y Release); no cierra #3. Quedó desfasado respecto a #28/#29 |
 | [#26](https://github.com/SrScorpio/alfred-dev-vscode/pull/26) | fix: restringir ACL del socket one-shot de clave MCP | merged (squash) el 2026-09-15T13:37:23Z; commit [`1c0d09acc1d591b5cfb183aca881fbea4f92d54b`](https://github.com/SrScorpio/alfred-dev-vscode/commit/1c0d09acc1d591b5cfb183aca881fbea4f92d54b). Closes #25 |
 | [#24](https://github.com/SrScorpio/alfred-dev-vscode/pull/24) | chore: update flow status | merged (squash) el 2026-09-15T11:36:30Z; commit [`bb3cc447036f82eeb4d125854f4ad05251659da9`](https://github.com/SrScorpio/alfred-dev-vscode/commit/bb3cc447036f82eeb4d125854f4ad05251659da9). Snapshot de #20/#21; no cierra #3. Quedó desfasado respecto a #25/#26, el tag `v0.7.0` y la GitHub Release |
 | [#23](https://github.com/SrScorpio/alfred-dev-vscode/pull/23) | docs: add CRA/NIS2 disclosure SLA and incident process | merged (squash) el 2026-09-15T11:15:30Z; commit [`5984211c3ced70673e8a1e02f0e536c657460321`](https://github.com/SrScorpio/alfred-dev-vscode/commit/5984211c3ced70673e8a1e02f0e536c657460321). Closes #21 |
@@ -46,7 +50,7 @@ Notas verificadas en GitHub el 2026-09-15:
 | [#15](https://github.com/SrScorpio/alfred-dev-vscode/pull/15) | chore(deps-dev): bump js-yaml from 4.3.1 to 4.3.2 | closed, no merged (2026-09-14). Comentario de Dependabot: js-yaml ya está actualizado (el bump 4.3.2 entra por #16) |
 | [#14](https://github.com/SrScorpio/alfred-dev-vscode/pull/14) | chore(deps-dev): bump fast-uri from 3.1.5 to 3.1.7 | closed, no merged (2026-09-14). Comentario de Dependabot: fast-uri ya está actualizado |
 
-Tras el merge de #26 no hay PRs abiertas en el repositorio en el momento de este snapshot (antes de la PR de sincronización de este fichero). `origin/main` apunta a `1c0d09acc1d591b5cfb183aca881fbea4f92d54b`. Tag anotado `v0.7.0` (objeto de tag `62a070da0aaa8e4b18388d377a8683d00f0d43f3`, apunta al commit `1c0d09a`, tagger 2026-09-15T13:38:48Z). GitHub Release: [v0.7.0](https://github.com/SrScorpio/alfred-dev-vscode/releases/tag/v0.7.0), publicada 2026-09-15T13:39:05Z, adjunto `alfred-dev-vscode-0.7.0.vsix` (43 644 bytes). No hay publicación en Marketplace.
+Tras el merge de #29 no hay PRs abiertas en el repositorio en el momento de este snapshot (antes de la PR de sincronización de este fichero). `origin/main` apunta a `9ea1062fe47cbcb8cafbc49ec078d381d4fa6701`. Tag anotado `v0.7.0` (objeto de tag `62a070da0aaa8e4b18388d377a8683d00f0d43f3`, apunta al commit `1c0d09a`, tagger 2026-09-15T13:38:48Z); no se movió. GitHub Release: [v0.7.0](https://github.com/SrScorpio/alfred-dev-vscode/releases/tag/v0.7.0), publicada 2026-09-15T13:39:05Z, adjunto `alfred-dev-vscode-0.7.0.vsix` (43 644 bytes). El cambio de #29 vive en `[Unreleased]` sobre `main` posterior al tag. No hay publicación en Marketplace.
 
 ## Historial de gates
 
@@ -76,11 +80,15 @@ Tras el merge de #26 no hay PRs abiertas en el repositorio en el momento de este
 | 2026-09-15 | 4 — seguridad (#26 / #25) | APROBADO CON CONDICIONES | Unix: inode `0o600` tras `listen`. Windows: `exclusive: true` sin DACL fingida. Residual MEDIA vigente: el path `ALFRED_DEV_MEMORY_KEY_SOCKET` sigue enumerable por el mismo usuario durante el `accept` (≤5 s). |
 | 2026-09-15 | 4 — entrega y merge (#26 / #25) | APROBADO | PR #26 fusionada por squash a `main`; commit `1c0d09acc1d591b5cfb183aca881fbea4f92d54b`; issue #25 closed/completed. Entra en 0.7.0 (sin bump de versión). |
 | 2026-09-15 | 4 — ship / despliegue | APROBADO CON CONDICIONES | Tag anotado `v0.7.0` en `1c0d09a` (objeto de tag `62a070da0aaa8e4b18388d377a8683d00f0d43f3`). GitHub Release [v0.7.0](https://github.com/SrScorpio/alfred-dev-vscode/releases/tag/v0.7.0) con adjunto `alfred-dev-vscode-0.7.0.vsix`. Marketplace no se publica. |
-| 2026-09-15 | 5 — documentación (post-ship 0.7.0) | APROBADO | Este snapshot replica Issues, PRs, tag y Release verificados en GitHub; no reescribe compliance, threat-model ni changelog. No cierra #3. |
+| 2026-09-15 | 5 — documentación (post-ship 0.7.0) | APROBADO | Snapshot de PR #27 (`8b3d204`): replica Issues, PRs, tag y Release; no reescribe compliance, threat-model ni changelog. No cierra #3. Quedó desfasado respecto a #28/#29. |
+| 2026-09-15 | 4 — calidad (#29 / #28) | APROBADO | CI de PR #29 HEAD `5c31da1`: `test`, `security` y `package` SUCCESS en [workflow run 35002474435](https://github.com/SrScorpio/alfred-dev-vscode/actions/runs/35002474435). Paleta de 9 ids y `alfred-dev.checkUpdate` contra GitHub Releases (GET público; sin Marketplace). |
+| 2026-09-15 | 4 — entrega y merge (#29 / #28) | APROBADO | PR #29 fusionada por squash a `main`; commit `9ea1062fe47cbcb8cafbc49ec078d381d4fa6701`; issue #28 closed/completed. Entra en `[Unreleased]`; no mueve el tag `v0.7.0`. |
+| 2026-09-15 | 5 — documentación (#28 / #29) | APROBADO | Este snapshot replica Issues y PRs de #28/#29 verificados en GitHub; no reescribe compliance, threat-model ni changelog. No cierra #3. |
 
 ## Bloqueos
 
 - Issue [#3](https://github.com/SrScorpio/alfred-dev-vscode/issues/3): abierta, label `backlog`. Comentario del 2026-09-03: el manifiesto público de Ralph Suite 1.9.1 no expone `ralph-suite.syncIssue` ni scheduler de dispatch paralelo. El bridge local solo puede integrar `openKanban`, `runTask`, `startRunner` y `stopRunner` con ID canónico `ralph-suite.ralph-suite`. No hay label `blocked` en GitHub.
 - Residual MEDIA vigente (tras #18 y #26): el path `ALFRED_DEV_MEMORY_KEY_SOCKET` es enumerable durante el `accept` (ventana ≤5 s, mismo usuario). Unix recorta el inode a `0o600`. Windows no finge DACL. La clave ya no va en `ALFRED_DEV_MEMORY_KEY`. El wipe recicla el provider MCP. No hay issue abierta para este residual.
 - El hueco de proceso CRA/NIS2 (SLA, matriz de versiones, protocolo 24/72 h) quedó cerrado en #21 / PR #23. No es un dictamen jurídico ni conformidad CRA/NIS2 completa; los controles de `compliance.md` siguen en `parcial`.
-- Marketplace: no forma parte del ship 0.7.0. No es un bloqueo de implementación; es un alcance excluido.
+- Marketplace: no forma parte del ship 0.7.0 ni de `checkUpdate` (#28). No es un bloqueo de implementación; es un alcance excluido.
+- Issue [#28](https://github.com/SrScorpio/alfred-dev-vscode/issues/28): cerrada (`completed`) con label residual `in-review`. No es un bloqueo; el trabajo está en `main`.
