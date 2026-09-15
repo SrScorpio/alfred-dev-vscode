@@ -21,7 +21,12 @@
     "commands": [
       {
         "command": "alfred-dev.startFlow",
-        "title": "Alfred Dev: Iniciar Flujo (Feature, Fix, Audit, Ship)",
+        "title": "Alfred Dev: Iniciar Flujo",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.checkUpdate",
+        "title": "Alfred Dev: Comprobar actualización",
         "category": "Alfred Dev"
       },
       {

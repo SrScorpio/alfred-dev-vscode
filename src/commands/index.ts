@@ -12,6 +12,8 @@ import { StatusTreeProvider } from '../providers/statusTreeProvider';
 import { getModelProfileItems } from './modelProfiles';
 import type { ModelProfile } from './modelProfiles';
 import { openAlfredChat } from './chatCommand';
+import { runStartFlowCommand } from './startFlow';
+import { checkForUpdate, fetchLatestRelease } from './checkUpdate';
 import { openStyleGallery } from '../gallery/styleGalleryPanel';
 import { installSecretHook } from '../security/secretHook';
 import {
@@ -59,19 +61,32 @@ export function registerCommands(
   );
 
   const startFlowCommand = vscode.commands.registerCommand('alfred-dev.startFlow', async () => {
-    const flowType = await vscode.window.showQuickPick(
-      ['Feature (Idea -> Entrega)', 'Fix (Diagnóstico -> TDD -> QA)', 'Audit (Seguridad + Calidad)', 'Ship (Publicación)'],
-      { placeHolder: 'Selecciona el flujo que deseas arrancar con Alfred Dev' }
-    );
-
-    if (flowType) {
-      vscode.window.showInformationMessage(`Flujo seleccionado: ${flowType}. Invocando a @alfred en GitHub Copilot...`);
-      void openAlfredChat(
-        (command, prompt) => vscode.commands.executeCommand(command, prompt),
-        (message) => vscode.window.showErrorMessage(message),
-        `@alfred Arranca el flujo ${flowType}`,
-      );
+    await runStartFlowCommand({
+      quickPick: (items) => vscode.window.showQuickPick(items, {
+        placeHolder: 'Selecciona el flujo que deseas arrancar con Alfred Dev',
+      }),
+      openChat: (prompt) => {
+        void openAlfredChat(
+          (command, chatPrompt) => vscode.commands.executeCommand(command, chatPrompt),
+          (message) => vscode.window.showErrorMessage(message),
+          prompt,
+        );
+      },
+      showInformation: (message) => {
+        void vscode.window.showInformationMessage(message);
+      },
+    });
+  });
+  const checkUpdateCommand = vscode.commands.registerCommand('alfred-dev.checkUpdate', async () => {
+    const result = await checkForUpdate({
+      currentVersion: String(context.extension.packageJSON.version ?? ''),
+      fetchLatestRelease,
+    });
+    if (result.isError) {
+      void vscode.window.showErrorMessage(result.message);
+      return;
     }
+    void vscode.window.showInformationMessage(result.message);
   });
 
   const refreshStatusCommand = vscode.commands.registerCommand('alfred-dev.refreshStatus', () => {
@@ -229,6 +244,7 @@ export function registerCommands(
 
   context.subscriptions.push(
     startFlowCommand,
+    checkUpdateCommand,
     refreshStatusCommand,
     openChatCommand,
     selectModelProfileCommand,

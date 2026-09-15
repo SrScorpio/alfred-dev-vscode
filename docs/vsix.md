@@ -25,7 +25,8 @@ Abre la Paleta de comandos y busca la categoría **Alfred Dev**:
 
 | Comando | Resultado |
 |---------|-----------|
-| **Alfred Dev: Iniciar Flujo (Feature, Fix, Audit, Ship)** | Permite elegir un flujo y abre el chat con `@alfred`. |
+| **Alfred Dev: Iniciar Flujo** | QuickPick con Feature, Quick, Fix, Spike, Discuss, Audit, UAT, Ship y Lucius. Abre el chat con un prompt `@alfred` fijo. Cancelar no abre el chat. |
+| **Alfred Dev: Comprobar actualización** | Compara la versión local con el latest GitHub Release. Si coincide, está al día; si hay otra, muestra local, remota y URL. Si no hay releases o falla la red, error accionable (no Marketplace). |
 | **Alfred Dev: Refrescar Estado** | Vuelve a leer y representar el snapshot local. |
 | **Alfred Dev: Hablar con Alfred** | Abre el chat con `@alfred`. |
 | **Alfred Dev: Seleccionar perfil de modelo** | Guarda el perfil elegido como ajuste global. |

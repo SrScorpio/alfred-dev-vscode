@@ -180,9 +180,13 @@ política de coste al trabajar con Alfred.
 
 En VS Code, abre **Alfred Dev** en la Activity Bar para consultar el estado del
 workspace, o usa la paleta de comandos para hablar con `@alfred`, iniciar un
-flujo, refrescar el snapshot y elegir el perfil global. Para generar el VSIX
-local, ejecuta `npm run package`; esta fase no incluye publicación en
-Marketplace.
+flujo, comprobar si hay un GitHub Release más nuevo, refrescar el snapshot y
+elegir el perfil global. **Iniciar Flujo** ofrece Feature, Quick, Fix, Spike,
+Discuss, Audit, UAT, Ship y Lucius (ids estables, prompts `@alfred` fijos).
+**Comprobar actualización** consulta
+`https://github.com/SrScorpio/alfred-dev-vscode/releases` y no usa el
+Marketplace. Para generar el VSIX local, ejecuta `npm run package`; esta fase
+no incluye publicación en Marketplace.
 
 ### Añadir proveedores adicionales
 
@@ -225,11 +229,22 @@ flowchart LR
     A -->|si el usuario pide entrega| DO[devops-engineer]
 ```
 
+En la paleta de VS Code, **Alfred Dev: Iniciar Flujo** abre un QuickPick con
+estos ids (etiquetas en castellano, prompt `@alfred` fijo; cancelar no abre el
+chat):
+
 - **feature** (completo): producto → estilo visual* → arquitectura+seguridad → desarrollo → calidad+seguridad → documentación → entrega+seguridad.
+- **quick**: cambio pequeño o bien delimitado, menos ceremonia que Feature, TDD igual.
 - **fix** (3 fases): diagnóstico → corrección TDD → validación QA+seguridad.
-- **spike**: exploración → conclusiones con ADR.
-- **ship** (4 fases): auditoría final → documentación → empaquetado → despliegue (confirmación del usuario siempre).
+- **spike**: exploración → conclusiones con ADR; no implementa producción.
+- **discuss**: refinar una idea antes de un PRD.
 - **audit**: qa + security + architect + tech-writer en paralelo, informe consolidado.
+- **uat**: confirmación humana del entregable; no sustituye los tests.
+- **ship** (4 fases): auditoría final → documentación → empaquetado → despliegue (confirmación del usuario siempre).
+- **lucius**: segunda opinión en solo lectura.
+
+**Alfred Dev: Comprobar actualización** compara la versión instalada con el
+latest GitHub Release; no usa Marketplace.
 
 \* Solo si el proyecto tiene frontend.
 
