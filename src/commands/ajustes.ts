@@ -22,11 +22,17 @@ export interface AjustesState {
   diagnosticsEnabled: boolean;
 }
 
+export interface AjustesInspection {
+  workspaceValue?: boolean;
+}
+
 export interface AjustesCommandDeps {
   quickPick: (items: AjustesQuickPickItem[]) => PromiseLike<AjustesQuickPickItem | undefined>;
   getBoolean: (key: string, defaultValue: boolean) => boolean;
+  inspect: (key: string) => AjustesInspection;
   updateBoolean: (key: string, value: boolean, target: AjustesConfigTarget) => PromiseLike<void>;
   executeCommand: (command: string) => PromiseLike<unknown>;
+  showInformation?: (message: string) => unknown;
 }
 
 const MEMORY_SETTING = 'alfred-dev.memory.enabled';
@@ -75,7 +81,7 @@ export function getAjustesQuickPickItems(state: AjustesState): AjustesQuickPickI
  * Muestra el selector de ajustes y aplica la opción elegida.
  *
  * Cancelar no cambia configuración ni ejecuta comandos. Los toggles invierten
- * el valor actual con alcance Global, como el perfil de modelo.
+ * el valor actual. Si hay override de workspace se escribe ahí; si no, Global.
  *
  * @param deps Adaptadores de QuickPick, configuración y comandos.
  * @returns `void`.
@@ -101,5 +107,10 @@ export async function runAjustesCommand(deps: AjustesCommandDeps): Promise<void>
 
   const defaultValue = selected.setting === MEMORY_SETTING ? MEMORY_DEFAULT : DIAGNOSTICS_DEFAULT;
   const current = deps.getBoolean(selected.setting, defaultValue);
-  await deps.updateBoolean(selected.setting, !current, 'Global');
+  const nextValue = !current;
+  const target: AjustesConfigTarget = deps.inspect(selected.setting).workspaceValue !== undefined
+    ? 'Workspace'
+    : 'Global';
+  await deps.updateBoolean(selected.setting, nextValue, target);
+  deps.showInformation?.(`${selected.setting}: ${nextValue} (${target})`);
 }

@@ -131,10 +131,14 @@ export function registerCommands(
         title: 'Alfred Dev: Ajustes',
       }),
       getBoolean: (key, defaultValue) => readAlfredBooleanSetting(key, defaultValue),
+      inspect: (key) => inspectAlfredBooleanSetting(key),
       updateBoolean: async (key, value, target) => {
         await updateAlfredBooleanSetting(key, value, target);
       },
       executeCommand: (command) => vscode.commands.executeCommand(command),
+      showInformation: (message) => {
+        void vscode.window.showInformationMessage(message);
+      },
     });
   });
 
@@ -318,6 +322,20 @@ function readAlfredBooleanSetting(key: string, defaultValue: boolean): boolean {
     return vscode.workspace.getConfiguration('alfred-dev').get<boolean>('secretGuard.diagnostics', defaultValue) ?? defaultValue;
   }
   return defaultValue;
+}
+
+function inspectAlfredBooleanSetting(key: string): { workspaceValue?: boolean } {
+  if (key === 'alfred-dev.memory.enabled') {
+    return {
+      workspaceValue: vscode.workspace.getConfiguration('alfred-dev.memory').inspect<boolean>('enabled')?.workspaceValue,
+    };
+  }
+  if (key === 'alfred-dev.secretGuard.diagnostics') {
+    return {
+      workspaceValue: vscode.workspace.getConfiguration('alfred-dev').inspect<boolean>('secretGuard.diagnostics')?.workspaceValue,
+    };
+  }
+  return {};
 }
 
 async function updateAlfredBooleanSetting(
