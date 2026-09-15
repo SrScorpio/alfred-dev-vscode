@@ -113,7 +113,8 @@ test('SECURITY.md publica versiones soportadas y plazos de 24/72 h', () => {
   assert.match(security, /versiones soportadas/i);
   assert.match(security, /24/);
   assert.match(security, /72/);
-  assert.match(security, /0\.6\.5/);
+  assert.match(security, /0\.7\.0/);
+  assert.doesNotMatch(security, /0\.6\.5/);
   assert.match(security, /\^1\.85\.0/);
   assert.match(security, /NIS2/);
   assert.match(incidents, /YYYY-MM-DD-<slug>/);

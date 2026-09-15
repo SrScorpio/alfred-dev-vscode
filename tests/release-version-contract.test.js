@@ -47,5 +47,12 @@ test('el changelog congela 0.7.0 y deja Unreleased sin notas pendientes', () => 
 
   const pendingNotes = changelog.slice(unreleased, released);
   assert.doesNotMatch(pendingNotes, /^- /m, '[Unreleased] debe quedar vacío');
-  assert.match(changelog.slice(released, previous), /MVP de Issue #2/);
+
+  const frozenNotes = changelog.slice(released, previous);
+  assert.match(frozenNotes, /MVP de Issue #2/);
+  assert.match(frozenNotes, /matriz de versiones soportadas \(`0\.7\.0`/);
+  assert.match(frozenNotes, /\^1\.85\.0/);
+  assert.match(frozenNotes, /GitHub Releases/);
+  assert.match(frozenNotes, /confirme el tag/);
+  assert.doesNotMatch(frozenNotes, /matriz de versiones soportadas \(`0\.6\.5`/);
 });

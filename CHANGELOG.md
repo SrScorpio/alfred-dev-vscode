@@ -67,11 +67,12 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Changed
 
-- La política de seguridad publica matriz de versiones soportadas (`0.6.5`,
-  VS Code `^1.85.0`, sin GitHub Releases), SLA de divulgación (acuse 24 h,
-  análisis 72 h, corrección según severidad) y protocolo de incidentes
-  NIS2 art. 23 (alerta 24 h, notificación 72 h, informe final 1 mes), sin
-  fingir conformidad jurídica ni capacidad 24/7.
+- La política de seguridad publica matriz de versiones soportadas (`0.7.0`,
+  VS Code `^1.85.0`; aún no hay GitHub Releases hasta que el usuario
+  confirme el tag), SLA de divulgación (acuse 24 h, análisis 72 h,
+  corrección según severidad) y protocolo de incidentes NIS2 art. 23
+  (alerta 24 h, notificación 72 h, informe final 1 mes), sin fingir
+  conformidad jurídica ni capacidad 24/7.
 - El hijo MCP ya no recibe `ALFRED_DEV_MEMORY_KEY` en el entorno. El padre
   entrega 32 bytes por un socket local de un solo uso
   (`ALFRED_DEV_MEMORY_KEY_SOCKET`) al resolver el arranque, no al listar, y
