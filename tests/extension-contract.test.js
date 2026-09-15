@@ -13,6 +13,8 @@ test('declara comandos de chat y selección de perfil de modelo', () => {
   const packageJson = JSON.parse(readRepositoryFile('package.json'));
   const commands = packageJson.contributes.commands;
 
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.startFlow'));
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.checkUpdate'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.openChat'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.selectModelProfile'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.openStyleGallery'));
@@ -61,6 +63,9 @@ test('cablea la memoria configurada a MCP con feature detection y comandos fallb
   assert.match(memoryIntegration, /provideMcpServerDefinitions/);
   assert.match(memoryIntegration, /resolveMcpServerDefinition/);
   assert.doesNotMatch(extension, /ALFRED_DEV_MEMORY_KEY:/);
+  assert.match(commands, /runStartFlowCommand\(/);
+  assert.match(commands, /alfred-dev\.checkUpdate/);
+  assert.match(commands, /checkForUpdate\(/);
   assert.match(commands, /createMemoryCommandHandlers\(/);
   assert.match(commands, /alfred-dev\.memory\.(?:put|get|search|clear)/);
   assert.match(commands, /clearLocalMemoryAndRecycleMcp\(/);

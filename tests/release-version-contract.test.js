@@ -33,7 +33,7 @@ test('los tests de memoria MCP esperan la versión 0.7.0', () => {
   assert.doesNotMatch(memoryIntegration, /'0\.6\.5'/);
 });
 
-test('el changelog congela 0.7.0 y deja Unreleased sin notas pendientes', () => {
+test('el changelog congela 0.7.0 y deja Unreleased para el trabajo posterior', () => {
   const changelog = readRepositoryFile('CHANGELOG.md');
   const unreleased = changelog.indexOf('## [Unreleased]');
   const released = changelog.indexOf('## [0.7.0] - 2026-09-15');
@@ -46,7 +46,10 @@ test('el changelog congela 0.7.0 y deja Unreleased sin notas pendientes', () => 
   assert.ok(released < previous, '[0.7.0] debe ir antes de [0.6.5]');
 
   const pendingNotes = changelog.slice(unreleased, released);
-  assert.doesNotMatch(pendingNotes, /^- /m, '[Unreleased] debe quedar vacío');
+  assert.match(pendingNotes, /### Added/);
+  assert.match(pendingNotes, /Iniciar Flujo/);
+  assert.match(pendingNotes, /Comprobar actualización/);
+  assert.doesNotMatch(pendingNotes, /## \[0\.7\.1\]/);
 
   const frozenNotes = changelog.slice(released, previous);
   assert.match(frozenNotes, /MVP de Issue #2/);

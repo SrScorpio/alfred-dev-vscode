@@ -25,7 +25,8 @@ Abre la Paleta de comandos y busca la categoría **Alfred Dev**:
 
 | Comando | Resultado |
 |---------|-----------|
-| **Alfred Dev: Iniciar Flujo (Feature, Fix, Audit, Ship)** | Permite elegir un flujo y abre el chat con `@alfred`. |
+| **Alfred Dev: Iniciar Flujo** | QuickPick con Feature, Quick, Fix, Spike, Discuss, Audit, UAT, Ship y Lucius. Abre el chat con un prompt `@alfred` fijo. Cancelar no abre el chat. |
+| **Alfred Dev: Comprobar actualización** | Compara la versión local con el latest GitHub Release. Si coincide, está al día; si hay otra, muestra local, remota y URL. Si no hay releases o falla la red, error accionable (no Marketplace). |
 | **Alfred Dev: Refrescar Estado** | Vuelve a leer y representar el snapshot local. |
 | **Alfred Dev: Hablar con Alfred** | Abre el chat con `@alfred`. |
 | **Alfred Dev: Seleccionar perfil de modelo** | Guarda el perfil elegido como ajuste global. |
@@ -76,7 +77,7 @@ world-connectable entre sesiones, pero Everyone puede ser un problema en
 máquinas compartidas. El proceso solo se
 arranca al utilizarlo. VS Code `^1.85.0` sigue
 soportado mediante los comandos equivalentes, incluido el borrado local,
-cuando esa API no existe. No hay red propia.
+cuando esa API no existe. La memoria no usa red. La única llamada de red propia de la extensión es el GET público de **Comprobar actualización** a GitHub Releases, bajo demanda, sin token y sin telemetría.
 
 El diagnóstico de Secret Guard se ejecuta al guardar y solo avisa; omite
 documentos de más de 64 KiB. El comando

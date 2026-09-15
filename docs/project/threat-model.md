@@ -1,13 +1,13 @@
 # Modelo de amenazas: extension nativa VSIX
 
 **Fecha:** 2026-09-15
-**Autor:** senior-dev (revisión técnica; no sustituye la gate de security-officer)
+**Autor:** security-officer (revisión de superficie de red de `checkUpdate`; no es dictamen jurídico)
 **Commit revisado:** entrega actual
 **Metodologia:** STRIDE
 
 ## Superficie de ataque
 
-La extension se activa en VS Code, lee `docs/project/status.md` del primer workspace, muestra campos parseados en un TreeView, abre el chat con mensajes fijos `@alfred`, ofrece memoria local opt-in por MCP o comandos, diagnósticos de secretos, una galería local, un hook Git explícito y un puente opcional a Ralph Suite. La cadena de release compila TypeScript y usa `@vscode/vsce` para crear el VSIX.
+La extension se activa en VS Code, lee `docs/project/status.md` del primer workspace, muestra campos parseados en un TreeView, abre el chat con mensajes fijos `@alfred`, ofrece memoria local opt-in por MCP o comandos, diagnósticos de secretos, una galería local, un hook Git explícito y un puente opcional a Ralph Suite. Bajo demanda, `alfred-dev.checkUpdate` hace un GET HTTPS público a GitHub Releases. La cadena de release compila TypeScript y usa `@vscode/vsce` para crear el VSIX.
 
 ```mermaid
 flowchart LR
@@ -23,6 +23,7 @@ flowchart LR
   commands -->|put get search| memory
   gitindex[Indice Git no confiable] -->|git show con argv| hook[Secret Guard]
   extension -->|comandos fijos| ralph[Ralph Suite opcional]
+  extension -->|GET Releases bajo demanda| githubApi[API GitHub Releases]
   source[Repositorio y lockfile] --> build[Build local]
   build --> vsce[@vscode/vsce]
   vsce --> vsix[VSIX distribuido]
@@ -71,11 +72,11 @@ No hay registro de acciones de seguridad, publicacion de VSIX ni cambios de perf
 
 ### Information Disclosure (fuga de informacion)
 
-`npx vsce ls --tree` no incluye salidas locales, `.vscode/`, documentación interna, mapas, fuentes, tests, dependencias ni skills. Los diagnósticos y la memoria redactan GitHub tokens, Bearer, `sk-*`, bloques PEM y credenciales AWS. La memoria persiste solo ciphertext AES-256-GCM; la clave se genera y custodia en `SecretStorage`, no en `memory.json`. El hijo MCP recibe solo la ruta del JSON y `ALFRED_DEV_MEMORY_KEY_SOCKET`; la clave cruza por IPC local de un solo uso (32 bytes, un accept, timeout corto) porque la API stdio de VS Code no permite inyectar un descriptor. Tras `listen`, el socket Unix queda `0o600`; el path sigue enumerable por el mismo usuario. En Windows el listener usa `exclusive: true`; Node `net` no expone DACL del named pipe y no se finge un ACL de solo el usuario actual (Everyone puede ser residual en máquinas compartidas). Residual: un proceso del mismo usuario que conozca el path durante esa ventana podría ganar la primera conexión. El hook no imprime contenido ni rutas: solo el número de ficheros staged con hallazgos. El comando de borrado local elimina fichero y clave de este perfil y recicla el provider MCP; no cubre marketplace ni Copilot.
+`npx vsce ls --tree` no incluye salidas locales, `.vscode/`, documentación interna, mapas, fuentes, tests, dependencias ni skills. Los diagnósticos y la memoria redactan GitHub tokens, Bearer, `sk-*`, bloques PEM y credenciales AWS. La memoria persiste solo ciphertext AES-256-GCM; la clave se genera y custodia en `SecretStorage`, no en `memory.json`. El hijo MCP recibe solo la ruta del JSON y `ALFRED_DEV_MEMORY_KEY_SOCKET`; la clave cruza por IPC local de un solo uso (32 bytes, un accept, timeout corto) porque la API stdio de VS Code no permite inyectar un descriptor. Tras `listen`, el socket Unix queda `0o600`; el path sigue enumerable por el mismo usuario. En Windows el listener usa `exclusive: true`; Node `net` no expone DACL del named pipe y no se finge un ACL de solo el usuario actual (Everyone puede ser residual en máquinas compartidas). Residual: un proceso del mismo usuario que conozca el path durante esa ventana podría ganar la primera conexión. El hook no imprime contenido ni rutas: solo el número de ficheros staged con hallazgos. El comando de borrado local elimina fichero y clave de este perfil y recicla el provider MCP; no cubre marketplace ni Copilot. Information Disclosure / red: `alfred-dev.checkUpdate` hace un GET HTTPS público a `https://api.github.com/repos/SrScorpio/alfred-dev-vscode/releases/latest` con `User-Agent: alfred-dev-vscode`, sin token y con URL fija; no envía workspace, memoria ni telemetría. GitHub ve IP, User-Agent y el momento de la consulta.
 
 ### Denial of Service (denegacion de servicio)
 
-La lectura de `status.md` es asincrona y se rechaza antes de abrir el fichero si supera 64 KiB; solo `ENOENT` se comunica como ausencia de snapshot. La memoria rechaza antes del write cualquier JSON superior a 256 KiB; `.ralph` limita configuración y tareas. Los diagnósticos de secretos no escanean documentos de más de 64 KiB. El hook limita cada blob a 1 MiB y bloquea si no puede analizarlo. No hay endpoints de red propios.
+La lectura de `status.md` es asincrona y se rechaza antes de abrir el fichero si supera 64 KiB; solo `ENOENT` se comunica como ausencia de snapshot. La memoria rechaza antes del write cualquier JSON superior a 256 KiB; `.ralph` limita configuración y tareas. Los diagnósticos de secretos no escanean documentos de más de 64 KiB. El hook limita cada blob a 1 MiB y bloquea si no puede analizarlo. No hay endpoints de red propios. La única llamada saliente en `src/` es el GET de `checkUpdate`, disparado por el usuario.
 
 ### Elevation of Privilege (elevacion de privilegios)
 
@@ -108,6 +109,7 @@ prompts, y no se simula paralelismo sin API/scheduler público.
 | Extensión impostora ejecuta comandos `ralph-suite.*` | Baja | Alto | Bajo | Lookup exclusivo del ID `ralph-suite.ralph-suite` y capacidad exacta por acción. |
 | Ralph lee o ejecuta fuera del workspace | Baja | Alto | Bajo | Workspace trust, `runTask` valida `.ralph/config.json` antes del prompt, rutas sin `..`, comandos fijos y sync condicionado a una capacidad anunciada. |
 | Diagnósticos de secretos agotan el host | Baja | Medio | Bajo | Tope de 64 KiB antes de escanear el documento guardado; el hook staged sigue en 1 MiB. |
+| Consulta pública a GitHub Releases (`checkUpdate`) | Media | Bajo | Bajo | GET HTTPS bajo demanda, URL fija, sin token, sin cuerpo; no es telemetría. Residual: GitHub registra IP y User-Agent. |
 
 ## Recomendaciones
 

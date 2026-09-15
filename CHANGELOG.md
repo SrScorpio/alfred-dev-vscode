@@ -9,6 +9,17 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
+- Paleta **Iniciar Flujo** con los ids estables del original Claude Code
+  (`feature`, `quick`, `fix`, `spike`, `discuss`, `audit`, `uat`, `ship`,
+  `lucius`) y prompts `@alfred` fijos. Sin Ralph ni memory-ui.
+- Comando **Alfred Dev: Comprobar actualización** (`alfred-dev.checkUpdate`):
+  GET HTTPS a `https://api.github.com/repos/SrScorpio/alfred-dev-vscode/releases/latest`
+  con `User-Agent: alfred-dev-vscode`, sin token y bajo demanda (no es
+  telemetría). Compara `package.json` con el latest GitHub Release. Si
+  coincide, informa que está al día; si hay otra versión, muestra local,
+  remota y URL; si no hay releases o falla la red, error accionable (no
+  Marketplace).
+
 ### Changed
 
 ### Fixed
