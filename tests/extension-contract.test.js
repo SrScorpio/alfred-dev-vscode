@@ -57,6 +57,8 @@ test('cablea la memoria configurada a MCP con feature detection y comandos fallb
   assert.match(extension, /onDidGrantWorkspaceTrust/);
   assert.match(extension, /onDidChangeConfiguration/);
   assert.match(extension, /affectsConfiguration\('alfred-dev\.memory\.enabled'\)/);
+  assert.match(extension, /registerSecretDiagnosticsOnChange\(/);
+  assert.match(extension, /affectsConfiguration\('alfred-dev\.secretGuard\.diagnostics'\)/);
   assert.match(extension, /SecretStorageMemoryEncryptionKeyProvider\(context\.secrets\)/);
   assert.match(extension, /registerMcpServerDefinitionProvider/);
   assert.match(extension, /McpStdioServerDefinition/);
