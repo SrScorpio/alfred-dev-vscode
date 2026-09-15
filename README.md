@@ -329,7 +329,9 @@ named pipe sin FFI, así que no se promete un ACL de solo el usuario actual
 (Everyone puede ser un problema en máquinas compartidas). Como el engine mínimo declarado es VS Code `^1.85.0`, las versiones
 sin esa API mantienen la función mediante los comandos **Guardar**,
 **Consultar**, **Buscar** y **Borrar memoria local**, conectados al mismo JSON
-sanitizado y atómico. Ninguna ruta realiza llamadas de red.
+sanitizado y atómico. La memoria no usa red; la única llamada de red propia
+es el GET público de **Comprobar actualización** a GitHub Releases, bajo
+demanda, sin token y sin telemetría.
 
 #### Secret Guard y galería visual
 

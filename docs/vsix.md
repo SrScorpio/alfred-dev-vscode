@@ -77,7 +77,7 @@ world-connectable entre sesiones, pero Everyone puede ser un problema en
 máquinas compartidas. El proceso solo se
 arranca al utilizarlo. VS Code `^1.85.0` sigue
 soportado mediante los comandos equivalentes, incluido el borrado local,
-cuando esa API no existe. No hay red propia.
+cuando esa API no existe. La memoria no usa red. La única llamada de red propia de la extensión es el GET público de **Comprobar actualización** a GitHub Releases, bajo demanda, sin token y sin telemetría.
 
 El diagnóstico de Secret Guard se ejecuta al guardar y solo avisa; omite
 documentos de más de 64 KiB. El comando
