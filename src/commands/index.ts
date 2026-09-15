@@ -13,6 +13,8 @@ import { getModelProfileItems } from './modelProfiles';
 import type { ModelProfile } from './modelProfiles';
 import { openAlfredChat } from './chatCommand';
 import { runStartFlowCommand } from './startFlow';
+import { runContinuityCommand } from './continuity';
+import { runAjustesCommand } from './ajustes';
 import { checkForUpdate, fetchLatestRelease } from './checkUpdate';
 import { openStyleGallery } from '../gallery/styleGalleryPanel';
 import { installSecretHook } from '../security/secretHook';
@@ -49,6 +51,13 @@ export function registerCommands(
   },
 ) {
   const getWorkspaceRoot = (): string | undefined => vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const openChatWithPrompt = (prompt?: string) => {
+    void openAlfredChat(
+      (command, chatPrompt) => vscode.commands.executeCommand(command, chatPrompt),
+      (message) => vscode.window.showErrorMessage(message),
+      prompt,
+    );
+  };
   const getRalphBridge = () => new RalphBridge(
     () => resolveRalphSuiteExtension((extensionId) => {
       const extension = vscode.extensions.getExtension(extensionId);
@@ -66,11 +75,7 @@ export function registerCommands(
         placeHolder: 'Selecciona el flujo que deseas arrancar con Alfred Dev',
       }),
       openChat: (prompt) => {
-        void openAlfredChat(
-          (command, chatPrompt) => vscode.commands.executeCommand(command, chatPrompt),
-          (message) => vscode.window.showErrorMessage(message),
-          prompt,
-        );
+        openChatWithPrompt(prompt);
       },
       showInformation: (message) => {
         void vscode.window.showInformationMessage(message);
@@ -95,10 +100,42 @@ export function registerCommands(
   });
 
   const openChatCommand = vscode.commands.registerCommand('alfred-dev.openChat', () => {
-    void openAlfredChat(
-      (command, prompt) => vscode.commands.executeCommand(command, prompt),
-      (message) => vscode.window.showErrorMessage(message),
-    );
+    openChatWithPrompt();
+  });
+
+  const progressCommand = vscode.commands.registerCommand('alfred-dev.progress', async () => {
+    await runContinuityCommand({
+      openChat: (prompt) => {
+        openChatWithPrompt(prompt);
+      },
+    }, 'progress');
+  });
+  const pauseCommand = vscode.commands.registerCommand('alfred-dev.pause', async () => {
+    await runContinuityCommand({
+      openChat: (prompt) => {
+        openChatWithPrompt(prompt);
+      },
+    }, 'pause');
+  });
+  const retomarCommand = vscode.commands.registerCommand('alfred-dev.retomar', async () => {
+    await runContinuityCommand({
+      openChat: (prompt) => {
+        openChatWithPrompt(prompt);
+      },
+    }, 'retomar');
+  });
+  const openSettingsCommand = vscode.commands.registerCommand('alfred-dev.openSettings', async () => {
+    await runAjustesCommand({
+      quickPick: (items) => vscode.window.showQuickPick(items, {
+        placeHolder: 'Selecciona un ajuste de Alfred Dev',
+        title: 'Alfred Dev: Ajustes',
+      }),
+      getBoolean: (key, defaultValue) => readAlfredBooleanSetting(key, defaultValue),
+      updateBoolean: async (key, value, target) => {
+        await updateAlfredBooleanSetting(key, value, target);
+      },
+      executeCommand: (command) => vscode.commands.executeCommand(command),
+    });
   });
 
   const selectModelProfileCommand = vscode.commands.registerCommand('alfred-dev.selectModelProfile', async () => {
@@ -247,6 +284,10 @@ export function registerCommands(
     checkUpdateCommand,
     refreshStatusCommand,
     openChatCommand,
+    progressCommand,
+    pauseCommand,
+    retomarCommand,
+    openSettingsCommand,
     selectModelProfileCommand,
     openStyleGalleryCommand,
     installSecretHookCommand,
@@ -266,6 +307,33 @@ async function executeMemory(action: () => Promise<void>): Promise<void> {
     await action();
   } catch (error: unknown) {
     vscode.window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo usar la memoria local.');
+  }
+}
+
+function readAlfredBooleanSetting(key: string, defaultValue: boolean): boolean {
+  if (key === 'alfred-dev.memory.enabled') {
+    return vscode.workspace.getConfiguration('alfred-dev.memory').get<boolean>('enabled', defaultValue) ?? defaultValue;
+  }
+  if (key === 'alfred-dev.secretGuard.diagnostics') {
+    return vscode.workspace.getConfiguration('alfred-dev').get<boolean>('secretGuard.diagnostics', defaultValue) ?? defaultValue;
+  }
+  return defaultValue;
+}
+
+async function updateAlfredBooleanSetting(
+  key: string,
+  value: boolean,
+  target: 'Global' | 'Workspace',
+): Promise<void> {
+  const configurationTarget = target === 'Global'
+    ? vscode.ConfigurationTarget.Global
+    : vscode.ConfigurationTarget.Workspace;
+  if (key === 'alfred-dev.memory.enabled') {
+    await vscode.workspace.getConfiguration('alfred-dev.memory').update('enabled', value, configurationTarget);
+    return;
+  }
+  if (key === 'alfred-dev.secretGuard.diagnostics') {
+    await vscode.workspace.getConfiguration('alfred-dev').update('secretGuard.diagnostics', value, configurationTarget);
   }
 }
 

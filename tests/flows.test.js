@@ -3,7 +3,7 @@ const test = require('node:test');
 
 const { ALFRED_FLOWS, getFlowQuickPickItems } = require('../out/commands/flows.js');
 
-const REQUIRED_IDS = ['feature', 'quick', 'fix', 'spike', 'discuss', 'audit', 'uat', 'ship', 'lucius'];
+const REQUIRED_IDS = ['feature', 'quick', 'fix', 'spike', 'discuss', 'map-codebase', 'audit', 'uat', 'ship', 'lucius'];
 
 test('expone ids estables de la paleta de flujos', () => {
   assert.deepEqual(ALFRED_FLOWS.map((flow) => flow.id), REQUIRED_IDS);
@@ -21,6 +21,7 @@ test('incluye los flujos nuevos y los clásicos de Feature/Fix/Audit/Ship', () =
   assert.match(byId.quick.label, /Quick/i);
   assert.match(byId.spike.label, /Spike/i);
   assert.match(byId.discuss.label, /Discuss/i);
+  assert.match(byId['map-codebase'].label, /Map codebase/i);
   assert.match(byId.uat.label, /UAT/i);
   assert.match(byId.lucius.label, /Lucius/i);
   assert.match(byId.feature.label, /Feature/i);
@@ -38,6 +39,10 @@ test('incluye los flujos nuevos y los clásicos de Feature/Fix/Audit/Ship', () =
   );
   assert.equal(byId.spike.prompt, '@alfred Arranca el flujo Spike (investigación sin implementar)');
   assert.equal(byId.discuss.prompt, '@alfred Arranca el flujo Discuss (refinar idea antes de un PRD)');
+  assert.equal(
+    byId['map-codebase'].prompt,
+    '@alfred Arranca el flujo Map-codebase: analiza el repo existente, deja artefactos de descubrimiento (docs/ADR/status) y no implementes código de producto.',
+  );
   assert.equal(byId.uat.prompt, '@alfred Arranca el flujo UAT (confirmación humana, no tests)');
   assert.equal(byId.lucius.prompt, '@alfred Arranca el flujo Lucius (segunda opinión en solo lectura)');
 });

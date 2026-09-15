@@ -11,8 +11,8 @@ abren el chat con `@alfred`.
 1. Abre **Alfred Dev** en la Activity Bar.
 2. En **Estado del Proyecto (status.md)** consulta el flujo, la fase, la gate
    pendiente y la siguiente acción del primer workspace abierto.
-3. Usa las acciones del árbol para **Refrescar estado**, **Hablar con Alfred**
-   o **Seleccionar perfil de modelo**.
+3. Usa las acciones del árbol para **Refrescar estado**, **Hablar con Alfred**,
+   **Ver progreso**, **Retomar trabajo** o **Seleccionar perfil de modelo**.
 
 La vista lee `docs/project/status.md` desde el primer workspace. Si el fichero
 no existe, muestra que el estado vive en GitHub Issues; si no hay un workspace,
@@ -25,10 +25,14 @@ Abre la Paleta de comandos y busca la categoría **Alfred Dev**:
 
 | Comando | Resultado |
 |---------|-----------|
-| **Alfred Dev: Iniciar Flujo** | QuickPick con Feature, Quick, Fix, Spike, Discuss, Audit, UAT, Ship y Lucius. Abre el chat con un prompt `@alfred` fijo. Cancelar no abre el chat. |
+| **Alfred Dev: Iniciar Flujo** | QuickPick con Feature, Quick, Fix, Spike, Discuss, Map codebase, Audit, UAT, Ship y Lucius. Abre el chat con un prompt `@alfred` fijo. Cancelar no abre el chat. |
 | **Alfred Dev: Comprobar actualización** | Compara la versión local con el latest GitHub Release. Si coincide, está al día; si hay otra, muestra local, remota y URL. Si no hay releases o falla la red, error accionable (no Marketplace). |
 | **Alfred Dev: Refrescar Estado** | Vuelve a leer y representar el snapshot local. |
 | **Alfred Dev: Hablar con Alfred** | Abre el chat con `@alfred`. |
+| **Alfred Dev: Ver progreso** | Abre el chat con un prompt `@alfred` para reconstruir el estado desde Issues/PRs y `docs/project/status.md`. No inventa estado ni consulta GitHub desde la extensión. |
+| **Alfred Dev: Pausar trabajo** | Abre el chat con un prompt `@alfred` para dejar handoff en la issue in-progress o en el snapshot. No implementa código. |
+| **Alfred Dev: Retomar trabajo** | Abre el chat con un prompt `@alfred` para continuar in-progress / in-review o el snapshot local. |
+| **Alfred Dev: Ajustes** | QuickPick: perfil de modelo, toggle de memoria, toggle de diagnósticos Secret Guard e instalar Secret Guard. Reutiliza comandos y settings existentes. |
 | **Alfred Dev: Seleccionar perfil de modelo** | Guarda el perfil elegido como ajuste global. |
 | **Alfred Dev: Abrir galería visual** | Muestra tres propuestas locales y guarda la elegida tras confirmación explícita. |
 | **Alfred Dev: Instalar Secret Guard pre-commit** | Instala voluntariamente el hook de detección de secretos del repositorio. |

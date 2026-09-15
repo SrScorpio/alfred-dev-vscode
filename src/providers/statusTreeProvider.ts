@@ -70,6 +70,18 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
         { command: 'alfred-dev.openChat', title: 'Hablar con Alfred' },
       ),
       new StatusItem(
+        'Ver progreso',
+        vscode.TreeItemCollapsibleState.None,
+        'graph',
+        { command: 'alfred-dev.progress', title: 'Ver progreso' },
+      ),
+      new StatusItem(
+        'Retomar trabajo',
+        vscode.TreeItemCollapsibleState.None,
+        'debug-continue',
+        { command: 'alfred-dev.retomar', title: 'Retomar trabajo' },
+      ),
+      new StatusItem(
         'Seleccionar perfil de modelo',
         vscode.TreeItemCollapsibleState.None,
         'symbol-misc',
