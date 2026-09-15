@@ -43,18 +43,18 @@ Incluya, como mínimo:
 ## Versiones soportadas
 
 Matriz vigente a 2026-09-15. El manifiesto `package.json` declara la
-versión **0.6.5** y el motor **VS Code `^1.85.0`**. En esa fecha el
+versión **0.7.0** y el motor **VS Code `^1.85.0`**. En esa fecha el
 repositorio **no tiene GitHub Releases ni tags publicados**. Un enlace
 genérico a Releases no demuestra soporte.
 
 | Artefacto | Soporte | Host |
 |-----------|---------|------|
-| `0.6.5` (versión del manifiesto) | Única versión menor declarada; es la línea soportada | VS Code `^1.85.0` |
+| `0.7.0` (versión del manifiesto) | Única versión menor declarada; es la línea soportada | VS Code `^1.85.0` |
 | Cuando exista un GitHub Release | La última versión menor publicada en Releases | VS Code `^1.85.0` |
 | Versiones anteriores a esa menor | Sin soporte de seguridad | — |
 | Pre-releases, commits intermedios, VSIX locales no publicados | Sin soporte formal | — |
 
-Hasta que exista un Release, la línea soportada es el manifiesto `0.6.5`
+Hasta que exista un Release, la línea soportada es el manifiesto `0.7.0`
 en el commit publicado de `main`, no un binario de Marketplace.
 
 ## SLA de divulgación
