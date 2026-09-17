@@ -154,6 +154,95 @@ test('cancelar el borrado no llama a store.delete', async () => {
   assert.deepEqual(deleted, []);
 });
 
+test('openMemoryUi no crea panel si store.list() rechaza', async () => {
+  const created = [];
+  const errors = [];
+  const store = {
+    list: async () => { throw new Error('disco ilegible'); },
+    get: async () => { throw new Error('no debe descifrar'); },
+    delete: async () => { throw new Error('no debe borrar'); },
+  };
+  const vscode = {
+    window: {
+      createWebviewPanel: (...args) => { created.push(args); return dummyPanel(); },
+      showErrorMessage: (message) => { errors.push(message); },
+    },
+  };
+
+  await assert.doesNotReject(() => openMemoryUi({ subscriptions: [] }, store, true, true, vscode));
+  assert.deepEqual(created, []);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /disco ilegible/);
+});
+
+test('reveal sanitiza tokens en el mensaje y no muestra el secreto crudo', async () => {
+  const secretValue = 'ghp_abcdefghijklmnopqrstuvwxyz1234567890';
+  const infos = [];
+  const store = {
+    list: async () => [{ key: 'keep', updatedAt: '2026-01-01T00:00:00.000Z' }],
+    get: async () => secretValue,
+    delete: async () => { throw new Error('no debe borrar'); },
+  };
+  let messageHandler;
+  const panel = {
+    webview: {
+      html: '',
+      onDidReceiveMessage: (handler) => { messageHandler = handler; },
+    },
+  };
+  const vscode = {
+    window: {
+      createWebviewPanel: () => panel,
+      showErrorMessage: () => {},
+      showInformationMessage: (message) => { infos.push(message); },
+      showWarningMessage: async () => undefined,
+    },
+  };
+
+  await openMemoryUi({ subscriptions: [] }, store, true, true, vscode);
+  await messageHandler({ type: 'reveal', key: 'keep' });
+  assert.equal(infos.length, 1);
+  assert.match(infos[0], /\[REDACTED\]/);
+  assert.doesNotMatch(infos[0], /ghp_/);
+  assert.doesNotMatch(infos[0], /abcdefghijklmnopqrstuvwxyz/);
+});
+
+test('delete no abre un segundo modal mientras el primero está pendiente', async () => {
+  const warnings = [];
+  let releaseWarning;
+  const pendingWarning = new Promise((resolve) => { releaseWarning = resolve; });
+  const store = {
+    list: async () => [{ key: 'keep', updatedAt: '2026-01-01T00:00:00.000Z' }],
+    get: async () => undefined,
+    delete: async () => true,
+  };
+  let messageHandler;
+  const panel = {
+    webview: {
+      html: '',
+      onDidReceiveMessage: (handler) => { messageHandler = handler; },
+    },
+  };
+  const vscode = {
+    window: {
+      createWebviewPanel: () => panel,
+      showErrorMessage: () => {},
+      showInformationMessage: () => {},
+      showWarningMessage: async () => {
+        warnings.push('modal');
+        return pendingWarning;
+      },
+    },
+  };
+
+  await openMemoryUi({ subscriptions: [] }, store, true, true, vscode);
+  const first = messageHandler({ type: 'delete', key: 'keep' });
+  const second = messageHandler({ type: 'delete', key: 'keep' });
+  releaseWarning(undefined);
+  await Promise.all([first, second]);
+  assert.equal(warnings.length, 1);
+});
+
 function dummyPanel() {
   return {
     webview: {

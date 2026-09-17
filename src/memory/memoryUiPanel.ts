@@ -2,7 +2,7 @@
 import * as crypto from 'crypto';
 import type * as vscode from 'vscode';
 import { sanitizeSecrets } from '../security/secretScanner';
-import type { MemoryStore } from './memoryStore';
+import type { MemoryListEntry, MemoryStore } from './memoryStore';
 import { renderMemoryUiHtml } from './memoryUi';
 
 interface MemoryUiWindow {
@@ -47,6 +47,14 @@ export async function openMemoryUi(
     return;
   }
 
+  let entries: MemoryListEntry[];
+  try {
+    entries = await store.list();
+  } catch (error: unknown) {
+    window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo usar la memoria local.');
+    return;
+  }
+
   const panel = window.createWebviewPanel(
     'alfredDevMemoryUi',
     'Alfred Dev: Explorar memoria local',
@@ -54,11 +62,12 @@ export async function openMemoryUi(
     { enableScripts: true, localResourceRoots: [] },
   );
   let query = '';
-  const render = async (): Promise<void> => {
+  let busy = false;
+  const render = async (listed?: MemoryListEntry[]): Promise<void> => {
     const nonce = crypto.randomBytes(16).toString('base64');
-    panel.webview.html = renderMemoryUiHtml(await store.list(), nonce, query);
+    panel.webview.html = renderMemoryUiHtml(listed ?? await store.list(), nonce, query);
   };
-  await render();
+  await render(entries);
   panel.webview.onDidReceiveMessage(async (message: unknown) => {
     try {
       if (isSearchMessage(message)) {
@@ -75,15 +84,20 @@ export async function openMemoryUi(
         );
         return;
       }
-      if (!isDeleteMessage(message)) return;
-      const confirmation = await window.showWarningMessage(
-        `¿Borrar la clave "${message.key}" de la memoria local? No se puede deshacer.`,
-        { modal: true },
-        'Borrar',
-      );
-      if (confirmation !== 'Borrar') return;
-      await store.delete(message.key);
-      await render();
+      if (!isDeleteMessage(message) || busy) return;
+      busy = true;
+      try {
+        const confirmation = await window.showWarningMessage(
+          `¿Borrar la clave "${message.key}" de la memoria local? No se puede deshacer.`,
+          { modal: true },
+          'Borrar',
+        );
+        if (confirmation !== 'Borrar') return;
+        await store.delete(message.key);
+        await render();
+      } finally {
+        busy = false;
+      }
     } catch (error: unknown) {
       window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo usar la memoria local.');
     }
