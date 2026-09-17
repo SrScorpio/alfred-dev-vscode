@@ -9,6 +9,11 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
+- Comando **Alfred Dev: Explorar memoria local** (`alfred-dev.memory.explore`):
+  webview CSP/nonce sobre el KV cifrado existente. Lista claves y `updatedAt`
+  (sin values en el HTML inicial), busca, revela una clave sanitizada y borra
+  con confirmación. Exige workspace trust y `alfred-dev.memory.enabled`.
+  `JsonMemoryStore` añade `list()` y `delete(key)`. MCP no expone tools nuevas.
 - Paleta **Iniciar Flujo** con los ids estables del original Claude Code
   (`feature`, `quick`, `fix`, `spike`, `discuss`, `map-codebase`, `audit`,
   `uat`, `ship`, `lucius`) y prompts `@alfred` fijos. Sin Ralph ni memory-ui.
@@ -18,8 +23,8 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
   en el TreeView. No hay fetch de issues en la extensión.
 - **Alfred Dev: Ajustes** (`alfred-dev.openSettings`): QuickPick que reutiliza
   el perfil de modelo, los toggles `alfred-dev.memory.enabled` y
-  `alfred-dev.secretGuard.diagnostics` (alcance Global) y el comando de
-  instalar Secret Guard. Sin settings nuevos.
+  `alfred-dev.secretGuard.diagnostics` (alcance Global), el comando de
+  instalar Secret Guard y **Explorar memoria local**. Sin settings nuevos.
 - Comando **Alfred Dev: Comprobar actualización** (`alfred-dev.checkUpdate`):
   GET HTTPS a `https://api.github.com/repos/SrScorpio/alfred-dev-vscode/releases/latest`
   con `User-Agent: alfred-dev-vscode`, sin token y bajo demanda (no es

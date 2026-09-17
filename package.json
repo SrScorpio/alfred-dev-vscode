@@ -95,6 +95,11 @@
         "category": "Alfred Dev"
       },
       {
+        "command": "alfred-dev.memory.explore",
+        "title": "Alfred Dev: Explorar memoria local",
+        "category": "Alfred Dev"
+      },
+      {
         "command": "alfred-dev.ralph.openKanban",
         "title": "Alfred Dev: Abrir Kanban Ralph",
         "category": "Alfred Dev"

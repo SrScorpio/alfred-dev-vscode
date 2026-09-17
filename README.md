@@ -185,7 +185,7 @@ elegir el perfil global. **Iniciar Flujo** ofrece Feature, Quick, Fix, Spike,
 Discuss, Map codebase, Audit, UAT, Ship y Lucius (ids estables, prompts
 `@alfred` fijos). **Ver progreso**, **Pausar trabajo** y **Retomar trabajo**
 abren el chat con prompts de continuidad; **Ajustes** reutiliza el perfil, la
-memoria y Secret Guard.
+memoria, Secret Guard y **Explorar memoria local**.
 **Comprobar actualización** consulta
 `https://github.com/SrScorpio/alfred-dev-vscode/releases` y no usa el
 Marketplace. Para generar el VSIX local, ejecuta `npm run package`; esta fase
@@ -251,7 +251,7 @@ chat):
 el chat con prompts `@alfred` fijos (reconstruir estado, dejar handoff,
 continuar). Cancelar no aplica: son comandos directos. **Alfred Dev: Ajustes**
 abre un QuickPick con perfil de modelo, toggle de memoria local, toggle de
-diagnósticos Secret Guard e instalar el hook.
+diagnósticos Secret Guard, instalar el hook y explorar la memoria local.
 
 **Alfred Dev: Comprobar actualización** compara la versión instalada con el
 latest GitHub Release; no usa Marketplace.
@@ -338,10 +338,13 @@ listener usa `exclusive: true`; Node `net` no permite fijar la DACL del
 named pipe sin FFI, así que no se promete un ACL de solo el usuario actual
 (Everyone puede ser un problema en máquinas compartidas). Como el engine mínimo declarado es VS Code `^1.85.0`, las versiones
 sin esa API mantienen la función mediante los comandos **Guardar**,
-**Consultar**, **Buscar** y **Borrar memoria local**, conectados al mismo JSON
-sanitizado y atómico. La memoria no usa red; la única llamada de red propia
-es el GET público de **Comprobar actualización** a GitHub Releases, bajo
-demanda, sin token y sin telemetría.
+**Consultar**, **Buscar**, **Borrar memoria local** y **Explorar memoria local**,
+conectados al mismo JSON sanitizado y atómico. **Explorar memoria local** abre
+un webview con CSP/nonce, `localResourceRoots: []` y solo metadatos (`key` +
+`updatedAt`); ver una clave la muestra escapada/sanitizada y borrar pide
+confirmación. MCP no añade tools nuevas: siguen `put/get/search`. La memoria no
+usa red; la única llamada de red propia es el GET público de **Comprobar
+actualización** a GitHub Releases, bajo demanda, sin token y sin telemetría.
 
 #### Secret Guard y galería visual
 

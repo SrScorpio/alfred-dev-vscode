@@ -32,12 +32,13 @@ Abre la Paleta de comandos y busca la categoría **Alfred Dev**:
 | **Alfred Dev: Ver progreso** | Abre el chat con un prompt `@alfred` para reconstruir el estado desde Issues/PRs y `docs/project/status.md`. No inventa estado ni consulta GitHub desde la extensión. |
 | **Alfred Dev: Pausar trabajo** | Abre el chat con un prompt `@alfred` para dejar handoff en la issue in-progress o en el snapshot. No implementa código. |
 | **Alfred Dev: Retomar trabajo** | Abre el chat con un prompt `@alfred` para continuar in-progress / in-review o el snapshot local. |
-| **Alfred Dev: Ajustes** | QuickPick: perfil de modelo, toggle de memoria, toggle de diagnósticos Secret Guard e instalar Secret Guard. Reutiliza comandos y settings existentes. |
+| **Alfred Dev: Ajustes** | QuickPick: perfil de modelo, toggle de memoria, toggle de diagnósticos Secret Guard, instalar Secret Guard y explorar memoria local. Reutiliza comandos y settings existentes. |
 | **Alfred Dev: Seleccionar perfil de modelo** | Guarda el perfil elegido como ajuste global. |
 | **Alfred Dev: Abrir galería visual** | Muestra tres propuestas locales y guarda la elegida tras confirmación explícita. |
 | **Alfred Dev: Instalar Secret Guard pre-commit** | Instala voluntariamente el hook de detección de secretos del repositorio. |
 | **Alfred Dev: Guardar/Consultar/Buscar memoria local** | Usa el backend local opt-in también cuando el runtime no ofrece la API MCP. |
 | **Alfred Dev: Borrar memoria local** | Elimina el fichero cifrado y la clave de este perfil tras confirmación, y recicla el provider MCP. |
+| **Alfred Dev: Explorar memoria local** | Webview CSP/nonce sobre el KV cifrado: lista claves y `updatedAt`, busca, muestra una clave escapada y borra con confirmación. Exige trust y opt-in. |
 | **Alfred Dev: Abrir Kanban Ralph** | Abre el Kanban si Ralph Suite está instalada y activa. |
 | **Alfred Dev: Ejecutar tarea Ralph** | Exige workspace trust, valida `.ralph/config.json` y delega el ID a Ralph Suite. |
 | **Alfred Dev: Iniciar/Detener runner Ralph** | Usa los comandos opcionales de Ralph Suite si están disponibles. |
@@ -81,7 +82,12 @@ world-connectable entre sesiones, pero Everyone puede ser un problema en
 máquinas compartidas. El proceso solo se
 arranca al utilizarlo. VS Code `^1.85.0` sigue
 soportado mediante los comandos equivalentes, incluido el borrado local,
-cuando esa API no existe. La memoria no usa red. La única llamada de red propia de la extensión es el GET público de **Comprobar actualización** a GitHub Releases, bajo demanda, sin token y sin telemetría.
+cuando esa API no existe. El comando **Explorar memoria local** abre un
+webview con la misma CSP que la galería (`default-src 'none'`, style/script
+nonce, `img-src 'none'`, `localResourceRoots: []`). Lista metadatos (`list()`),
+no vuelca values al HTML inicial, filtra por clave, revela con
+`get`+sanitización y borra con confirmación. MCP no expone tools nuevas en
+este corte. La memoria no usa red. La única llamada de red propia de la extensión es el GET público de **Comprobar actualización** a GitHub Releases, bajo demanda, sin token y sin telemetría.
 
 El diagnóstico de Secret Guard se ejecuta al guardar y solo avisa; omite
 documentos de más de 64 KiB. El comando

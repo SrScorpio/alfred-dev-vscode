@@ -74,6 +74,12 @@ export function getAjustesQuickPickItems(state: AjustesState): AjustesQuickPickI
       description: 'Reutiliza el comando existente',
       command: 'alfred-dev.installSecretHook',
     },
+    {
+      id: 'memory-explore',
+      label: 'Explorar memoria local',
+      description: 'Reutiliza el comando existente',
+      command: 'alfred-dev.memory.explore',
+    },
   ];
 }
 

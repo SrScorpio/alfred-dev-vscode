@@ -17,6 +17,7 @@ import { runContinuityCommand } from './continuity';
 import { runAjustesCommand } from './ajustes';
 import { checkForUpdate, fetchLatestRelease } from './checkUpdate';
 import { openStyleGallery } from '../gallery/styleGalleryPanel';
+import { openMemoryUi } from '../memory/memoryUiPanel';
 import { installSecretHook } from '../security/secretHook';
 import {
   RalphBridge,
@@ -206,6 +207,17 @@ export function registerCommands(
   const memorySearchCommand = vscode.commands.registerCommand('alfred-dev.memory.search', () => {
     void executeMemory(() => memoryHandlers.search());
   });
+  const memoryExploreCommand = vscode.commands.registerCommand('alfred-dev.memory.explore', () => {
+    void executeMemory(async () => {
+      await openMemoryUi(
+        context,
+        memoryStore,
+        vscode.workspace.isTrusted,
+        await memoryStore.isEnabled(),
+        { window: vscode.window },
+      );
+    });
+  });
   const memoryClearCommand = vscode.commands.registerCommand('alfred-dev.memory.clear', async () => {
     if (!vscode.workspace.isTrusted) {
       vscode.window.showErrorMessage('La memoria local requiere un workspace de confianza.');
@@ -298,6 +310,7 @@ export function registerCommands(
     memoryPutCommand,
     memoryGetCommand,
     memorySearchCommand,
+    memoryExploreCommand,
     memoryClearCommand,
     ralphOpenKanbanCommand,
     ralphRunTaskCommand,

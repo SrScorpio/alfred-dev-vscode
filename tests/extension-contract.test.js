@@ -27,6 +27,11 @@ test('declara comandos de chat y selección de perfil de modelo', () => {
   assert.ok(commands.some((command) => command.command === 'alfred-dev.memory.get'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.memory.search'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.memory.clear'));
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.memory.explore'));
+  assert.equal(
+    commands.find((command) => command.command === 'alfred-dev.memory.explore')?.title,
+    'Alfred Dev: Explorar memoria local',
+  );
   assert.ok(commands.some((command) => command.command === 'alfred-dev.ralph.openKanban'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.ralph.syncIssue'));
   assert.deepEqual(packageJson.contributes.mcpServerDefinitionProviders, [{
@@ -47,6 +52,26 @@ test('protege escrituras de galería y Secret Guard con workspace trust', () => 
 
   assert.match(commands, /installSecretHookCommand[\s\S]*?workspace\.isTrusted[\s\S]*?installSecretHook\(/);
   assert.match(gallery, /workspace\.isTrusted[\s\S]*?loadStyleOptions\(/);
+});
+
+test('el explorador de memoria exige trust, opt-in y CSP estricta sin tools MCP nuevas', () => {
+  const panel = readRepositoryFile('src/memory/memoryUiPanel.ts');
+  const html = readRepositoryFile('src/memory/memoryUi.ts');
+  const mcp = readRepositoryFile('src/memory/memoryMcpServer.ts');
+
+  assert.match(panel, /!isTrusted/);
+  assert.match(panel, /!isEnabled/);
+  assert.match(panel, /localResourceRoots:\s*\[\]/);
+  assert.match(panel, /showWarningMessage/);
+  assert.match(html, /default-src 'none'/);
+  assert.match(html, /style-src 'nonce-/);
+  assert.match(html, /script-src 'nonce-/);
+  assert.match(html, /img-src 'none'/);
+  assert.match(html, /escapeHtml/);
+  assert.match(mcp, /memory_put/);
+  assert.match(mcp, /memory_get/);
+  assert.match(mcp, /memory_search/);
+  assert.doesNotMatch(mcp, /memory_list|memory_delete/);
 });
 
 test('cablea la memoria configurada a MCP con feature detection y comandos fallback', () => {
@@ -79,7 +104,8 @@ test('cablea la memoria configurada a MCP con feature detection y comandos fallb
   assert.match(commands, /alfred-dev\.checkUpdate/);
   assert.match(commands, /checkForUpdate\(/);
   assert.match(commands, /createMemoryCommandHandlers\(/);
-  assert.match(commands, /alfred-dev\.memory\.(?:put|get|search|clear)/);
+  assert.match(commands, /alfred-dev\.memory\.(?:put|get|search|clear|explore)/);
+  assert.match(commands, /openMemoryUi\(/);
   assert.match(commands, /clearLocalMemoryAndRecycleMcp\(/);
   assert.match(commands, /recycleMemoryMcp/);
   assert.match(commands, /readRalphConfig/);
