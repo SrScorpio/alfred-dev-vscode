@@ -17,7 +17,9 @@ abren el chat con `@alfred`.
 La vista lee `docs/project/status.md` desde el primer workspace. Si el fichero
 no existe, muestra que el estado vive en GitHub Issues; si no hay un workspace,
 muestra que no hay ninguno abierto. El lector rechaza snapshots de más de 64
-KiB y el parser limita cada campo visible a 200 caracteres.
+KiB y el parser limita cada campo visible a 200 caracteres. Si el workspace es
+de confianza y `origin` apunta a GitHub, añade el grupo **Issues abiertas**
+(hasta 20, sin PRs); un clic abre `html_url`. En Restricted Mode no hay GET.
 
 ### Paleta de comandos
 
@@ -87,7 +89,10 @@ webview con la misma CSP que la galería (`default-src 'none'`, style/script
 nonce, `img-src 'none'`, `localResourceRoots: []`). Lista metadatos (`list()`),
 no vuelca values al HTML inicial, filtra por clave, revela con
 `get`+sanitización y borra con confirmación. MCP no expone tools nuevas en
-este corte. La memoria no usa red. La única llamada de red propia de la extensión es el GET público de **Comprobar actualización** a GitHub Releases, bajo demanda, sin token y sin telemetría.
+este corte. La memoria no usa red. Las llamadas de red propias de la extensión
+son GETs públicos, sin token y sin telemetría: **Comprobar actualización** a
+GitHub Releases y, al cargar o refrescar el TreeView en un workspace de
+confianza, issues abiertas de `api.github.com/repos/{owner}/{repo}/issues`.
 
 El diagnóstico de Secret Guard se ejecuta al guardar y solo avisa; omite
 documentos de más de 64 KiB. El comando

@@ -2,8 +2,9 @@
  * Proveedor del TreeView que muestra el snapshot local del flujo de Alfred Dev.
  *
  * Lee `docs/project/status.md` del primer workspace mediante el lector y el
- * parser locales. La ausencia del snapshot conserva el estado en GitHub como
- * fuente de verdad; `extension.ts` registra este proveedor en la Activity Bar.
+ * parser locales. Si el workspace es trusted, añade issues abiertas del origin
+ * GitHub (GET público, sin token). La ausencia del snapshot conserva el estado
+ * en GitHub como fuente de verdad; `extension.ts` registra este proveedor.
  *
  * @module providers/statusTreeProvider
  */
@@ -11,6 +12,17 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { parseProjectStatus } from './parseStatus';
 import { readStatusFile } from './readStatusFile';
+import {
+  githubIssueTreeEntries,
+  listWorkspaceGithubIssues,
+} from './githubRemote';
+import type { FetchOpenIssuesFn } from './githubRemote';
+
+export interface StatusTreeProviderDeps {
+  isTrusted?: () => boolean;
+  getRemoteUrl?: (workspaceRoot: string) => Promise<string>;
+  fetchOpenIssues?: FetchOpenIssuesFn;
+}
 
 /**
  * Implementa el árbol de estado y sus acciones de la interfaz nativa.
@@ -18,6 +30,11 @@ import { readStatusFile } from './readStatusFile';
 export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<StatusItem | undefined | null | void> = new vscode.EventEmitter<StatusItem | undefined | null | void>();
   readonly onDidChangeTreeData: vscode.Event<StatusItem | undefined | null | void> = this._onDidChangeTreeData.event;
+
+  /**
+   * @param deps Trust, origin y fetch inyectables; por defecto usa VS Code y git.
+   */
+  constructor(private readonly deps: StatusTreeProviderDeps = {}) {}
 
   /**
    * Solicita a VS Code que vuelva a leer y representar el snapshot.
@@ -89,6 +106,8 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
       ),
     ];
 
+    const issueItems = await this.loadIssueItems(rootPath);
+
     try {
       const content = await readStatusFile(statusPath);
       const status = parseProjectStatus(content);
@@ -100,20 +119,51 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
       if (status.nextAction) items.push(new StatusItem(`Acción: ${status.nextAction}`, vscode.TreeItemCollapsibleState.None, 'arrow-right'));
       if (status.message) items.push(new StatusItem(status.message, vscode.TreeItemCollapsibleState.None, 'warning'));
 
-      return items;
+      return [...items, ...issueItems];
     } catch (error: unknown) {
       if (isFileNotFoundError(error)) {
         return [
           ...actionItems,
           new StatusItem('Sin snapshot local. El estado vive en GitHub Issues.', vscode.TreeItemCollapsibleState.None, 'info'),
+          ...issueItems,
         ];
       }
 
       return [
         ...actionItems,
         new StatusItem('Error al leer status.md', vscode.TreeItemCollapsibleState.None, 'error'),
+        ...issueItems,
       ];
     }
+  }
+
+  /**
+   * Añade issues abiertas del origin, o nada en Restricted Mode.
+   *
+   * @param workspaceRoot Raíz del primer workspace.
+   * @returns Entradas del grupo Issues, un error accionable, o lista vacía.
+   */
+  private async loadIssueItems(workspaceRoot: string): Promise<StatusItem[]> {
+    const result = await listWorkspaceGithubIssues(workspaceRoot, {
+      isTrusted: this.deps.isTrusted?.() ?? vscode.workspace.isTrusted,
+      execGit: this.deps.getRemoteUrl
+        ? async (_args, options) => this.deps.getRemoteUrl!(options.cwd)
+        : undefined,
+      fetchOpenIssues: this.deps.fetchOpenIssues,
+    });
+
+    return githubIssueTreeEntries(result).map((entry) => new StatusItem(
+      entry.label,
+      vscode.TreeItemCollapsibleState.None,
+      entry.icon,
+      entry.command
+        ? {
+            command: entry.command.command,
+            title: entry.command.title,
+            arguments: [vscode.Uri.parse(entry.command.arguments[0])],
+          }
+        : undefined,
+    ));
   }
 }
 

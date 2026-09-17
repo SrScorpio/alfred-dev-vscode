@@ -179,7 +179,8 @@ una extensión. La selección queda guardada como referencia visible de la
 política de coste al trabajar con Alfred.
 
 En VS Code, abre **Alfred Dev** en la Activity Bar para consultar el estado del
-workspace, o usa la paleta de comandos para hablar con `@alfred`, iniciar un
+workspace y las issues abiertas del `origin` GitHub (hasta 20; Restricted Mode
+no hace GET), o usa la paleta de comandos para hablar con `@alfred`, iniciar un
 flujo, comprobar si hay un GitHub Release más nuevo, refrescar el snapshot y
 elegir el perfil global. **Iniciar Flujo** ofrece Feature, Quick, Fix, Spike,
 Discuss, Map codebase, Audit, UAT, Ship y Lucius (ids estables, prompts
@@ -343,8 +344,9 @@ conectados al mismo JSON sanitizado y atómico. **Explorar memoria local** abre
 un webview con CSP/nonce, `localResourceRoots: []` y solo metadatos (`key` +
 `updatedAt`); ver una clave la muestra escapada/sanitizada y borrar pide
 confirmación. MCP no añade tools nuevas: siguen `put/get/search`. La memoria no
-usa red; la única llamada de red propia es el GET público de **Comprobar
-actualización** a GitHub Releases, bajo demanda, sin token y sin telemetría.
+usa red. Las llamadas de red propias son GETs públicos, sin token y sin
+telemetría: **Comprobar actualización** a GitHub Releases y, en el TreeView
+con workspace de confianza, issues abiertas de `api.github.com`.
 
 #### Secret Guard y galería visual
 

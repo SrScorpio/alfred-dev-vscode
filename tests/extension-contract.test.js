@@ -159,6 +159,30 @@ test('el TreeView expone acciones Progress y Retomar con los comandos nuevos', (
   assert.match(provider, /alfred-dev\.selectModelProfile/);
 });
 
+test('el TreeView lista issues abiertas del origin GitHub sin token ni gh', () => {
+  const provider = readRepositoryFile('src/providers/statusTreeProvider.ts');
+  const remote = readRepositoryFile('src/providers/githubRemote.ts');
+
+  assert.match(provider, /listWorkspaceGithubIssues\(/);
+  assert.match(provider, /githubIssueTreeEntries\(/);
+  assert.match(provider, /isTrusted/);
+  assert.match(provider, /getRemoteUrl/);
+  assert.match(provider, /Uri\.parse/);
+  assert.match(remote, /parseOriginUrl\(/);
+  assert.match(remote, /fetchOpenIssues\(/);
+  assert.match(remote, /api\.github\.com\/repos\/\$\{repo\.owner\}\/\$\{repo\.repo\}\/issues\?state=open&per_page=/);
+  assert.match(remote, /alfred-dev-vscode/);
+  assert.match(remote, /User-Agent/);
+  assert.match(remote, /application\/vnd.github\+json/);
+  assert.match(remote, /command:\s*'vscode\.open'/);
+  assert.match(remote, /execFile/);
+  assert.match(remote, /shell:\s*false/);
+  assert.match(remote, /MAX_STATUS_FIELD_LENGTH/);
+  assert.match(remote, /pull_request/);
+  assert.doesNotMatch(remote, /Authorization|gh /);
+  assert.doesNotMatch(provider, /ralph|syncIssue/i);
+});
+
 test('SECURITY.md publica versiones soportadas y plazos de 24/72 h', () => {
   const security = readRepositoryFile('SECURITY.md');
   const incidents = readRepositoryFile('docs/project/incidents/README.md');
