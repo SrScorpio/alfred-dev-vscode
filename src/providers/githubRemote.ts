@@ -34,9 +34,11 @@ export interface GitHubIssuesHttpResponse {
   json: () => Promise<unknown>;
 }
 
+export const GITHUB_ISSUES_FETCH_TIMEOUT_MS = 8000;
+
 export type GitHubIssuesHttpFetch = (
   url: string,
-  options: { headers: Record<string, string> },
+  options: { headers: Record<string, string>; signal?: AbortSignal },
 ) => Promise<GitHubIssuesHttpResponse>;
 
 export type ExecGit = (args: string[], options: { cwd: string }) => Promise<string>;
@@ -82,6 +84,33 @@ export function parseOriginUrl(url: string): GithubRepoRef | undefined {
   return { owner: match[1], repo: match[2] };
 }
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && (error.name === 'AbortError' || error.name === 'TimeoutError');
+}
+
+function timeoutError(): Error {
+  return new Error(`${ISSUES_READ_ERROR}: tiempo de espera agotado`);
+}
+
+/**
+ * Temporizador referenciado. `AbortSignal.timeout` en Node usa un timer
+ * `unref`, así que un GET que ignore el abort vaciaría el event loop.
+ */
+function waitForTimeout(timeoutMs: number): { promise: Promise<never>; cancel: () => void } {
+  let timeoutId: NodeJS.Timeout | undefined;
+  const promise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(timeoutError()), timeoutMs);
+  });
+  return {
+    promise,
+    cancel() {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    },
+  };
+}
+
 function truncateField(value: string): string {
   if (value.length <= MAX_STATUS_FIELD_LENGTH) {
     return value;
@@ -95,21 +124,39 @@ function truncateField(value: string): string {
  *
  * @param repo Propietario y nombre del repositorio.
  * @param httpFetch Adaptador HTTP; por defecto `fetch` global.
+ * @param timeoutMs Tope inyectable; por defecto 8 s.
  * @returns Issues sin pull requests, títulos truncados, tope de 20.
  */
 export async function fetchOpenIssues(
   repo: GithubRepoRef,
   httpFetch: GitHubIssuesHttpFetch = fetch as GitHubIssuesHttpFetch,
+  timeoutMs: number = GITHUB_ISSUES_FETCH_TIMEOUT_MS,
 ): Promise<GithubIssue[]> {
-  const response = await httpFetch(
-    `https://api.github.com/repos/${repo.owner}/${repo.repo}/issues?state=open&per_page=${OPEN_ISSUES_PER_PAGE}`,
-    {
-      headers: {
-        'User-Agent': GITHUB_ISSUES_USER_AGENT,
-        Accept: 'application/vnd.github+json',
-      },
-    },
-  );
+  const signal = AbortSignal.timeout(timeoutMs);
+  const timeout = waitForTimeout(timeoutMs);
+  let response: GitHubIssuesHttpResponse;
+  try {
+    response = await Promise.race([
+      httpFetch(
+        `https://api.github.com/repos/${repo.owner}/${repo.repo}/issues?state=open&per_page=${OPEN_ISSUES_PER_PAGE}`,
+        {
+          headers: {
+            'User-Agent': GITHUB_ISSUES_USER_AGENT,
+            Accept: 'application/vnd.github+json',
+          },
+          signal,
+        },
+      ),
+      timeout.promise,
+    ]);
+  } catch (error: unknown) {
+    if (signal.aborted || isAbortError(error) || (error instanceof Error && /tiempo de espera/.test(error.message))) {
+      throw timeoutError();
+    }
+    throw error;
+  } finally {
+    timeout.cancel();
+  }
 
   if (response.status === 404) {
     throw new Error(PRIVATE_REPO_ERROR);
@@ -237,7 +284,7 @@ export function githubIssueTreeEntries(result: WorkspaceGithubIssuesResult): Git
       label: `#${issue.number} ${issue.title}`,
       icon: 'circle-outline',
       command: {
-        command: 'vscode.open',
+        command: 'alfred-dev.openGithubIssue',
         title: 'Abrir issue',
         arguments: [issue.htmlUrl],
       },

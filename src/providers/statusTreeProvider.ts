@@ -22,6 +22,7 @@ export interface StatusTreeProviderDeps {
   isTrusted?: () => boolean;
   getRemoteUrl?: (workspaceRoot: string) => Promise<string>;
   fetchOpenIssues?: FetchOpenIssuesFn;
+  readStatusFile?: (filePath: string) => Promise<string>;
 }
 
 /**
@@ -106,11 +107,18 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
       ),
     ];
 
-    const issueItems = await this.loadIssueItems(rootPath);
+    const readSnapshot = this.deps.readStatusFile ?? readStatusFile;
+    const [statusOutcome, issueOutcome] = await Promise.allSettled([
+      readSnapshot(statusPath),
+      this.loadIssueItems(rootPath),
+    ]);
+    const issueItems = issueItemsFrom(issueOutcome);
 
     try {
-      const content = await readStatusFile(statusPath);
-      const status = parseProjectStatus(content);
+      if (statusOutcome.status === 'rejected') {
+        throw statusOutcome.reason;
+      }
+      const status = parseProjectStatus(statusOutcome.value);
       const items: StatusItem[] = [...actionItems];
 
       if (status.flow) items.push(new StatusItem(`Flujo: ${status.flow}`, vscode.TreeItemCollapsibleState.None, 'sync'));
@@ -144,27 +152,45 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
    * @returns Entradas del grupo Issues, un error accionable, o lista vacía.
    */
   private async loadIssueItems(workspaceRoot: string): Promise<StatusItem[]> {
-    const result = await listWorkspaceGithubIssues(workspaceRoot, {
-      isTrusted: this.deps.isTrusted?.() ?? vscode.workspace.isTrusted,
-      execGit: this.deps.getRemoteUrl
-        ? async (_args, options) => this.deps.getRemoteUrl!(options.cwd)
-        : undefined,
-      fetchOpenIssues: this.deps.fetchOpenIssues,
-    });
+    try {
+      const result = await listWorkspaceGithubIssues(workspaceRoot, {
+        isTrusted: this.deps.isTrusted?.() ?? vscode.workspace.isTrusted,
+        execGit: this.deps.getRemoteUrl
+          ? async (_args, options) => this.deps.getRemoteUrl!(options.cwd)
+          : undefined,
+        fetchOpenIssues: this.deps.fetchOpenIssues,
+      });
 
-    return githubIssueTreeEntries(result).map((entry) => new StatusItem(
-      entry.label,
-      vscode.TreeItemCollapsibleState.None,
-      entry.icon,
-      entry.command
-        ? {
-            command: entry.command.command,
-            title: entry.command.title,
-            arguments: [vscode.Uri.parse(entry.command.arguments[0])],
-          }
-        : undefined,
-    ));
+      return githubIssueTreeEntries(result).map((entry) => new StatusItem(
+        entry.label,
+        vscode.TreeItemCollapsibleState.None,
+        entry.icon,
+        entry.command
+          ? {
+              command: entry.command.command,
+              title: entry.command.title,
+              arguments: [vscode.Uri.parse(entry.command.arguments[0])],
+            }
+          : undefined,
+      ));
+    } catch (error: unknown) {
+      const message = error instanceof Error && error.message
+        ? error.message
+        : 'No se pudieron leer issues de GitHub';
+      return [new StatusItem(message, vscode.TreeItemCollapsibleState.None, 'warning')];
+    }
   }
+}
+
+function issueItemsFrom(outcome: PromiseSettledResult<StatusItem[]>): StatusItem[] {
+  if (outcome.status === 'fulfilled') {
+    return outcome.value;
+  }
+
+  const message = outcome.reason instanceof Error && outcome.reason.message
+    ? outcome.reason.message
+    : 'No se pudieron leer issues de GitHub';
+  return [new StatusItem(message, vscode.TreeItemCollapsibleState.None, 'warning')];
 }
 
 /**

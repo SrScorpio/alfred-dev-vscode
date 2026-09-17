@@ -70,6 +70,7 @@ test('fetchOpenIssues consulta issues abiertas con User-Agent y Accept, sin toke
   assert.equal(calls[0].options.headers['User-Agent'], 'alfred-dev-vscode');
   assert.equal(calls[0].options.headers.Accept, 'application/vnd.github+json');
   assert.equal(calls[0].options.headers.Authorization, undefined);
+  assert.equal(calls[0].options.signal instanceof AbortSignal, true);
 });
 
 test('fetchOpenIssues trunca títulos con MAX_STATUS_FIELD_LENGTH', async () => {
@@ -126,6 +127,21 @@ test('fetchOpenIssues propaga fallos de red', async () => {
     }),
     /ECONNRESET/,
   );
+});
+
+test('fetchOpenIssues corta un GET que no resuelve al superar el timeout', { timeout: 1000 }, async () => {
+  const started = Date.now();
+
+  await assert.rejects(
+    () => fetchOpenIssues(
+      { owner: 'acme', repo: 'widgets' },
+      () => new Promise(() => {}),
+      25,
+    ),
+    /tiempo de espera|timeout|issues de GitHub/i,
+  );
+
+  assert.ok(Date.now() - started < 1000, 'el timeout no debe colgar el GET');
 });
 
 test('listWorkspaceGithubIssues no hace GET ni exec si el workspace no es trusted', async () => {
@@ -225,7 +241,7 @@ test('githubIssueTreeEntries muestra el mensaje de error sin inventar issues', (
   assert.equal(entries[0].command, undefined);
 });
 
-test('githubIssueTreeEntries añade cabecera, tope de 20 y vscode.open con html_url', () => {
+test('githubIssueTreeEntries añade cabecera, tope de 20 y alfred-dev.openGithubIssue con html_url', () => {
   const issues = Array.from({ length: 21 }, (_, index) => ({
     number: index + 1,
     title: `Issue ${index + 1}`,
@@ -239,7 +255,7 @@ test('githubIssueTreeEntries añade cabecera, tope de 20 y vscode.open con html_
   assert.equal(entries.length, 21);
   assert.equal(entries[1].label, '#1 Issue 1');
   assert.equal(entries[20].label, '#20 Issue 20');
-  assert.equal(entries[1].command.command, 'vscode.open');
+  assert.equal(entries[1].command.command, 'alfred-dev.openGithubIssue');
   assert.deepEqual(entries[1].command.arguments, ['https://github.com/acme/widgets/issues/1']);
-  assert.doesNotMatch(JSON.stringify(entries), /gh |Authorization|token/i);
+  assert.doesNotMatch(JSON.stringify(entries), /vscode\.open|gh |Authorization|token/i);
 });

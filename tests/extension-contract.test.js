@@ -20,6 +20,7 @@ test('declara comandos de chat y selección de perfil de modelo', () => {
   assert.ok(commands.some((command) => command.command === 'alfred-dev.retomar'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.openSettings'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.openChat'));
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.openGithubIssue'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.selectModelProfile'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.openStyleGallery'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.installSecretHook'));
@@ -163,23 +164,31 @@ test('el TreeView lista issues abiertas del origin GitHub sin token ni gh', () =
   const provider = readRepositoryFile('src/providers/statusTreeProvider.ts');
   const remote = readRepositoryFile('src/providers/githubRemote.ts');
 
+  const commands = readRepositoryFile('src/commands/index.ts');
+  const openIssue = readRepositoryFile('src/commands/openGithubIssue.ts');
+
   assert.match(provider, /listWorkspaceGithubIssues\(/);
   assert.match(provider, /githubIssueTreeEntries\(/);
   assert.match(provider, /isTrusted/);
   assert.match(provider, /getRemoteUrl/);
+  assert.match(provider, /Promise\.allSettled/);
   assert.match(provider, /Uri\.parse/);
+  assert.match(commands, /alfred-dev\.openGithubIssue/);
+  assert.match(openIssue, /openExternal/);
   assert.match(remote, /parseOriginUrl\(/);
   assert.match(remote, /fetchOpenIssues\(/);
+  assert.match(remote, /AbortSignal\.timeout/);
   assert.match(remote, /api\.github\.com\/repos\/\$\{repo\.owner\}\/\$\{repo\.repo\}\/issues\?state=open&per_page=/);
   assert.match(remote, /alfred-dev-vscode/);
   assert.match(remote, /User-Agent/);
   assert.match(remote, /application\/vnd.github\+json/);
-  assert.match(remote, /command:\s*'vscode\.open'/);
+  assert.match(remote, /command:\s*'alfred-dev\.openGithubIssue'/);
   assert.match(remote, /execFile/);
   assert.match(remote, /shell:\s*false/);
   assert.match(remote, /MAX_STATUS_FIELD_LENGTH/);
   assert.match(remote, /pull_request/);
   assert.doesNotMatch(remote, /Authorization|gh /);
+  assert.doesNotMatch(remote, /command:\s*'vscode\.open'/);
   assert.doesNotMatch(provider, /ralph|syncIssue/i);
 });
 

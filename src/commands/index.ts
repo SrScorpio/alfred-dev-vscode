@@ -12,6 +12,7 @@ import { StatusTreeProvider } from '../providers/statusTreeProvider';
 import { getModelProfileItems } from './modelProfiles';
 import type { ModelProfile } from './modelProfiles';
 import { openAlfredChat } from './chatCommand';
+import { openGithubIssue } from './openGithubIssue';
 import { runStartFlowCommand } from './startFlow';
 import { runContinuityCommand } from './continuity';
 import { runAjustesCommand } from './ajustes';
@@ -103,6 +104,18 @@ export function registerCommands(
   const openChatCommand = vscode.commands.registerCommand('alfred-dev.openChat', () => {
     openChatWithPrompt();
   });
+  const openGithubIssueCommand = vscode.commands.registerCommand(
+    'alfred-dev.openGithubIssue',
+    async (target?: vscode.Uri | string) => {
+      try {
+        await openGithubIssue(target, (uri) => vscode.env.openExternal(vscode.Uri.parse(String(uri))));
+      } catch (error: unknown) {
+        vscode.window.showErrorMessage(
+          error instanceof Error ? error.message : 'No se pudo abrir la issue de GitHub.',
+        );
+      }
+    },
+  );
 
   const progressCommand = vscode.commands.registerCommand('alfred-dev.progress', async () => {
     await runContinuityCommand({
@@ -300,6 +313,7 @@ export function registerCommands(
     checkUpdateCommand,
     refreshStatusCommand,
     openChatCommand,
+    openGithubIssueCommand,
     progressCommand,
     pauseCommand,
     retomarCommand,
