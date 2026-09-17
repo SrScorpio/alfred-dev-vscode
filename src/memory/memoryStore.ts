@@ -83,11 +83,18 @@ export interface MemoryStoreOptions {
   maxValueLength?: number;
 }
 
+export interface MemoryListEntry {
+  key: string;
+  updatedAt: string;
+}
+
 export interface MemoryStore {
   isEnabled(): Promise<boolean>;
   put(key: string, value: string): Promise<void>;
   get(key: string): Promise<string | undefined>;
   search(query: string): Promise<MemoryRecord[]>;
+  list(): Promise<MemoryListEntry[]>;
+  delete(key: string): Promise<boolean>;
 }
 
 function validateKey(key: string): string {
@@ -146,6 +153,20 @@ export class JsonMemoryStore implements MemoryStore {
     return (await this.read()).entries
       .filter((entry) => `${entry.key} ${entry.value}`.toLocaleLowerCase().includes(normalizedQuery))
       .map(({ key, value }) => ({ key, value }));
+  }
+
+  async list(): Promise<MemoryListEntry[]> {
+    return (await this.read()).entries.map(({ key, updatedAt }) => ({ key, updatedAt }));
+  }
+
+  async delete(key: string): Promise<boolean> {
+    const normalizedKey = validateKey(key);
+    const memory = await this.read();
+    const existingIndex = memory.entries.findIndex((entry) => entry.key === normalizedKey);
+    if (existingIndex < 0) return false;
+    memory.entries.splice(existingIndex, 1);
+    await this.write(memory);
+    return true;
   }
 
   private async read(): Promise<MemoryPayload> {
@@ -287,5 +308,7 @@ export function createLazyMemoryStore(enabled: MemoryEnabled, factory: MemoryFac
     put: async (key, value) => { if (isMemoryEnabled(enabled)) await (await getBackend()).put(key, value); },
     get: async (key) => isMemoryEnabled(enabled) ? (await getBackend()).get(key) : undefined,
     search: async (query) => isMemoryEnabled(enabled) ? (await getBackend()).search(query) : [],
+    list: async () => isMemoryEnabled(enabled) ? (await getBackend()).list() : [],
+    delete: async (key) => isMemoryEnabled(enabled) ? (await getBackend()).delete(key) : false,
   };
 }

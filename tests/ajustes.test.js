@@ -11,6 +11,7 @@ const REQUIRED_IDS = [
   'memory-enabled',
   'secret-guard-diagnostics',
   'install-secret-hook',
+  'memory-explore',
 ];
 
 test('el QuickPick de ajustes expone ids estables', () => {
@@ -39,6 +40,7 @@ test('el toggle de memoria refleja el valor actual y no inventa settings', () =>
   assert.equal(byId(disabled)['secret-guard-diagnostics'].setting, 'alfred-dev.secretGuard.diagnostics');
   assert.equal(byId(disabled)['model-profile'].command, 'alfred-dev.selectModelProfile');
   assert.equal(byId(disabled)['install-secret-hook'].command, 'alfred-dev.installSecretHook');
+  assert.equal(byId(disabled)['memory-explore'].command, 'alfred-dev.memory.explore');
   assert.equal(
     itemsHaveOnlyKnownSettings(disabled),
     true,
@@ -65,7 +67,7 @@ test('cancelar el QuickPick no cambia configuración ni ejecuta comandos', async
   assert.deepEqual(updated, []);
 });
 
-test('elegir perfil o instalar Secret Guard reutiliza comandos existentes', async () => {
+test('elegir perfil, Secret Guard o explorar memoria reutiliza comandos existentes', async () => {
   const executed = [];
 
   await runAjustesCommand({
@@ -86,10 +88,20 @@ test('elegir perfil o instalar Secret Guard reutiliza comandos existentes', asyn
       executed.push(command);
     },
   });
+  await runAjustesCommand({
+    quickPick: async (items) => items.find((item) => item.id === 'memory-explore'),
+    getBoolean: (_key, defaultValue) => defaultValue,
+    inspect: () => ({}),
+    updateBoolean: async () => {},
+    executeCommand: async (command) => {
+      executed.push(command);
+    },
+  });
 
   assert.deepEqual(executed, [
     'alfred-dev.selectModelProfile',
     'alfred-dev.installSecretHook',
+    'alfred-dev.memory.explore',
   ]);
 });
 

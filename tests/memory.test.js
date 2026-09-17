@@ -137,6 +137,8 @@ test('las operaciones de memoria desactivada no crean el backend', async () => {
   await memory.put('key', 'value');
   assert.equal(await memory.get('key'), undefined);
   assert.deepEqual(await memory.search('value'), []);
+  assert.deepEqual(await memory.list(), []);
+  assert.equal(await memory.delete('key'), false);
   assert.equal(factoryCalls, 0);
 });
 
@@ -160,6 +162,8 @@ test('la memoria lazy sigue el opt-in que cambia en sesión', async () => {
       put: async () => {},
       get: async () => 'stored',
       search: async () => [{ key: 'decision', value: 'stored' }],
+      list: async () => [{ key: 'decision', updatedAt: '2026-01-01T00:00:00.000Z' }],
+      delete: async () => true,
     };
   });
 
@@ -171,4 +175,49 @@ test('la memoria lazy sigue el opt-in que cambia en sesión', async () => {
   assert.equal(await memory.isEnabled(), true);
   assert.equal(await memory.get('decision'), 'stored');
   assert.equal(factoryCalls, 1);
+});
+
+test('list sin entradas devuelve un array vacío', async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-list-empty-'));
+  const store = new JsonMemoryStore(path.join(directory, 'memory.json'), createKeyProvider());
+
+  assert.deepEqual(await store.list(), []);
+});
+
+test('list tras put devuelve metadatos sin values', async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-list-put-'));
+  const store = new JsonMemoryStore(path.join(directory, 'memory.json'), createKeyProvider());
+
+  await store.put('decision', 'token=ghp_abcdefghijklmnopqrstuvwxyz1234567890');
+  const listed = await store.list();
+
+  assert.equal(listed.length, 1);
+  assert.equal(listed[0].key, 'decision');
+  assert.equal(typeof listed[0].updatedAt, 'string');
+  assert.ok(Number.isNaN(Date.parse(listed[0].updatedAt)) === false);
+  assert.equal('value' in listed[0], false);
+  assert.doesNotMatch(JSON.stringify(listed), /ghp_|abcdefghijklmnopqrstuvwxyz/);
+});
+
+test('delete elimina una clave existente y delete inexistente no explota', async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-memory-delete-'));
+  const store = new JsonMemoryStore(path.join(directory, 'memory.json'), createKeyProvider(), {
+    maxEntries: 2,
+    maxValueLength: 100,
+  });
+
+  await store.put('keep', 'local context');
+  await store.put('drop', 'token=ghp_abcdefghijklmnopqrstuvwxyz1234567890');
+
+  assert.equal(await store.delete('drop'), true);
+  assert.equal(await store.get('drop'), undefined);
+  assert.equal(await store.get('keep'), 'local context');
+  assert.deepEqual((await store.list()).map((entry) => entry.key), ['keep']);
+  assert.equal(await store.delete('missing'), false);
+  assert.equal(await store.delete('drop'), false);
+  await assert.rejects(store.delete('bad\nkey'), /no es válida/);
+
+  await store.put('again', 'second chance');
+  assert.deepEqual((await store.list()).map((entry) => entry.key).sort(), ['again', 'keep']);
+  await assert.rejects(store.put('third', 'overflow'), /límite máximo de 2 entradas/);
 });
