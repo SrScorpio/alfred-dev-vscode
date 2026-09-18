@@ -2,14 +2,14 @@
 
 > Snapshot local duplicado desde GitHub Issues y PRs. La fuente de verdad
 > colaborativa son las issues y los PRs; este fichero es el respaldo offline.
-> Lo escribe `tech-writer`. Actualizado: 2026-09-17.
+> Lo escribe `tech-writer`. Actualizado: 2026-09-18.
 
 ## Flujo activo
 
-- **Flujo:** ninguno de implementación. El ship 0.7.0 sigue publicado (tag anotado `v0.7.0` y GitHub Release). Tras ese tag, `main` incorpora la paleta de flujos y `checkUpdate` (#28 / PR #29), la continuidad nativa (#31 / PR #32) y Memory UI (#34 / PR #35) en `[Unreleased]`. Sin Marketplace.
-- **Feature / descripción:** feature #34 completada (PR #35): webview CSP del KV cifrado (`list`/`search`/`reveal`/`delete`; `list()` antes de crear el panel). Continuidad (`progress`, `pause`, `retomar`), flujo `map-codebase` y Ajustes nativos ya estaban en `main` por #31 / PR #32. Paleta de 9 flujos y `alfred-dev.checkUpdate` por #28 / PR #29. Residual MEDIA de clave MCP en entorno y wipe incompleto del hijo cerrado en `main` por PR #18. ACL Unix `0o600` del socket one-shot cerrado en `main` por PR #26 (`Closes #25`). Proceso CRA/NIS2 cerrado en #21 (PR #23). Manifiesto y changelog congelados en 0.7.0 por #20 (PR #22). Queda el residual de la issue #3 (Ralph Suite), sin trabajo de implementación en curso.
-- **Fase actual:** documentación post-merge de #35. `origin/main` HEAD `244c3f4d655a3822790f4cab814fd9f2d06b1b00` (squash PR #35, Closes #34). El tag anotado `v0.7.0` sigue en `1c0d09acc1d591b5cfb183aca881fbea4f92d54b`; este cambio es posterior al tag y no lo mueve. Marketplace fuera de alcance.
-- **Gate pendiente:** ninguna HARD-GATE de implementación para #34. Residual MEDIA del path del socket (mismo usuario) y backlog #3.
+- **Flujo:** ninguno de implementación. El ship 0.7.0 sigue publicado (tag anotado `v0.7.0` y GitHub Release). Tras ese tag, `main` incorpora la paleta de flujos y `checkUpdate` (#28 / PR #29), la continuidad nativa (#31 / PR #32), Memory UI (#34 / PR #35) y el TreeView de issues abiertas de GitHub (#37 / PR #38) en `[Unreleased]`. Sin Marketplace.
+- **Feature / descripción:** feature #37 completada (PR #38): el TreeView lista issues abiertas del `origin` GitHub (GET público, timeout 8 s, pintura en dos ticks: snapshot primero, issues después; click con `openExternal`; Restricted Mode sin GET). Memory UI ya estaba en `main` por #34 / PR #35. Continuidad (`progress`, `pause`, `retomar`), flujo `map-codebase` y Ajustes nativos por #31 / PR #32. Paleta de 9 flujos y `alfred-dev.checkUpdate` por #28 / PR #29. Residual MEDIA de clave MCP en entorno y wipe incompleto del hijo cerrado en `main` por PR #18. ACL Unix `0o600` del socket one-shot cerrado en `main` por PR #26 (`Closes #25`). Proceso CRA/NIS2 cerrado en #21 (PR #23). Manifiesto y changelog congelados en 0.7.0 por #20 (PR #22). Queda el residual de la issue #3 (Ralph Suite), sin trabajo de implementación en curso.
+- **Fase actual:** documentación post-merge de #38. `origin/main` HEAD `5562310caf44ea2f5f79ced7e08500949e2831f0` (squash PR #38, Closes #37). El tag anotado `v0.7.0` sigue en `1c0d09acc1d591b5cfb183aca881fbea4f92d54b`; este cambio es posterior al tag y no lo mueve. Marketplace fuera de alcance.
+- **Gate pendiente:** ninguna HARD-GATE de implementación para #37. Residual MEDIA del path del socket (mismo usuario) y backlog #3.
 - **Siguiente acción:** no hay implementación activa. La issue #3 permanece abierta con label `backlog`. No priorizar implementación hasta que Ralph Suite publique APIs verificables (`ralph-suite.syncIssue` y scheduler paralelo). El residual MEDIA del path `ALFRED_DEV_MEMORY_KEY_SOCKET` no tiene issue abierta. Unreleased en `main` no implica bump ni retag de 0.7.0.
 
 ## Issues
@@ -25,8 +25,9 @@
 | #28 | Paleta de flujos fiel al original y comando update | done (closed/completed) | [#29](https://github.com/SrScorpio/alfred-dev-vscode/pull/29) merged |
 | #31 | Continuidad: progress, pause, retomar, map-codebase y ajustes | done (closed/completed) | [#32](https://github.com/SrScorpio/alfred-dev-vscode/pull/32) merged |
 | #34 | Memory UI: webview del almacén cifrado | done (closed/completed) | [#35](https://github.com/SrScorpio/alfred-dev-vscode/pull/35) merged |
+| #37 | Sync GitHub: issues abiertas en el TreeView | done (closed/completed) | [#38](https://github.com/SrScorpio/alfred-dev-vscode/pull/38) merged |
 
-Notas verificadas en GitHub el 2026-09-17:
+Notas verificadas en GitHub el 2026-09-18:
 
 - [#2](https://github.com/SrScorpio/alfred-dev-vscode/issues/2) está `closed` con `state_reason: completed` (cierre 2026-09-14T17:43:37Z por SrScorpio). Labels actuales: `[]`. El label `in-progress` ya no está; se retiró tras el snapshot de PR #17 (`updated_at` 2026-09-14T18:21:52Z). PR #18 no reabre #2.
 - [#3](https://github.com/SrScorpio/alfred-dev-vscode/issues/3) está `open` con label `backlog`. Comentario del 2026-09-03: bloqueada por capacidad upstream de Ralph Suite 1.9.1 (sin `ralph-suite.syncIssue` ni scheduler paralelo). El label de GitHub es `backlog`, no `blocked`.
@@ -36,11 +37,14 @@ Notas verificadas en GitHub el 2026-09-17:
 - [#28](https://github.com/SrScorpio/alfred-dev-vscode/issues/28) está `closed` con `state_reason: completed` (cierre 2026-09-15T17:39:14Z por SrScorpio). Labels actuales: `[]` (el residual `in-review` del snapshot de PR #30 ya no está; `updated_at` 2026-09-15T17:47:25Z). Cerrada por PR #29 (`Closes #28`). GitHub también lista PR #30 como referencia de cierre porque sincroniza el snapshot; el cierre semántico de #28 es PR #29. Alcance: paleta de 9 flujos y `alfred-dev.checkUpdate` contra GitHub Releases. Fuera: Ralph (#3), Marketplace, hooks PreToolUse.
 - [#31](https://github.com/SrScorpio/alfred-dev-vscode/issues/31) está `closed` con `state_reason: completed` (cierre 2026-09-15T18:54:54Z por SrScorpio). Labels actuales: `[]`. Cerrada por PR #32 (`Closes #31`). Alcance: continuidad (`progress`, `pause`, `retomar`), flujo `map-codebase` y Ajustes nativos (toggles inspect Workspace/Global, diagnósticos en caliente). Fuera: Ralph (#3), Marketplace, memory-ui, sync-github tablero, hooks PreToolUse, bump de versión.
 - [#34](https://github.com/SrScorpio/alfred-dev-vscode/issues/34) está `closed` con `state_reason: completed` (cierre 2026-09-17T17:13:40Z por SrScorpio). Labels actuales: `[]`. Cerrada por PR #35 (`Closes #34`). Alcance: webview CSP del KV cifrado (`list`/`search`/`reveal`/`delete`; `list()` antes de crear el panel). Fuera: SQLite, timeline, Ralph (#3), Marketplace, sync-github tablero, tools MCP nuevas, bump de versión.
+- [#37](https://github.com/SrScorpio/alfred-dev-vscode/issues/37) está `closed` con `state_reason: completed` (cierre 2026-09-18T12:45:14Z por SrScorpio). Labels actuales: `in-review` (residual tras el cierre; `updated_at` 2026-09-18T12:45:14Z). Cerrada por PR #38 (`Closes #37`). Alcance: TreeView lista issues abiertas de origin GitHub (GET público, timeout 8 s, pintura en dos ticks: snapshot primero; `openExternal`; Restricted Mode sin GET). Fuera: Ralph (#3), token para privados, Marketplace, bump de versión.
 
 ## PRs
 
 | PR | Título | Estado |
 |----|--------|--------|
+| [#38](https://github.com/SrScorpio/alfred-dev-vscode/pull/38) | feat: list open GitHub issues in the status TreeView | merged (squash) el 2026-09-18T12:45:12Z; commit [`5562310caf44ea2f5f79ced7e08500949e2831f0`](https://github.com/SrScorpio/alfred-dev-vscode/commit/5562310caf44ea2f5f79ced7e08500949e2831f0). Closes #37. HEAD de la rama: `54ea6391f398f4f00178878f99542a5e8f492f93` |
+| [#36](https://github.com/SrScorpio/alfred-dev-vscode/pull/36) | chore: update flow status | merged (squash) el 2026-09-17T17:22:07Z; commit [`f0a19420df942417562784e029d349da29480283`](https://github.com/SrScorpio/alfred-dev-vscode/commit/f0a19420df942417562784e029d349da29480283). Snapshot de #34/#35; no cierra #3. Quedó desfasado respecto a #37/#38 |
 | [#35](https://github.com/SrScorpio/alfred-dev-vscode/pull/35) | feat: añadir explorador webview de memoria local | merged (squash) el 2026-09-17T17:13:38Z; commit [`244c3f4d655a3822790f4cab814fd9f2d06b1b00`](https://github.com/SrScorpio/alfred-dev-vscode/commit/244c3f4d655a3822790f4cab814fd9f2d06b1b00). Closes #34. HEAD de la rama: `e14b089b9239f824169fa7ecaf0bec55d468b409` |
 | [#33](https://github.com/SrScorpio/alfred-dev-vscode/pull/33) | chore: update flow status | merged (squash) el 2026-09-15T19:04:02Z; commit [`3137969aa0c0924e30c20f17e0ded1a0227b61a0`](https://github.com/SrScorpio/alfred-dev-vscode/commit/3137969aa0c0924e30c20f17e0ded1a0227b61a0). Snapshot de #31/#32; no cierra #3. Quedó desfasado respecto a #34/#35 |
 | [#32](https://github.com/SrScorpio/alfred-dev-vscode/pull/32) | feat: continuidad, map-codebase y ajustes nativos | merged (squash) el 2026-09-15T18:54:53Z; commit [`4bfff9a8558111bf120f21ecb3030626911b3524`](https://github.com/SrScorpio/alfred-dev-vscode/commit/4bfff9a8558111bf120f21ecb3030626911b3524). Closes #31. HEAD de la rama: `58cbb99e4c99406fbe41c0cda76bf9b431bd1de2` |
@@ -58,7 +62,7 @@ Notas verificadas en GitHub el 2026-09-17:
 | [#15](https://github.com/SrScorpio/alfred-dev-vscode/pull/15) | chore(deps-dev): bump js-yaml from 4.3.1 to 4.3.2 | closed, no merged (2026-09-14). Comentario de Dependabot: js-yaml ya está actualizado (el bump 4.3.2 entra por #16) |
 | [#14](https://github.com/SrScorpio/alfred-dev-vscode/pull/14) | chore(deps-dev): bump fast-uri from 3.1.5 to 3.1.7 | closed, no merged (2026-09-14). Comentario de Dependabot: fast-uri ya está actualizado |
 
-Tras el merge de #35 no hay PRs abiertas en el repositorio en el momento de este snapshot (antes de la PR de sincronización de este fichero). `origin/main` apunta a `244c3f4d655a3822790f4cab814fd9f2d06b1b00`. Tag anotado `v0.7.0` (objeto de tag `62a070da0aaa8e4b18388d377a8683d00f0d43f3`, apunta al commit `1c0d09a`, tagger 2026-09-15T13:38:48Z); no se movió. GitHub Release: [v0.7.0](https://github.com/SrScorpio/alfred-dev-vscode/releases/tag/v0.7.0), publicada 2026-09-15T13:39:05Z, adjunto `alfred-dev-vscode-0.7.0.vsix` (43 644 bytes). El cambio de #35 vive en `[Unreleased]` sobre `main` posterior al tag. No hay publicación en Marketplace.
+Tras el merge de #38 no hay PRs abiertas en el repositorio en el momento de este snapshot (antes de la PR de sincronización de este fichero). `origin/main` apunta a `5562310caf44ea2f5f79ced7e08500949e2831f0`. Tag anotado `v0.7.0` (objeto de tag `62a070da0aaa8e4b18388d377a8683d00f0d43f3`, apunta al commit `1c0d09a`, tagger 2026-09-15T13:38:48Z); no se movió. GitHub Release: [v0.7.0](https://github.com/SrScorpio/alfred-dev-vscode/releases/tag/v0.7.0), publicada 2026-09-15T13:39:05Z, adjunto `alfred-dev-vscode-0.7.0.vsix` (43 644 bytes). El cambio de #38 vive en `[Unreleased]` sobre `main` posterior al tag. No hay publicación en Marketplace.
 
 ## Historial de gates
 
@@ -97,14 +101,18 @@ Tras el merge de #35 no hay PRs abiertas en el repositorio en el momento de este
 | 2026-09-15 | 5 — documentación (#31 / #32) | APROBADO | Snapshot de PR #33 (`3137969`): replica Issues y PRs de #31/#32; no reescribe compliance, threat-model ni changelog. No cierra #3. Quedó desfasado respecto a #34/#35. |
 | 2026-09-17 | 4 — calidad (#35 / #34) | APROBADO | CI de PR #35 HEAD `e14b089`: `test`, `security` y `package` SUCCESS en [workflow run 35251315206](https://github.com/SrScorpio/alfred-dev-vscode/actions/runs/35251315206). Webview CSP del KV cifrado: `list`/`search`/`reveal`/`delete`; `list()` antes de crear el panel. |
 | 2026-09-17 | 4 — entrega y merge (#35 / #34) | APROBADO | PR #35 fusionada por squash a `main`; commit `244c3f4d655a3822790f4cab814fd9f2d06b1b00`; issue #34 closed/completed. Entra en `[Unreleased]`; no mueve el tag `v0.7.0`. |
-| 2026-09-17 | 5 — documentación (#34 / #35) | APROBADO | Este snapshot replica Issues y PRs de #34/#35 verificados en GitHub; no reescribe compliance, threat-model ni changelog. No cierra #3. |
+| 2026-09-17 | 5 — documentación (#34 / #35) | APROBADO | Snapshot de PR #36 (`f0a1942`): replica Issues y PRs de #34/#35; no reescribe compliance, threat-model ni changelog. No cierra #3. Quedó desfasado respecto a #37/#38. |
+| 2026-09-18 | 4 — calidad (#38 / #37) | APROBADO | CI de PR #38 HEAD `54ea639`: `test`, `security` y `package` SUCCESS en [workflow run 35345461696](https://github.com/SrScorpio/alfred-dev-vscode/actions/runs/35345461696). TreeView lista issues abiertas de origin GitHub: GET público, timeout 8 s, pintura en dos ticks (snapshot primero), `openExternal`, Restricted Mode sin GET. |
+| 2026-09-18 | 4 — entrega y merge (#38 / #37) | APROBADO | PR #38 fusionada por squash a `main`; commit `5562310caf44ea2f5f79ced7e08500949e2831f0`; issue #37 closed/completed. Entra en `[Unreleased]`; no mueve el tag `v0.7.0`. |
+| 2026-09-18 | 5 — documentación (#37 / #38) | APROBADO | Este snapshot replica Issues y PRs de #37/#38 verificados en GitHub; no reescribe compliance, threat-model ni changelog. No cierra #3. |
 
 ## Bloqueos
 
 - Issue [#3](https://github.com/SrScorpio/alfred-dev-vscode/issues/3): abierta, label `backlog`. Comentario del 2026-09-03: el manifiesto público de Ralph Suite 1.9.1 no expone `ralph-suite.syncIssue` ni scheduler de dispatch paralelo. El bridge local solo puede integrar `openKanban`, `runTask`, `startRunner` y `stopRunner` con ID canónico `ralph-suite.ralph-suite`. No hay label `blocked` en GitHub.
 - Residual MEDIA vigente (tras #18 y #26): el path `ALFRED_DEV_MEMORY_KEY_SOCKET` es enumerable durante el `accept` (ventana ≤5 s, mismo usuario). Unix recorta el inode a `0o600`. Windows no finge DACL. La clave ya no va en `ALFRED_DEV_MEMORY_KEY`. El wipe recicla el provider MCP. No hay issue abierta para este residual.
 - El hueco de proceso CRA/NIS2 (SLA, matriz de versiones, protocolo 24/72 h) quedó cerrado en #21 / PR #23. No es un dictamen jurídico ni conformidad CRA/NIS2 completa; los controles de `compliance.md` siguen en `parcial`.
-- Marketplace: no forma parte del ship 0.7.0, de `checkUpdate` (#28), de la continuidad (#31) ni de Memory UI (#34). No es un bloqueo de implementación; es un alcance excluido.
+- Marketplace: no forma parte del ship 0.7.0, de `checkUpdate` (#28), de la continuidad (#31), de Memory UI (#34) ni del TreeView de issues (#37). No es un bloqueo de implementación; es un alcance excluido.
 - Issue [#28](https://github.com/SrScorpio/alfred-dev-vscode/issues/28): cerrada (`completed`); labels actuales `[]`. No es un bloqueo; el trabajo está en `main`.
 - Issue [#31](https://github.com/SrScorpio/alfred-dev-vscode/issues/31): cerrada (`completed`); labels actuales `[]`. No es un bloqueo; el trabajo está en `main`.
 - Issue [#34](https://github.com/SrScorpio/alfred-dev-vscode/issues/34): cerrada (`completed`); labels actuales `[]`. No es un bloqueo; el trabajo está en `main`.
+- Issue [#37](https://github.com/SrScorpio/alfred-dev-vscode/issues/37): cerrada (`completed`); labels actuales `in-review` (residual tras el cierre). No es un bloqueo; el trabajo está en `main`.
