@@ -171,7 +171,9 @@ test('el TreeView lista issues abiertas del origin GitHub sin token ni gh', () =
   assert.match(provider, /githubIssueTreeEntries\(/);
   assert.match(provider, /isTrusted/);
   assert.match(provider, /getRemoteUrl/);
-  assert.match(provider, /Promise\.allSettled/);
+  assert.doesNotMatch(provider, /Promise\.allSettled/);
+  assert.match(provider, /ensureIssuesLoaded/);
+  assert.match(provider, /issueItemsByWorkspace/);
   assert.match(provider, /Uri\.parse/);
   assert.match(commands, /alfred-dev\.openGithubIssue/);
   assert.match(openIssue, /openExternal/);
