@@ -42,20 +42,21 @@ Incluya, como mínimo:
 
 ## Versiones soportadas
 
-Matriz vigente a 2026-09-15. El manifiesto `package.json` declara la
-versión **0.7.0** y el motor **VS Code `^1.85.0`**. En esa fecha el
-repositorio **no tiene GitHub Releases ni tags publicados**. Un enlace
-genérico a Releases no demuestra soporte.
+Matriz vigente a 2026-09-18. El manifiesto `package.json` declara la
+versión **0.8.0** y el motor **VS Code `^1.85.0`**. GitHub Releases
+existen: el tag `v0.7.0` ya está publicado. El tag `v0.8.0` y su Release
+se crean después del merge; hasta entonces la línea soportada es el
+manifiesto `0.8.0` en `main`.
 
 | Artefacto | Soporte | Host |
 |-----------|---------|------|
-| `0.7.0` (versión del manifiesto) | Única versión menor declarada; es la línea soportada | VS Code `^1.85.0` |
-| Cuando exista un GitHub Release | La última versión menor publicada en Releases | VS Code `^1.85.0` |
+| `0.8.0` (versión del manifiesto) | Línea soportada | VS Code `^1.85.0` |
+| GitHub Release `v0.7.0` | Publicada; sin soporte de seguridad tras `0.8.0` | VS Code `^1.85.0` |
 | Versiones anteriores a esa menor | Sin soporte de seguridad | — |
 | Pre-releases, commits intermedios, VSIX locales no publicados | Sin soporte formal | — |
 
-Hasta que exista un Release, la línea soportada es el manifiesto `0.7.0`
-en el commit publicado de `main`, no un binario de Marketplace.
+La línea soportada es el manifiesto `0.8.0`. No hay publicación en un
+marketplace de extensiones.
 
 ## SLA de divulgación
 
@@ -83,9 +84,9 @@ Advisory o, si existe, Release):
 | Media | 30 días o la siguiente versión menor | Documentar el residual |
 | Baja / informativa | Siguiente versión menor | Puede quedar como residual aceptado |
 
-Estos plazos no prometen un VSIX en Marketplace ni un Release si aún no
-existe canal de publicación. La evidencia de publicación, mientras no haya
-Release, es el commit en `main` y, cuando proceda, el Security Advisory.
+Estos plazos no prometen un VSIX en un marketplace de extensiones. El
+canal de publicación es GitHub Releases (`v0.7.0` ya publicado; `v0.8.0`
+se etiqueta tras el merge) y, cuando proceda, el Security Advisory.
 
 ## Protocolo de incidentes (NIS2 art. 23)
 
@@ -116,11 +117,9 @@ este documento.
 
 El publicador se compromete a publicar correcciones o mitigaciones de la
 línea soportada según la tabla de severidad. El canal de actualización
-es el repositorio GitHub y, cuando existan, sus Releases.
-
-No hay evidencia de distribución en Visual Studio Marketplace a
-2026-09-15. **No se garantiza** que una corrección llegue al Marketplace
-mientras no exista un GitHub Release del VSIX.
+es el repositorio GitHub y sus Releases (`v0.7.0` publicado;
+`v0.8.0` se etiqueta tras el merge). No hay publicación en un
+marketplace de extensiones.
 
 ## Qué no se garantiza
 
@@ -128,7 +127,7 @@ mientras no exista un GitHub Release del VSIX.
 - Soporte de forks, copias, parches locales o modificaciones que alteren
   el comportamiento del proyecto.
 - Bridges de modelos, proveedores de Copilot o extensiones de terceros.
-- Actualización en Marketplace si no hay Release publicado.
+- Actualización en un marketplace de extensiones; el canal es GitHub Releases.
 - Respuesta 24/7, tiempos de parche inferiores a los de la tabla, o que
   el formulario de Security Advisories esté siempre habilitado.
 - Cobertura de GitHub Advanced Security / CodeQL como proceso completo
