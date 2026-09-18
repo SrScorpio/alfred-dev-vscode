@@ -40,6 +40,11 @@
         "category": "Alfred Dev"
       },
       {
+        "command": "alfred-dev.openGithubIssue",
+        "title": "Alfred Dev: Abrir issue de GitHub",
+        "category": "Alfred Dev"
+      },
+      {
         "command": "alfred-dev.progress",
         "title": "Alfred Dev: Ver progreso",
         "category": "Alfred Dev"

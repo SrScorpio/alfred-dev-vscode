@@ -20,7 +20,15 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 - Continuidad nativa: **Alfred Dev: Ver progreso**, **Pausar trabajo** y
   **Retomar trabajo** (`alfred-dev.progress`, `alfred-dev.pause`,
   `alfred-dev.retomar`). Prompts `@alfred` fijos; Progress y Retomar también
-  en el TreeView. No hay fetch de issues en la extensión.
+  en el TreeView.
+- TreeView **Issues abiertas**: GET HTTPS público a
+  `https://api.github.com/repos/{owner}/{repo}/issues?state=open&per_page=20`
+  con `User-Agent: alfred-dev-vscode`, sin token, sin `gh` y sin Ralph.
+  Parsea `origin` HTTPS/SSH, filtra `pull_request`, trunca títulos a 200
+  caracteres y abre `html_url` con `alfred-dev.openGithubIssue` /
+  `vscode.env.openExternal` (solo http/https). El GET tiene timeout de 8 s
+  y no bloquea el snapshot. En Restricted Mode no hay GET; 404 o fallo de
+  red muestran un error accionable y el snapshot local sigue.
 - **Alfred Dev: Ajustes** (`alfred-dev.openSettings`): QuickPick que reutiliza
   el perfil de modelo, los toggles `alfred-dev.memory.enabled` y
   `alfred-dev.secretGuard.diagnostics` (alcance Global), el comando de

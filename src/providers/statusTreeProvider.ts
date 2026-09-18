@@ -2,8 +2,11 @@
  * Proveedor del TreeView que muestra el snapshot local del flujo de Alfred Dev.
  *
  * Lee `docs/project/status.md` del primer workspace mediante el lector y el
- * parser locales. La ausencia del snapshot conserva el estado en GitHub como
- * fuente de verdad; `extension.ts` registra este proveedor en la Activity Bar.
+ * parser locales. La primera pintura es acciones + snapshot; si el workspace
+ * es trusted, el GET de issues corre en background y una segunda pintura
+ * añade el grupo Issues (GET público, sin token). Restricted Mode: 0 GET.
+ * La ausencia del snapshot conserva el estado en GitHub como fuente de
+ * verdad; `extension.ts` registra este proveedor.
  *
  * @module providers/statusTreeProvider
  */
@@ -11,6 +14,18 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { parseProjectStatus } from './parseStatus';
 import { readStatusFile } from './readStatusFile';
+import {
+  githubIssueTreeEntries,
+  listWorkspaceGithubIssues,
+} from './githubRemote';
+import type { FetchOpenIssuesFn } from './githubRemote';
+
+export interface StatusTreeProviderDeps {
+  isTrusted?: () => boolean;
+  getRemoteUrl?: (workspaceRoot: string) => Promise<string>;
+  fetchOpenIssues?: FetchOpenIssuesFn;
+  readStatusFile?: (filePath: string) => Promise<string>;
+}
 
 /**
  * Implementa el árbol de estado y sus acciones de la interfaz nativa.
@@ -18,13 +33,27 @@ import { readStatusFile } from './readStatusFile';
 export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<StatusItem | undefined | null | void> = new vscode.EventEmitter<StatusItem | undefined | null | void>();
   readonly onDidChangeTreeData: vscode.Event<StatusItem | undefined | null | void> = this._onDidChangeTreeData.event;
+  private readonly issueItemsByWorkspace = new Map<string, StatusItem[]>();
+  private readonly issuesLoadInFlight = new Map<string, Promise<void>>();
+  private issueLoadGeneration = 0;
 
   /**
-   * Solicita a VS Code que vuelva a leer y representar el snapshot.
+   * @param deps Trust, origin y fetch inyectables; por defecto usa VS Code y git.
+   */
+  constructor(private readonly deps: StatusTreeProviderDeps = {}) {}
+
+  /**
+   * Invalida la cache de issues y pide a VS Code que vuelva a pintar.
+   *
+   * El GET en background no llama aquí: si invalidara, el árbol se
+   * refrescaría en bucle. Solo el comando del usuario vacía la cache.
    *
    * @returns `void`.
    */
   refresh(): void {
+    this.issueLoadGeneration += 1;
+    this.issueItemsByWorkspace.clear();
+    this.issuesLoadInFlight.clear();
     this._onDidChangeTreeData.fire();
   }
 
@@ -39,7 +68,10 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
   }
 
   /**
-   * Obtiene las acciones y los campos disponibles del snapshot local.
+   * Obtiene acciones, snapshot y, si ya hay cache, el grupo Issues.
+   *
+   * No espera al GET: dispara la carga en background y pinta Issues
+   * en un segundo tick vía `onDidChangeTreeData`.
    *
    * @param element Nodo padre opcional; los nodos hoja no tienen descendientes.
    * @returns Promise con las entradas visibles del TreeView.
@@ -89,8 +121,14 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
       ),
     ];
 
+    const readSnapshot = this.deps.readStatusFile ?? readStatusFile;
+    const issueItems = this.issueItemsByWorkspace.get(rootPath) ?? [];
+    if (this.isWorkspaceTrusted()) {
+      this.ensureIssuesLoaded(rootPath);
+    }
+
     try {
-      const content = await readStatusFile(statusPath);
+      const content = await readSnapshot(statusPath);
       const status = parseProjectStatus(content);
       const items: StatusItem[] = [...actionItems];
 
@@ -100,19 +138,96 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
       if (status.nextAction) items.push(new StatusItem(`Acción: ${status.nextAction}`, vscode.TreeItemCollapsibleState.None, 'arrow-right'));
       if (status.message) items.push(new StatusItem(status.message, vscode.TreeItemCollapsibleState.None, 'warning'));
 
-      return items;
+      return [...items, ...issueItems];
     } catch (error: unknown) {
       if (isFileNotFoundError(error)) {
         return [
           ...actionItems,
           new StatusItem('Sin snapshot local. El estado vive en GitHub Issues.', vscode.TreeItemCollapsibleState.None, 'info'),
+          ...issueItems,
         ];
       }
 
       return [
         ...actionItems,
         new StatusItem('Error al leer status.md', vscode.TreeItemCollapsibleState.None, 'error'),
+        ...issueItems,
       ];
+    }
+  }
+
+  /**
+   * @returns Si el workspace actual es de confianza.
+   */
+  private isWorkspaceTrusted(): boolean {
+    return this.deps.isTrusted?.() ?? vscode.workspace.isTrusted;
+  }
+
+  /**
+   * Dispara el GET de issues en background una vez por workspace/generación.
+   *
+   * No bloquea `getChildren`. Al resolver, cachea y dispara
+   * `onDidChangeTreeData` para la segunda pintura.
+   *
+   * @param workspaceRoot Raíz del primer workspace.
+   * @returns `void`.
+   */
+  private ensureIssuesLoaded(workspaceRoot: string): void {
+    if (this.issueItemsByWorkspace.has(workspaceRoot) || this.issuesLoadInFlight.has(workspaceRoot)) {
+      return;
+    }
+
+    const generation = this.issueLoadGeneration;
+    const pending = this.loadIssueItems(workspaceRoot)
+      .then((items) => {
+        if (generation !== this.issueLoadGeneration) {
+          return;
+        }
+        this.issueItemsByWorkspace.set(workspaceRoot, items);
+        this._onDidChangeTreeData.fire();
+      })
+      .finally(() => {
+        if (this.issuesLoadInFlight.get(workspaceRoot) === pending) {
+          this.issuesLoadInFlight.delete(workspaceRoot);
+        }
+      });
+
+    this.issuesLoadInFlight.set(workspaceRoot, pending);
+  }
+
+  /**
+   * Añade issues abiertas del origin, o nada en Restricted Mode.
+   *
+   * @param workspaceRoot Raíz del primer workspace.
+   * @returns Entradas del grupo Issues, un error accionable, o lista vacía.
+   */
+  private async loadIssueItems(workspaceRoot: string): Promise<StatusItem[]> {
+    try {
+      const result = await listWorkspaceGithubIssues(workspaceRoot, {
+        isTrusted: this.isWorkspaceTrusted(),
+        execGit: this.deps.getRemoteUrl
+          ? async (_args, options) => this.deps.getRemoteUrl!(options.cwd)
+          : undefined,
+        fetchOpenIssues: this.deps.fetchOpenIssues,
+      });
+
+      return githubIssueTreeEntries(result).map((entry) => new StatusItem(
+        entry.label,
+        vscode.TreeItemCollapsibleState.None,
+        entry.icon,
+        entry.command
+          ? {
+              command: entry.command.command,
+              title: entry.command.title,
+              arguments: [vscode.Uri.parse(entry.command.arguments[0])],
+            }
+          : undefined,
+      ));
+    } catch (error: unknown) {
+      const message = error instanceof Error && error.message
+        ? error.message
+        : 'No se pudieron leer issues de GitHub';
+      return [new StatusItem(message, vscode.TreeItemCollapsibleState.None, 'warning')];
     }
   }
 }
