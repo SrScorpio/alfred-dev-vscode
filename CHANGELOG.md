@@ -9,6 +9,14 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.8.0] - 2026-09-18
+
+### Added
+
 - Comando **Alfred Dev: Explorar memoria local** (`alfred-dev.memory.explore`):
   webview CSP/nonce sobre el KV cifrado existente. Lista claves y `updatedAt`
   (sin values en el HTML inicial), busca, revela una clave sanitizada y borra

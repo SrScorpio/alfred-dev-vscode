@@ -10,12 +10,12 @@ const RELEASE_URL = 'https://github.com/SrScorpio/alfred-dev-vscode/releases/tag
 
 test('si la release coincide con la versión local, informa que está al día', async () => {
   const result = await checkForUpdate({
-    currentVersion: '0.7.0',
-    fetchLatestRelease: async () => ({ version: '0.7.0', htmlUrl: RELEASE_URL }),
+    currentVersion: '0.8.0',
+    fetchLatestRelease: async () => ({ version: '0.8.0', htmlUrl: RELEASE_URL }),
   });
 
   assert.match(result.message, /al día/i);
-  assert.match(result.message, /0\.7\.0/);
+  assert.match(result.message, /0\.8\.0/);
 });
 
 test('si hay una release mayor, informa versión local, nueva y URL', async () => {
@@ -32,7 +32,7 @@ test('si hay una release mayor, informa versión local, nueva y URL', async () =
 
 test('si no hay releases (404), informa un error accionable sin Marketplace', async () => {
   const result = await checkForUpdate({
-    currentVersion: '0.7.0',
+    currentVersion: '0.8.0',
     fetchLatestRelease: async () => null,
   });
 
@@ -43,7 +43,7 @@ test('si no hay releases (404), informa un error accionable sin Marketplace', as
 
 test('si la red falla, informa un error accionable sin Marketplace', async () => {
   const result = await checkForUpdate({
-    currentVersion: '0.7.0',
+    currentVersion: '0.8.0',
     fetchLatestRelease: async () => {
       throw new Error('network down');
     },

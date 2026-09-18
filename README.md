@@ -42,6 +42,24 @@ inercia.
 
 Requisitos: VS Code con GitHub Copilot Chat. Tras instalar, los agentes aparecen en el selector de agente del chat (abajo-izquierda del input) y quedan disponibles **en todos tus proyectos**.
 
+### Instalar la extensión VSIX
+
+Descarga el VSIX desde
+[GitHub Releases](https://github.com/SrScorpio/alfred-dev-vscode/releases)
+(última publicación; en esta línea, `alfred-dev-vscode-0.8.0.vsix`) e
+instálalo en VS Code:
+
+```bash
+code --install-extension alfred-dev-vscode-0.8.0.vsix
+```
+
+Esta extensión no se publica en Visual Studio Marketplace.
+
+**Ralph Suite es opcional.** Los wrappers de paleta `alfred-dev.ralph.*`
+solo aparecen si Ralph está instalada y activa. Se honra
+`ralph-suite.prdPath`. El layout por defecto (`docs/` y
+`docs/ralph/prd.json`) vive en Ralph 1.10.
+
 ### Opción A: con el instalador (descargando el repo)
 
 ```bash
@@ -371,9 +389,11 @@ La integración detecta exclusivamente la extensión con ID
 `ralph-suite.ralph-suite`. **No** hay `extensionDependencies` ni `extensionPack`:
 un usuario sin Ralph instala Alfred completo. Los cinco wrappers
 `alfred-dev.ralph.*` solo aparecen en la paleta si Ralph está instalada,
-activa y anuncia esa capacidad (`setContext` + `when`). Con Ralph 1.9.1,
-Kanban / runTask / runner se muestran; **Sincronizar issue** permanece oculto
-porque esa versión no publica `ralph-suite.syncIssue`.
+activa y anuncia esa capacidad (`setContext` + `when`). Con Ralph 1.10 el
+layout por defecto vive en Ralph (`docs/` + `docs/ralph/prd.json`); Alfred
+honra `ralph-suite.prdPath`. Kanban / runTask / runner se muestran;
+**Sincronizar issue** permanece oculto (issue #3) porque Ralph no publica
+`ralph-suite.syncIssue`.
 
 **Ejecutar tarea Ralph** exige workspace trust, lee `prd.json` (o
 `ralph-suite.prdPath` si existe, sin salir del folder) y ofrece un QuickPick
