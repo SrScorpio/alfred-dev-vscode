@@ -88,9 +88,10 @@ El estado del trabajo tiene dos capas, en este orden de prioridad:
 
 La VSIX puede ofrecer memoria JSON local opt-in (`alfred-dev.memory.enabled`),
 pero esa memoria es auxiliar, está apagada por defecto y nunca sustituye a
-GitHub ni al snapshot. La integración opcional con Ralph Suite solo ejecuta
-comandos explícitos de la extensión instalada; no convierte cuerpos de issues
-o prompts en instrucciones ejecutables ni simula paralelismo sin API pública.
+GitHub ni al snapshot. La integración opcional con Ralph Suite (`ralph-suite.ralph-suite`)
+solo aparece en paleta si está instalada y activa; ejecuta comandos anunciados
+contra `prd.json` local. No es dependencia dura, no lee `.ralph/config.json`,
+no convierte cuerpos de issues en instrucciones ni simula paralelismo (#3).
 
 **Protocolo de arranque** (antes de proponer nada):
 

@@ -42,7 +42,7 @@ flowchart LR
 | Clave de cifrado de memoria | Secreto | Lectura o manipulación de toda la memoria local. |
 | Blobs staged del indice Git | Sensible potencial | Commit accidental de credenciales. |
 | Proceso MCP local | Integridad y disponibilidad | Escritura indebida o agotamiento del host. |
-| Configuracion `.ralph` | No confiable | Lectura de rutas o tareas fuera del workspace. |
+| `prd.json` de Ralph | No confiable | Lectura de IDs o rutas fuera del workspace. |
 | Lockfile y dependencias de build | Integridad | Ejecucion de codigo comprometido durante build o empaquetado. |
 
 ## Analisis STRIDE
@@ -62,10 +62,11 @@ con `rename` atómico. MCP y fallback comparten ese backend; el proceso y la rut
 desde la extensión. Los ficheros legados `version: 1` se rechazan de forma
 explícita en lugar de migrar texto sensible silenciosamente. Secret Guard lee el índice con `git show :<path>` usando
 `execFile`/argv, y Git resuelve la ruta de hooks incluso en worktrees. Ralph
-valida workspace trust, IDs, estados, rutas y tamaño; `runTask` lee
-`.ralph/config.json` antes de pedir el ID. Solo resuelve el ID
-`ralph-suite.ralph-suite`, cada acción exige su comando exacto y la
-sincronización solo se confirma si ese proveedor anuncia el comando.
+valida workspace trust, IDs y tamaño; `runTask` lee `prd.json` (no
+`.ralph/config.json`) antes del QuickPick. Solo resuelve el ID
+`ralph-suite.ralph-suite`, cada acción exige su comando exacto, la paleta
+se oculta sin esa capacidad y la sincronización solo se confirma si ese
+proveedor anuncia el comando.
 
 ### Repudiation (repudio)
 
@@ -108,7 +109,7 @@ prompts, y no se simula paralelismo sin API/scheduler público.
 | Hook omite un secreto staged por leer el working tree | Baja | Alto | Bajo | Enumera con `-z` y analiza cada blob del índice mediante `git show` sin shell. |
 | Webview con contenido local inseguro | Baja | Alto | Bajo | CSP nonce, escape HTML, sin recursos remotos ni raíces locales. |
 | Extensión impostora ejecuta comandos `ralph-suite.*` | Baja | Alto | Bajo | Lookup exclusivo del ID `ralph-suite.ralph-suite` y capacidad exacta por acción. |
-| Ralph lee o ejecuta fuera del workspace | Baja | Alto | Bajo | Workspace trust, `runTask` valida `.ralph/config.json` antes del prompt, rutas sin `..`, comandos fijos y sync condicionado a una capacidad anunciada. |
+| Ralph lee o ejecuta fuera del workspace | Baja | Alto | Bajo | Workspace trust, `runTask` valida `prd.json` (IDs, tamaño, `prdPath` sin `..`), paleta `when` por capacidad y sync condicionado a un comando anunciado. |
 | Diagnósticos de secretos agotan el host | Baja | Medio | Bajo | Tope de 64 KiB antes de escanear el documento guardado; el hook staged sigue en 1 MiB. |
 | Consulta pública a GitHub Releases (`checkUpdate`) | Media | Bajo | Bajo | GET HTTPS bajo demanda, URL fija, sin token, sin cuerpo; no es telemetría. Residual: GitHub registra IP y User-Agent. |
 | Consulta pública a GitHub Issues (TreeView) | Media | Bajo | Bajo | Segundo GET HTTPS a `api.github.com/.../issues`, User-Agent `alfred-dev-vscode`, sin token; no se dispara sin workspace trust. Residual: GitHub registra IP, User-Agent y owner/repo del origin. |

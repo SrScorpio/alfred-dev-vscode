@@ -43,6 +43,12 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Changed
 
+- Puente Ralph: paleta `when` por capacidad (`setContext`); sin `extensionDependencies`.
+  `runTask` lee `prd.json` (IDs `ISSUE-001`, setting `ralph-suite.prdPath`) y
+  elige la carpeta multi-root que tiene el PRD. Ya no valida
+  `.ralph/config.json`. `syncIssue` sigue oculto hasta que Ralph anuncie el
+  comando (issue #3). Pareja: [ralph-suite#1](https://github.com/SrScorpio/ralph-suite/issues/1).
+
 ### Fixed
 
 ## [0.7.0] - 2026-09-15

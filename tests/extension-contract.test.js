@@ -35,6 +35,18 @@ test('declara comandos de chat y selección de perfil de modelo', () => {
   );
   assert.ok(commands.some((command) => command.command === 'alfred-dev.ralph.openKanban'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.ralph.syncIssue'));
+  assert.equal(packageJson.extensionDependencies, undefined);
+  assert.equal(packageJson.extensionPack, undefined);
+  const palette = packageJson.contributes.menus?.commandPalette ?? [];
+  for (const command of [
+    'alfred-dev.ralph.openKanban',
+    'alfred-dev.ralph.runTask',
+    'alfred-dev.ralph.startRunner',
+    'alfred-dev.ralph.stopRunner',
+    'alfred-dev.ralph.syncIssue',
+  ]) {
+    assert.equal(palette.find((entry) => entry.command === command)?.when, command);
+  }
   assert.deepEqual(packageJson.contributes.mcpServerDefinitionProviders, [{
     id: 'alfred-dev.memory',
     label: 'Alfred Dev Memory',
@@ -109,8 +121,11 @@ test('cablea la memoria configurada a MCP con feature detection y comandos fallb
   assert.match(commands, /openMemoryUi\(/);
   assert.match(commands, /clearLocalMemoryAndRecycleMcp\(/);
   assert.match(commands, /recycleMemoryMcp/);
-  assert.match(commands, /readRalphConfig/);
-  assert.match(commands, /runRalphTaskCommand\([\s\S]*?readConfig:\s*readRalphConfig/);
+  assert.match(commands, /readRalphPrd/);
+  assert.match(commands, /runRalphTaskCommand\([\s\S]*?readPrd:\s*readRalphPrd/);
+  assert.match(commands, /findRalphWorkspaceRoot/);
+  assert.match(commands, /setContext/);
+  assert.match(commands, /ralphCommandContexts/);
 });
 
 test('los diagnósticos de secretos limitan el tamaño antes de escanear', () => {
