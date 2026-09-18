@@ -130,6 +130,30 @@
         "category": "Alfred Dev"
       }
     ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "alfred-dev.ralph.openKanban",
+          "when": "alfred-dev.ralph.openKanban"
+        },
+        {
+          "command": "alfred-dev.ralph.runTask",
+          "when": "alfred-dev.ralph.runTask"
+        },
+        {
+          "command": "alfred-dev.ralph.startRunner",
+          "when": "alfred-dev.ralph.startRunner"
+        },
+        {
+          "command": "alfred-dev.ralph.stopRunner",
+          "when": "alfred-dev.ralph.stopRunner"
+        },
+        {
+          "command": "alfred-dev.ralph.syncIssue",
+          "when": "alfred-dev.ralph.syncIssue"
+        }
+      ]
+    },
     "mcpServerDefinitionProviders": [
       {
         "id": "alfred-dev.memory",

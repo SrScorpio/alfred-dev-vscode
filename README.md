@@ -368,29 +368,25 @@ después de la confirmación explícita del usuario.
 #### MVP opcional de Ralph Suite
 
 La integración detecta exclusivamente la extensión con ID
-`ralph-suite.ralph-suite`, sin convertirla en dependencia obligatoria.
-Expone wrappers para abrir el Kanban, ejecutar una tarea e iniciar o detener
-el runner, y cada wrapper comprueba que el proveedor anuncia su comando exacto
-antes de ejecutarlo. El comando **Sincronizar issue con Ralph** pide solo el número y el
-estado GitHub, exige workspace trust y da un resultado accionable si Ralph no
-está disponible o rechaza el comando. `ISSUE-123` es la asociación soportada y
-los estados se mapean como
-`backlog -> todo`, `in-progress -> inprogress`, `blocked -> blocked` y cierre
-de GitHub -> `completed`. **Ejecutar tarea Ralph** exige workspace trust y
-valida `.ralph/config.json` (tamaño, IDs, estados y rutas dentro del
-workspace) antes de pedir el ID o delegar en Ralph Suite. Si el fichero no
-existe, la validación trata la lista como vacía y continúa; una configuración
-inválida bloquea `runTask`.
+`ralph-suite.ralph-suite`. **No** hay `extensionDependencies` ni `extensionPack`:
+un usuario sin Ralph instala Alfred completo. Los cinco wrappers
+`alfred-dev.ralph.*` solo aparecen en la paleta si Ralph está instalada,
+activa y anuncia esa capacidad (`setContext` + `when`). Con Ralph 1.9.1,
+Kanban / runTask / runner se muestran; **Sincronizar issue** permanece oculto
+porque esa versión no publica `ralph-suite.syncIssue`.
 
-Con Ralph Suite 1.9.1, los wrappers de Kanban y runner son utilizables, pero la
-sincronización de issues permanece en modo no disponible porque esa versión no
-publica `ralph-suite.syncIssue`. Alfred solo confirmará una sincronización si
-una versión instalada anuncia explícitamente ese comando. GitHub sigue siendo
-la fuente colaborativa; Ralph es ejecución local. Los cuerpos de issues y
-prompts no se convierten en comandos. No existe una API o scheduler público de
-Ralph Suite para coordinar paralelismo, por lo que este MVP no lo simula ni
-afirma paridad con el plugin original. Si faltan la extensión o sus comandos,
-Alfred muestra un error accionable y continúa funcionando sin Ralph.
+**Ejecutar tarea Ralph** exige workspace trust, lee `prd.json` (o
+`ralph-suite.prdPath` si existe, sin salir del folder) y ofrece un QuickPick
+con los IDs reales (`ISSUE-001`, compatibles con `safeTaskId` de Ralph). En
+un workspace multi-root elige la carpeta que tiene el PRD, no
+`workspaceFolders[0]` a ciegas. No lee `.ralph/config.json` (ese fichero no
+es el backlog de Ralph).
+
+GitHub Issues/PRs sigue siendo la fuente colaborativa de Alfred. `prd.json`
+es el backlog local de Ralph; `.ralph/task-<ID>-*` es runtime. Pareja:
+[ralph-suite#1](https://github.com/SrScorpio/ralph-suite/issues/1),
+[alfred-dev-vscode#40](https://github.com/SrScorpio/alfred-dev-vscode/issues/40).
+`syncIssue` y el paralelismo siguen en [#3](https://github.com/SrScorpio/alfred-dev-vscode/issues/3).
 
 ### Subagentes
 
@@ -429,7 +425,8 @@ Bridge (`openai-codex`) es el modelo de chat, no el binario `codex`.
 - `docs/test/` — planes de testing (qa-engineer)
 - `docs/project/` — arquitectura viva, threat-model, compliance, dependencies, sbom (architect, security-officer)
 - `.style-options/` — propuestas visuales temporales (selina, se limpia al elegir)
-- `.ralph/config.json` — configuración local opcional y validada de Ralph Suite
+- `prd.json` — backlog local de Ralph Suite (opcional; no es fuente de Alfred)
+- `.ralph/task-<ID>-*` — runtime de Ralph, no config de Alfred
 
 ## Estructura del repo
 

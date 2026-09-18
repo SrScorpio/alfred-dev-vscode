@@ -41,10 +41,10 @@ Abre la Paleta de comandos y busca la categoría **Alfred Dev**:
 | **Alfred Dev: Guardar/Consultar/Buscar memoria local** | Usa el backend local opt-in también cuando el runtime no ofrece la API MCP. |
 | **Alfred Dev: Borrar memoria local** | Elimina el fichero cifrado y la clave de este perfil tras confirmación, y recicla el provider MCP. |
 | **Alfred Dev: Explorar memoria local** | Webview CSP/nonce sobre el KV cifrado: lista claves y `updatedAt`, busca, muestra una clave escapada y borra con confirmación. Exige trust y opt-in. |
-| **Alfred Dev: Abrir Kanban Ralph** | Abre el Kanban si Ralph Suite está instalada y activa. |
-| **Alfred Dev: Ejecutar tarea Ralph** | Exige workspace trust, valida `.ralph/config.json` y delega el ID a Ralph Suite. |
-| **Alfred Dev: Iniciar/Detener runner Ralph** | Usa los comandos opcionales de Ralph Suite si están disponibles. |
-| **Alfred Dev: Sincronizar issue con Ralph** | Usa solo una capacidad explícita `ralph-suite.syncIssue`; con Ralph 1.9.1 informa que no está disponible. |
+| **Alfred Dev: Abrir Kanban Ralph** | Solo en paleta si Ralph está activa y anuncia `openKanban`. |
+| **Alfred Dev: Ejecutar tarea Ralph** | Solo si Ralph anuncia `runTask`. Trust + `prd.json` (multi-root) + QuickPick de IDs. |
+| **Alfred Dev: Iniciar/Detener runner Ralph** | Solo si Ralph anuncia esos comandos. El runner exige el webview Kanban. |
+| **Alfred Dev: Sincronizar issue con Ralph** | Oculto hasta que Ralph anuncie `ralph-suite.syncIssue` (1.9.1 no lo hace). |
 
 ## Perfil global de modelo
 
@@ -104,24 +104,18 @@ escape HTML y `localResourceRoots: []`; el catálogo local es opcional y el
 fallback siempre ofrece tres propuestas. La instalación del hook y la
 escritura confirmada de `docs/style-direction.md` requieren workspace trust.
 
-## Issue #3A: Ralph Suite
+## Issue #3A / #40: Ralph Suite
 
 La integración es opcional y resuelve solo el ID canónico
-`ralph-suite.ralph-suite`. GitHub
-Issues/PRs conserva la fuente colaborativa y Ralph la ejecución local. El
-puente exige workspace trust antes de solicitar datos. `runTask` valida
-`.ralph/config.json` (tamaño, IDs, estados y rutas) antes de pedir el ID;
-una configuración inválida bloquea la ejecución. Cada acción exige la
-capacidad exacta anunciada por Ralph Suite; nunca
-ejecuta cuerpos de issues ni prompts. El comando de sincronización
-solicita solo número de issue y estado GitHub, mantiene GitHub como fuente de
-verdad y comunica por separado Ralph ausente, issue inválida o fallo del
-comando. Solo confirma el sync si la extensión instalada anuncia
-explícitamente `ralph-suite.syncIssue`; Ralph Suite 1.9.1 no lo publica, así
-que el resultado esperado con esa versión es no disponible.
-
-No se implementa paralelismo: Ralph Suite no expone una API/scheduler público
-que permita coordinarlo de forma verificable.
+`ralph-suite.ralph-suite`. No hay `extensionDependencies`. GitHub Issues/PRs
+es la fuente colaborativa; `prd.json` es el backlog local de Ralph;
+`.ralph/` es runtime. El puente exige workspace trust. `runTask` lee
+`prd.json` (tamaño, IDs `ISSUE-*`, estados; setting `ralph-suite.prdPath`
+sin traversal) y, en multi-root, la carpeta que tiene el PRD. Cada acción
+exige la capacidad exacta; la paleta usa `when` por `setContext`. Nunca
+ejecuta cuerpos de issues ni prompts. `syncIssue` y el paralelismo siguen
+en [#3](https://github.com/SrScorpio/alfred-dev-vscode/issues/3). Contrato
+en Ralph: [ralph-suite#1](https://github.com/SrScorpio/ralph-suite/issues/1).
 
 ## Desarrollo local
 

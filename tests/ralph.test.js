@@ -8,8 +8,11 @@ const {
   RALPH_SUITE_EXTENSION_ID,
   RalphBridge,
   extractIssueIds,
+  findRalphWorkspaceRoot,
   mapAlfredStatus,
-  readRalphConfig,
+  ralphCommandContexts,
+  readRalphPrd,
+  resolveRalphPrdPath,
   resolveRalphSuiteExtension,
   runRalphTaskCommand,
   runTrustedRalphAction,
@@ -25,24 +28,60 @@ test('mapea estados Alfred/Ralph y extrae asociaciones ISSUE', () => {
   assert.deepEqual(extractIssueIds('issue-1 ISSUE-0 ISSUE-1000000'), []);
 });
 
-test('lee .ralph solo con esquema, rutas e IDs estrictos', async () => {
+test('lee prd.json con IDs de Ralph y rechaza traversal o trust', async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-ralph-'));
-  await fs.mkdir(path.join(directory, '.ralph'));
-  await fs.writeFile(path.join(directory, '.ralph', 'config.json'), JSON.stringify({
-    tasks: [{ id: 'task-1', status: 'todo', route: 'tasks/task-1.md' }],
+  await fs.writeFile(path.join(directory, 'prd.json'), JSON.stringify({
+    project: 'demo',
+    issues: [{ id: 'ISSUE-001', status: 'todo' }],
   }));
 
-  const config = await readRalphConfig(directory, true);
-  assert.equal(config.tasks[0].id, 'task-1');
-  await fs.writeFile(path.join(directory, '.ralph', 'config.json'), JSON.stringify({
-    tasks: [{ id: '../escape', status: 'todo', route: '../secret' }],
+  const prd = await readRalphPrd(directory, true);
+  assert.equal(prd.issues[0].id, 'ISSUE-001');
+  await fs.writeFile(path.join(directory, 'prd.json'), JSON.stringify({
+    issues: [{ id: '../escape', status: 'todo' }],
   }));
-  await assert.rejects(readRalphConfig(directory, true), /configuración Ralph no válida/);
-  await fs.writeFile(path.join(directory, '.ralph', 'config.json'), JSON.stringify({
-    tasks: [{ id: 'task-1', status: 'todo', route: 'tasks/../secret.md' }],
-  }));
-  await assert.rejects(readRalphConfig(directory, true), /configuración Ralph no válida/);
-  await assert.rejects(readRalphConfig(directory, false), /workspace de confianza/);
+  await assert.rejects(readRalphPrd(directory, true), /prd\.json de Ralph no válido/);
+  await assert.rejects(readRalphPrd(directory, false), /workspace de confianza/);
+  const missing = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-ralph-missing-'));
+  await assert.rejects(readRalphPrd(missing, true), /No se encontró prd\.json/);
+});
+
+test('elige la carpeta multi-root con prd.json y no sale del workspace', () => {
+  const first = path.join(os.tmpdir(), 'alfred-folder-a');
+  const second = path.join(os.tmpdir(), 'alfred-folder-b');
+  const prd = path.join(second, 'prd.json');
+  assert.equal(findRalphWorkspaceRoot([first, second], 'prd.json', (candidate) => candidate === prd), second);
+  assert.equal(findRalphWorkspaceRoot([first], 'prd.json', () => false), first);
+  assert.equal(findRalphWorkspaceRoot([], 'prd.json', () => true), undefined);
+  assert.equal(resolveRalphPrdPath(first, '../outside.json'), path.join(first, 'prd.json'));
+  assert.equal(resolveRalphPrdPath(first, 'prd.json'), path.join(first, 'prd.json'));
+});
+
+test('la paleta solo activa capacidades anunciadas por Ralph activo', () => {
+  assert.deepEqual(ralphCommandContexts(undefined), {
+    'alfred-dev.ralph.openKanban': false,
+    'alfred-dev.ralph.runTask': false,
+    'alfred-dev.ralph.startRunner': false,
+    'alfred-dev.ralph.stopRunner': false,
+    'alfred-dev.ralph.syncIssue': false,
+  });
+  assert.deepEqual(ralphCommandContexts({
+    isActive: true,
+    commands: ['ralph-suite.openKanban', 'ralph-suite.runTask', 'ralph-suite.startRunner', 'ralph-suite.stopRunner'],
+  }), {
+    'alfred-dev.ralph.openKanban': true,
+    'alfred-dev.ralph.runTask': true,
+    'alfred-dev.ralph.startRunner': true,
+    'alfred-dev.ralph.stopRunner': true,
+    'alfred-dev.ralph.syncIssue': false,
+  });
+  assert.deepEqual(ralphCommandContexts({ isActive: false, commands: ['ralph-suite.openKanban'] }), {
+    'alfred-dev.ralph.openKanban': false,
+    'alfred-dev.ralph.runTask': false,
+    'alfred-dev.ralph.startRunner': false,
+    'alfred-dev.ralph.stopRunner': false,
+    'alfred-dev.ralph.syncIssue': false,
+  });
 });
 
 test('los wrappers fallan claro y sincronizan de forma best-effort', async () => {
@@ -119,8 +158,8 @@ test('el comando runTask exige workspace trust antes de solicitar el ID', async 
   await runRalphTaskCommand({
     isTrusted: false,
     workspaceRoot: '/tmp/ralph',
-    readConfig: async () => { configReads += 1; return { tasks: [] }; },
-    promptTaskId: async () => { prompts += 1; return 'task-1'; },
+    readPrd: async () => { configReads += 1; return { issues: [] }; },
+    promptTaskId: async () => { prompts += 1; return 'ISSUE-001'; },
     runTask: async () => { executions += 1; },
     showError: (message) => { errors.push(message); },
   });
@@ -138,8 +177,8 @@ test('el comando runTask exige un workspace abierto para validar la configuraci�
 
   await runRalphTaskCommand({
     isTrusted: true,
-    readConfig: readRalphConfig,
-    promptTaskId: async () => { prompts += 1; return 'task-1'; },
+    readPrd: readRalphPrd,
+    promptTaskId: async () => { prompts += 1; return 'ISSUE-001'; },
     runTask: async () => { executions += 1; },
     showError: (message) => { errors.push(message); },
   });
@@ -149,11 +188,10 @@ test('el comando runTask exige un workspace abierto para validar la configuraci�
   assert.match(errors[0], /Abre un workspace/);
 });
 
-test('el comando runTask bloquea una configuración Ralph inválida antes de ejecutar', async () => {
+test('el comando runTask bloquea un prd.json inválido antes de ejecutar', async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-ralph-invalid-'));
-  await fs.mkdir(path.join(directory, '.ralph'));
-  await fs.writeFile(path.join(directory, '.ralph', 'config.json'), JSON.stringify({
-    tasks: [{ id: '../escape', status: 'todo', route: '../secret' }],
+  await fs.writeFile(path.join(directory, 'prd.json'), JSON.stringify({
+    issues: [{ id: '../escape', status: 'todo' }],
   }));
   let prompts = 0;
   let executions = 0;
@@ -162,22 +200,21 @@ test('el comando runTask bloquea una configuración Ralph inválida antes de eje
   await runRalphTaskCommand({
     isTrusted: true,
     workspaceRoot: directory,
-    readConfig: readRalphConfig,
-    promptTaskId: async () => { prompts += 1; return 'task-1'; },
+    readPrd: readRalphPrd,
+    promptTaskId: async () => { prompts += 1; return 'ISSUE-001'; },
     runTask: async () => { executions += 1; },
     showError: (message) => { errors.push(message); },
   });
 
   assert.equal(prompts, 0);
   assert.equal(executions, 0);
-  assert.match(errors[0], /configuración Ralph no válida/);
+  assert.match(errors[0], /prd\.json de Ralph no válido/);
 });
 
-test('el comando runTask ejecuta solo tras validar la configuración de confianza', async () => {
+test('el comando runTask ejecuta solo tras validar prd.json de confianza', async () => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-ralph-valid-'));
-  await fs.mkdir(path.join(directory, '.ralph'));
-  await fs.writeFile(path.join(directory, '.ralph', 'config.json'), JSON.stringify({
-    tasks: [{ id: 'task-1', status: 'todo', route: 'tasks/task-1.md' }],
+  await fs.writeFile(path.join(directory, 'prd.json'), JSON.stringify({
+    issues: [{ id: 'ISSUE-001', status: 'todo' }],
   }));
   const calls = [];
   const errors = [];
@@ -185,13 +222,13 @@ test('el comando runTask ejecuta solo tras validar la configuración de confianz
   await runRalphTaskCommand({
     isTrusted: true,
     workspaceRoot: directory,
-    readConfig: readRalphConfig,
-    promptTaskId: async () => 'task-1',
+    readPrd: readRalphPrd,
+    promptTaskId: async (issues) => issues[0]?.id,
     runTask: async (taskId) => { calls.push(taskId); },
     showError: (message) => { errors.push(message); },
   });
 
-  assert.deepEqual(calls, ['task-1']);
+  assert.deepEqual(calls, ['ISSUE-001']);
   assert.deepEqual(errors, []);
 });
 

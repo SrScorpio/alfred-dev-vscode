@@ -55,7 +55,7 @@ CycloneDX. `prebuild-install` también es compartido por `@vscode/vsce`;
 activos en el audit actual y no entran en el VSIX, pero deben revisarse al
 actualizar cualquiera de las dos herramientas de build.
 
-Issue #2 y el MVP de Issue #3A no añaden dependencias de runtime: el servidor
+Issue #2 y el MVP de Issue #3A/#40 no añaden dependencias de runtime: el servidor
 MCP, la memoria, el scanner, la galería y el bridge Ralph usan Node y VS Code.
 La API MCP y Ralph Suite se detectan en runtime; ninguna es dependencia
-obligatoria ni se instala para esta entrega.
+obligatoria (`extensionDependencies` ausente) ni se instala para esta entrega.

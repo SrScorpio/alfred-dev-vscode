@@ -8,6 +8,7 @@
  * @module commands/index
  */
 import * as vscode from 'vscode';
+import { existsSync } from 'fs';
 import { StatusTreeProvider } from '../providers/statusTreeProvider';
 import { getModelProfileItems } from './modelProfiles';
 import type { ModelProfile } from './modelProfiles';
@@ -22,7 +23,9 @@ import { openMemoryUi } from '../memory/memoryUiPanel';
 import { installSecretHook } from '../security/secretHook';
 import {
   RalphBridge,
-  readRalphConfig,
+  findRalphWorkspaceRoot,
+  ralphCommandContexts,
+  readRalphPrd,
   resolveRalphSuiteExtension,
   runRalphTaskCommand,
   runSyncIssueCommand,
@@ -53,6 +56,28 @@ export function registerCommands(
   },
 ) {
   const getWorkspaceRoot = (): string | undefined => vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const getRalphWorkspaceRoot = (): string | undefined => {
+    const folders = (vscode.workspace.workspaceFolders ?? []).map((folder) => folder.uri.fsPath);
+    const configuredPath = vscode.workspace.getConfiguration('ralph-suite').get<string>('prdPath', 'prd.json') ?? 'prd.json';
+    return findRalphWorkspaceRoot(folders, configuredPath, existsSync);
+  };
+  const refreshRalphPalette = () => {
+    const extension = resolveRalphSuiteExtension((extensionId) => {
+      const found = vscode.extensions.getExtension(extensionId);
+      return found ? {
+        isActive: found.isActive,
+        commands: getRalphCommandIds(found.packageJSON),
+      } : undefined;
+    });
+    const contexts = ralphCommandContexts(extension);
+    for (const [key, value] of Object.entries(contexts)) {
+      void vscode.commands.executeCommand('setContext', key, value);
+    }
+  };
+  refreshRalphPalette();
+  context.subscriptions.push(
+    vscode.extensions.onDidChange(refreshRalphPalette),
+  );
   const openChatWithPrompt = (prompt?: string) => {
     void openAlfredChat(
       (command, chatPrompt) => vscode.commands.executeCommand(command, chatPrompt),
@@ -263,12 +288,19 @@ export function registerCommands(
   const ralphRunTaskCommand = vscode.commands.registerCommand('alfred-dev.ralph.runTask', () => {
     void runRalphTaskCommand({
       isTrusted: vscode.workspace.isTrusted,
-      workspaceRoot: getWorkspaceRoot(),
-      readConfig: readRalphConfig,
-      promptTaskId: async () => vscode.window.showInputBox({
-        prompt: 'ID de tarea Ralph',
-        validateInput: (value) => /^[a-z0-9][a-z0-9-]{0,63}$/.test(value) ? undefined : 'Usa un ID alfanumérico con guiones.',
-      }),
+      workspaceRoot: getRalphWorkspaceRoot(),
+      prdPath: vscode.workspace.getConfiguration('ralph-suite').get<string>('prdPath', 'prd.json') ?? 'prd.json',
+      readPrd: readRalphPrd,
+      promptTaskId: async (issues) => {
+        const selected = await vscode.window.showQuickPick(
+          issues.map((issue) => ({
+            label: issue.id,
+            description: issue.status,
+          })),
+          { placeHolder: 'Selecciona una issue de prd.json' },
+        );
+        return selected?.label;
+      },
       runTask: (taskId) => getRalphBridge().runTask(taskId),
       showError: (message) => { void vscode.window.showErrorMessage(message); },
     });

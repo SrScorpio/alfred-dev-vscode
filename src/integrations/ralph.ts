@@ -3,19 +3,33 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 
 export type RalphStatus = 'todo' | 'inprogress' | 'blocked' | 'completed';
-export interface RalphTask {
+export interface RalphPrdIssue {
   id: string;
   status: RalphStatus;
-  route: string;
 }
-export interface RalphConfig {
-  tasks: RalphTask[];
+export interface RalphPrd {
+  issues: RalphPrdIssue[];
 }
 
-const MAX_RALPH_CONFIG_SIZE = 64 * 1024;
-const MAX_RALPH_TASKS = 200;
-const TASK_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
+const MAX_RALPH_PRD_SIZE = 64 * 1024;
+const MAX_RALPH_ISSUES = 200;
+/** IDs that survive Ralph `safeTaskId` (letters, digits, `_`, `.`, `-`, max 80). */
+export const RALPH_TASK_ID = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$/;
 export const RALPH_SUITE_EXTENSION_ID = 'ralph-suite.ralph-suite';
+export const RALPH_PALETTE_CONTEXTS = [
+  'alfred-dev.ralph.openKanban',
+  'alfred-dev.ralph.runTask',
+  'alfred-dev.ralph.startRunner',
+  'alfred-dev.ralph.stopRunner',
+  'alfred-dev.ralph.syncIssue',
+] as const;
+const RALPH_COMMAND_BY_CONTEXT: Record<(typeof RALPH_PALETTE_CONTEXTS)[number], string> = {
+  'alfred-dev.ralph.openKanban': 'ralph-suite.openKanban',
+  'alfred-dev.ralph.runTask': 'ralph-suite.runTask',
+  'alfred-dev.ralph.startRunner': 'ralph-suite.startRunner',
+  'alfred-dev.ralph.stopRunner': 'ralph-suite.stopRunner',
+  'alfred-dev.ralph.syncIssue': 'ralph-suite.syncIssue',
+};
 const ALFRED_STATUSES = {
   backlog: 'todo',
   'in-progress': 'inprogress',
@@ -38,41 +52,95 @@ export function extractIssueIds(content: string): number[] {
   return [...content.matchAll(/\bISSUE-([1-9]\d{0,5})\b/g)].map((match) => Number(match[1]));
 }
 
-function isValidTask(value: unknown): value is RalphTask {
+function isValidIssue(value: unknown): value is RalphPrdIssue {
   return typeof value === 'object' && value !== null
-    && typeof (value as RalphTask).id === 'string' && TASK_ID.test((value as RalphTask).id)
-    && ['todo', 'inprogress', 'blocked', 'completed'].includes((value as RalphTask).status)
-    && typeof (value as RalphTask).route === 'string';
+    && typeof (value as RalphPrdIssue).id === 'string' && RALPH_TASK_ID.test((value as RalphPrdIssue).id)
+    && ['todo', 'inprogress', 'blocked', 'completed'].includes((value as RalphPrdIssue).status);
 }
 
 function isInside(rootPath: string, candidatePath: string): boolean {
-  const root = path.resolve(rootPath) + path.sep;
-  return path.resolve(candidatePath).startsWith(root);
+  const root = path.resolve(rootPath);
+  const resolved = path.resolve(candidatePath);
+  return resolved === root || resolved.startsWith(root + path.sep);
 }
 
-/** Reads a small, trusted-workspace Ralph config with strict path validation. */
-export async function readRalphConfig(workspaceRoot: string, isTrusted: boolean): Promise<RalphConfig> {
+/** Resolves `ralph-suite.prdPath` inside the folder; traversal falls back to `prd.json`. */
+export function resolveRalphPrdPath(workspaceRoot: string, configuredPath = 'prd.json'): string {
+  const root = path.resolve(workspaceRoot);
+  const target = path.isAbsolute(configuredPath)
+    ? configuredPath
+    : path.join(root, configuredPath || 'prd.json');
+  const resolved = path.resolve(target);
+  if (!isInside(root, resolved)) return path.join(root, 'prd.json');
+  return resolved;
+}
+
+/** Prefers the multi-root folder that actually contains the PRD; otherwise folder[0]. */
+export function findRalphWorkspaceRoot(
+  folders: readonly string[],
+  configuredPath = 'prd.json',
+  hasPrd: (prdPath: string) => boolean = () => false,
+): string | undefined {
+  if (folders.length === 0) return undefined;
+  for (const folder of folders) {
+    if (hasPrd(resolveRalphPrdPath(folder, configuredPath))) return folder;
+  }
+  return folders[0];
+}
+
+/** Palette `when` keys: true only if Ralph is active and announces that exact command. */
+export function ralphCommandContexts(
+  extension: RalphExtension | undefined,
+): Record<(typeof RALPH_PALETTE_CONTEXTS)[number], boolean> {
+  const commands = new Set(extension?.isActive ? extension.commands ?? [] : []);
+  return {
+    'alfred-dev.ralph.openKanban': commands.has(RALPH_COMMAND_BY_CONTEXT['alfred-dev.ralph.openKanban']),
+    'alfred-dev.ralph.runTask': commands.has(RALPH_COMMAND_BY_CONTEXT['alfred-dev.ralph.runTask']),
+    'alfred-dev.ralph.startRunner': commands.has(RALPH_COMMAND_BY_CONTEXT['alfred-dev.ralph.startRunner']),
+    'alfred-dev.ralph.stopRunner': commands.has(RALPH_COMMAND_BY_CONTEXT['alfred-dev.ralph.stopRunner']),
+    'alfred-dev.ralph.syncIssue': commands.has(RALPH_COMMAND_BY_CONTEXT['alfred-dev.ralph.syncIssue']),
+  };
+}
+
+function normalizeRalphStatus(raw: unknown): RalphStatus {
+  const status = String(raw ?? 'todo').toLowerCase().trim();
+  if (status === 'inprogress' || status === 'in_progress' || status === 'in-progress') return 'inprogress';
+  if (status === 'completed' || status === 'done' || status === 'closed') return 'completed';
+  if (status === 'blocked') return 'blocked';
+  return 'todo';
+}
+
+/** Reads a small, trusted-workspace Ralph PRD (`prd.json`), never `.ralph/config.json`. */
+export async function readRalphPrd(
+  workspaceRoot: string,
+  isTrusted: boolean,
+  configuredPath = 'prd.json',
+): Promise<RalphPrd> {
   if (!isTrusted) throw new Error('Ralph requiere un workspace de confianza');
-  const configPath = path.join(workspaceRoot, '.ralph', 'config.json');
+  const prdPath = resolveRalphPrdPath(workspaceRoot, configuredPath);
   try {
-    const stats = await fs.stat(configPath);
-    if (stats.size > MAX_RALPH_CONFIG_SIZE) throw new Error('configuración Ralph no válida: supera 64 KiB');
-    const parsed: unknown = JSON.parse(await fs.readFile(configPath, 'utf8'));
-    if (typeof parsed !== 'object' || parsed === null || !Array.isArray((parsed as RalphConfig).tasks)
-      || (parsed as RalphConfig).tasks.length > MAX_RALPH_TASKS
-      || !(parsed as RalphConfig).tasks.every(isValidTask)) {
-      throw new Error('configuración Ralph no válida');
+    const stats = await fs.stat(prdPath);
+    if (stats.size > MAX_RALPH_PRD_SIZE) throw new Error('prd.json de Ralph no válido: supera 64 KiB');
+    const parsed: unknown = JSON.parse(await fs.readFile(prdPath, 'utf8'));
+    if (typeof parsed !== 'object' || parsed === null) throw new Error('prd.json de Ralph no válido');
+    const rawItems = Array.isArray((parsed as { issues?: unknown }).issues)
+      ? (parsed as { issues: unknown[] }).issues
+      : Array.isArray((parsed as { userStories?: unknown }).userStories)
+        ? (parsed as { userStories: unknown[] }).userStories
+        : null;
+    if (!rawItems || rawItems.length > MAX_RALPH_ISSUES) {
+      throw new Error('prd.json de Ralph no válido');
     }
-    for (const task of (parsed as RalphConfig).tasks) {
-      if (path.isAbsolute(task.route) || task.route.split(/[\\/]/).includes('..')
-        || !task.route || !isInside(workspaceRoot, path.join(workspaceRoot, task.route))) {
-        throw new Error('configuración Ralph no válida: ruta fuera del workspace');
-      }
-    }
-    return parsed as RalphConfig;
+    const issues = rawItems.map((item) => {
+      if (typeof item !== 'object' || item === null) throw new Error('prd.json de Ralph no válido');
+      const issue = { id: (item as { id?: unknown }).id, status: normalizeRalphStatus((item as { status?: unknown }).status) };
+      if (!isValidIssue(issue)) throw new Error('prd.json de Ralph no válido');
+      return issue;
+    });
+    return { issues };
   } catch (error: unknown) {
-    if (isFileNotFoundError(error)) return { tasks: [] };
-    if (error instanceof SyntaxError) throw new Error('configuración Ralph no válida: JSON inválido');
+    if (isFileNotFoundError(error)) throw new Error('No se encontró prd.json en el workspace');
+    if (error instanceof SyntaxError) throw new Error('prd.json de Ralph no válido: JSON inválido');
     throw error;
   }
 }
@@ -168,7 +236,7 @@ export async function runSyncIssueCommand(options: SyncIssueCommandOptions): Pro
 }
 
 function validateTaskId(taskId: string): void {
-  if (!TASK_ID.test(taskId)) throw new Error('El ID de tarea Ralph no es válido');
+  if (!RALPH_TASK_ID.test(taskId)) throw new Error('El ID de tarea Ralph no es válido');
 }
 
 function isFileNotFoundError(error: unknown): boolean {
@@ -184,27 +252,41 @@ interface TrustedRalphActionOptions {
 interface RalphTaskCommandOptions {
   isTrusted: boolean;
   workspaceRoot?: string;
-  readConfig?(workspaceRoot: string, isTrusted: boolean): Promise<RalphConfig>;
-  promptTaskId(): Promise<string | undefined>;
+  prdPath?: string;
+  readPrd?(workspaceRoot: string, isTrusted: boolean, configuredPath?: string): Promise<RalphPrd>;
+  promptTaskId(issues: RalphPrdIssue[]): Promise<string | undefined>;
   runTask(taskId: string): Promise<void>;
   showError(message: string): void;
 }
 
-/** Requests a task only after trust and a valid Ralph config have passed. */
+/** Requests a task only after trust and a valid Ralph PRD have passed. */
 export async function runRalphTaskCommand(options: RalphTaskCommandOptions): Promise<void> {
   if (!options.isTrusted) {
     options.showError('Las acciones Ralph requieren un workspace de confianza.');
     return;
   }
   try {
-    if (options.readConfig) {
+    if (options.readPrd) {
       if (!options.workspaceRoot) {
         options.showError('Abre un workspace para ejecutar una tarea Ralph.');
         return;
       }
-      await options.readConfig(options.workspaceRoot, options.isTrusted);
+      const prd = await options.readPrd(options.workspaceRoot, options.isTrusted, options.prdPath);
+      if (prd.issues.length === 0) {
+        options.showError('prd.json no tiene issues para ejecutar.');
+        return;
+      }
+      const taskId = await options.promptTaskId(prd.issues);
+      if (!taskId) return;
+      validateTaskId(taskId);
+      if (!prd.issues.some((issue) => issue.id === taskId)) {
+        options.showError('El ID de tarea Ralph no está en prd.json.');
+        return;
+      }
+      await options.runTask(taskId);
+      return;
     }
-    const taskId = await options.promptTaskId();
+    const taskId = await options.promptTaskId([]);
     if (!taskId) return;
     validateTaskId(taskId);
     await options.runTask(taskId);
