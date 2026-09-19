@@ -9,7 +9,22 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
+- Ralph bridge now exposes **Alfred Dev: Sincronizar issue con Ralph** when the
+  active Ralph extension announces `ralph-suite.syncIssue`. The current Ralph
+  working tree accepts GitHub issue numbers `1..999999`, statuses
+  `todo|inprogress|blocked|completed` and an optional allowlisted workspace
+  root. It maps only `github:#N` or `owner/repo#N`; `ISSUE-00N` is never
+  inferred as GitHub `#N`.
+
 ### Changed
+
+- The local Ralph sync contract writes only
+  `.ralph/task-<id-local>-status` and does not modify `prd.json`.
+- Ralph's multi-folder watchers, **Analyze Existing Project**, **Start New
+  Project**, `scripts/run-tests.js` and `sendToChat` abort/timeout/listener
+  cleanup are documented as working-tree changes.
+- ADR-016 keeps parallel dispatch out of Alfred. The host does not issue N
+  concurrent `runTask` calls; a future scheduler belongs to Ralph's runner.
 
 ### Fixed
 

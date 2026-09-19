@@ -1,5 +1,5 @@
 /** Optional, command-only bridge to Ralph Suite. */
-import { promises as fs } from 'fs';
+import { existsSync, promises as fs } from 'fs';
 import * as path from 'path';
 
 export type RalphStatus = 'todo' | 'inprogress' | 'blocked' | 'completed';
@@ -47,11 +47,6 @@ export function mapAlfredStatus(status: keyof typeof ALFRED_STATUSES): RalphStat
   return ALFRED_STATUSES[status];
 }
 
-/** Extracts bounded ISSUE-123 references without exposing issue bodies to execution. */
-export function extractIssueIds(content: string): number[] {
-  return [...content.matchAll(/\bISSUE-([1-9]\d{0,5})\b/g)].map((match) => Number(match[1]));
-}
-
 function isValidIssue(value: unknown): value is RalphPrdIssue {
   return typeof value === 'object' && value !== null
     && typeof (value as RalphPrdIssue).id === 'string' && RALPH_TASK_ID.test((value as RalphPrdIssue).id)
@@ -65,25 +60,40 @@ function isInside(rootPath: string, candidatePath: string): boolean {
 }
 
 /** Resolves `ralph-suite.prdPath` inside the folder; traversal falls back to `prd.json`. */
-export function resolveRalphPrdPath(workspaceRoot: string, configuredPath = 'prd.json'): string {
+const DEFAULT_RALPH_PRD_PATH = 'docs/ralph/prd.json';
+const LEGACY_RALPH_PRD_PATH = 'prd.json';
+
+function isDefaultRalphPrdPath(configuredPath?: string): boolean {
+  const normalized = (configuredPath ?? '').trim().replace(/\\/g, '/');
+  return normalized === '' || normalized === DEFAULT_RALPH_PRD_PATH;
+}
+
+export function resolveRalphPrdPath(workspaceRoot: string, configuredPath = DEFAULT_RALPH_PRD_PATH, hasPrd: (prdPath: string) => boolean = () => false): string {
   const root = path.resolve(workspaceRoot);
+  if (isDefaultRalphPrdPath(configuredPath)) {
+    const modern = path.join(root, DEFAULT_RALPH_PRD_PATH);
+    const legacy = path.join(root, LEGACY_RALPH_PRD_PATH);
+    if (hasPrd(modern)) return modern;
+    if (hasPrd(legacy)) return legacy;
+    return modern;
+  }
   const target = path.isAbsolute(configuredPath)
     ? configuredPath
-    : path.join(root, configuredPath || 'prd.json');
+    : path.join(root, configuredPath || DEFAULT_RALPH_PRD_PATH);
   const resolved = path.resolve(target);
-  if (!isInside(root, resolved)) return path.join(root, 'prd.json');
+  if (!isInside(root, resolved)) return path.join(root, DEFAULT_RALPH_PRD_PATH);
   return resolved;
 }
 
 /** Prefers the multi-root folder that actually contains the PRD; otherwise folder[0]. */
 export function findRalphWorkspaceRoot(
   folders: readonly string[],
-  configuredPath = 'prd.json',
+  configuredPath = DEFAULT_RALPH_PRD_PATH,
   hasPrd: (prdPath: string) => boolean = () => false,
 ): string | undefined {
   if (folders.length === 0) return undefined;
   for (const folder of folders) {
-    if (hasPrd(resolveRalphPrdPath(folder, configuredPath))) return folder;
+    if (hasPrd(resolveRalphPrdPath(folder, configuredPath, hasPrd))) return folder;
   }
   return folders[0];
 }
@@ -114,10 +124,10 @@ function normalizeRalphStatus(raw: unknown): RalphStatus {
 export async function readRalphPrd(
   workspaceRoot: string,
   isTrusted: boolean,
-  configuredPath = 'prd.json',
+  configuredPath = DEFAULT_RALPH_PRD_PATH,
 ): Promise<RalphPrd> {
   if (!isTrusted) throw new Error('Ralph requiere un workspace de confianza');
-  const prdPath = resolveRalphPrdPath(workspaceRoot, configuredPath);
+  const prdPath = resolveRalphPrdPath(workspaceRoot, configuredPath, existsSync);
   try {
     const stats = await fs.stat(prdPath);
     if (stats.size > MAX_RALPH_PRD_SIZE) throw new Error('prd.json de Ralph no válido: supera 64 KiB');

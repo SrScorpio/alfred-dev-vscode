@@ -58,7 +58,7 @@ export function registerCommands(
   const getWorkspaceRoot = (): string | undefined => vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   const getRalphWorkspaceRoot = (): string | undefined => {
     const folders = (vscode.workspace.workspaceFolders ?? []).map((folder) => folder.uri.fsPath);
-    const configuredPath = vscode.workspace.getConfiguration('ralph-suite').get<string>('prdPath', 'prd.json') ?? 'prd.json';
+    const configuredPath = vscode.workspace.getConfiguration('ralph-suite').get<string>('prdPath', 'docs/ralph/prd.json') ?? 'docs/ralph/prd.json';
     return findRalphWorkspaceRoot(folders, configuredPath, existsSync);
   };
   const refreshRalphPalette = () => {
@@ -289,7 +289,7 @@ export function registerCommands(
     void runRalphTaskCommand({
       isTrusted: vscode.workspace.isTrusted,
       workspaceRoot: getRalphWorkspaceRoot(),
-      prdPath: vscode.workspace.getConfiguration('ralph-suite').get<string>('prdPath', 'prd.json') ?? 'prd.json',
+      prdPath: vscode.workspace.getConfiguration('ralph-suite').get<string>('prdPath', 'docs/ralph/prd.json') ?? 'docs/ralph/prd.json',
       readPrd: readRalphPrd,
       promptTaskId: async (issues) => {
         const selected = await vscode.window.showQuickPick(

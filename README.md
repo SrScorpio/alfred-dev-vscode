@@ -391,9 +391,10 @@ un usuario sin Ralph instala Alfred completo. Los cinco wrappers
 `alfred-dev.ralph.*` solo aparecen en la paleta si Ralph está instalada,
 activa y anuncia esa capacidad (`setContext` + `when`). Con Ralph 1.10 el
 layout por defecto vive en Ralph (`docs/` + `docs/ralph/prd.json`); Alfred
-honra `ralph-suite.prdPath`. Kanban / runTask / runner se muestran;
-**Sincronizar issue** permanece oculto (issue #3) porque Ralph no publica
-`ralph-suite.syncIssue`.
+honra `ralph-suite.prdPath`. Kanban / runTask / runner se muestran. El árbol
+de trabajo actual de Ralph también anuncia `ralph-suite.syncIssue`; la release
+publicada 1.10.0 aún no lo contiene, por lo que el wrapper queda oculto al
+usar esa release.
 
 **Ejecutar tarea Ralph** exige workspace trust, lee `prd.json` (o
 `ralph-suite.prdPath` si existe, sin salir del folder) y ofrece un QuickPick
@@ -406,7 +407,9 @@ GitHub Issues/PRs sigue siendo la fuente colaborativa de Alfred. `prd.json`
 es el backlog local de Ralph; `.ralph/task-<ID>-*` es runtime. Pareja:
 [ralph-suite#1](https://github.com/SrScorpio/ralph-suite/issues/1),
 [alfred-dev-vscode#40](https://github.com/SrScorpio/alfred-dev-vscode/issues/40).
-`syncIssue` y el paralelismo siguen en [#3](https://github.com/SrScorpio/alfred-dev-vscode/issues/3).
+`syncIssue` está en el árbol de trabajo y pendiente de publicar; el paralelismo
+se mantiene separado en [#3](https://github.com/SrScorpio/alfred-dev-vscode/issues/3) y no
+se implementa lanzando N llamadas concurrentes a `runTask`.
 
 ### Subagentes
 
