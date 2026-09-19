@@ -7,7 +7,6 @@ const test = require('node:test');
 const {
   RALPH_SUITE_EXTENSION_ID,
   RalphBridge,
-  extractIssueIds,
   findRalphWorkspaceRoot,
   mapAlfredStatus,
   ralphCommandContexts,
@@ -19,13 +18,11 @@ const {
   runSyncIssueCommand,
 } = require('../out/integrations/ralph.js');
 
-test('mapea estados Alfred/Ralph y extrae asociaciones ISSUE', () => {
+test('mapea estados Alfred/Ralph', () => {
   assert.equal(mapAlfredStatus('backlog'), 'todo');
   assert.equal(mapAlfredStatus('in-progress'), 'inprogress');
   assert.equal(mapAlfredStatus('blocked'), 'blocked');
   assert.equal(mapAlfredStatus('closed'), 'completed');
-  assert.deepEqual(extractIssueIds('ISSUE-12 y ISSUE-123'), [12, 123]);
-  assert.deepEqual(extractIssueIds('issue-1 ISSUE-0 ISSUE-1000000'), []);
 });
 
 test('lee prd.json con IDs de Ralph y rechaza traversal o trust', async () => {
@@ -53,7 +50,7 @@ test('elige la carpeta multi-root con prd.json y no sale del workspace', () => {
   assert.equal(findRalphWorkspaceRoot([first, second], 'prd.json', (candidate) => candidate === prd), second);
   assert.equal(findRalphWorkspaceRoot([first], 'prd.json', () => false), first);
   assert.equal(findRalphWorkspaceRoot([], 'prd.json', () => true), undefined);
-  assert.equal(resolveRalphPrdPath(first, '../outside.json'), path.join(first, 'prd.json'));
+  assert.equal(resolveRalphPrdPath(first, '../outside.json'), path.join(first, 'docs', 'ralph', 'prd.json'));
   assert.equal(resolveRalphPrdPath(first, 'prd.json'), path.join(first, 'prd.json'));
 });
 
