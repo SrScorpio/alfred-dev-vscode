@@ -46,11 +46,11 @@ Requisitos: VS Code con GitHub Copilot Chat. Tras instalar, los agentes aparecen
 
 Descarga el VSIX desde
 [GitHub Releases](https://github.com/SrScorpio/alfred-dev-vscode/releases)
-(última publicación; en esta línea, `alfred-dev-vscode-0.8.0.vsix`) e
+(última publicación; en esta línea, `alfred-dev-vscode-0.8.1.vsix`) e
 instálalo en VS Code:
 
 ```bash
-code --install-extension alfred-dev-vscode-0.8.0.vsix
+code --install-extension alfred-dev-vscode-0.8.1.vsix
 ```
 
 Esta extensión no se publica en Visual Studio Marketplace.
@@ -407,7 +407,7 @@ GitHub Issues/PRs sigue siendo la fuente colaborativa de Alfred. `prd.json`
 es el backlog local de Ralph; `.ralph/task-<ID>-*` es runtime. Pareja:
 [ralph-suite#1](https://github.com/SrScorpio/ralph-suite/issues/1),
 [alfred-dev-vscode#40](https://github.com/SrScorpio/alfred-dev-vscode/issues/40).
-`syncIssue` está en el árbol de trabajo y pendiente de publicar; el paralelismo
+`syncIssue` está publicado en esta release; el paralelismo
 se mantiene separado en [#3](https://github.com/SrScorpio/alfred-dev-vscode/issues/3) y no
 se implementa lanzando N llamadas concurrentes a `runTask`.
 

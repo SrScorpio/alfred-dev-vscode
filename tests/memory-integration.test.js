@@ -374,7 +374,7 @@ function registerListedMemoryMcpProvider(overrides = {}) {
     keyProvider: TEST_KEY_PROVIDER,
     serverPath: 'memoryMcpServer.js',
     memoryPath: 'memory.json',
-    version: '0.8.0',
+    version: '0.8.1',
     ...overrides,
   });
   return { provider, registered, disposable };
@@ -401,7 +401,7 @@ test('provide no abre el canal de clave ni llama a offerKey', async () => {
   assert.equal(definitions.length, 1);
   assert.equal(definitions[0].serverPath, 'memoryMcpServer.js');
   assert.equal(definitions[0].memoryPath, 'memory.json');
-  assert.equal(definitions[0].version, '0.8.0');
+  assert.equal(definitions[0].version, '0.8.1');
   assert.equal(definitions[0].env.ALFRED_DEV_MEMORY_PATH, 'memory.json');
   assert.equal(MEMORY_KEY_SOCKET_ENV in definitions[0].env, false);
   assert.equal('ALFRED_DEV_MEMORY_KEY' in definitions[0].env, false);

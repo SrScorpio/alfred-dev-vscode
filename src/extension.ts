@@ -76,7 +76,7 @@ export function activate(context: vscode.ExtensionContext) {
     keyProvider: memoryKeyProvider,
     serverPath: context.asAbsolutePath(path.join('out', 'memory', 'memoryMcpServer.js')),
     memoryPath,
-    version: '0.8.0',
+    version: '0.8.1',
   });
   registerSecretDiagnosticsOnChange({
     enabled: () => vscode.workspace.getConfiguration('alfred-dev').get<boolean>('secretGuard.diagnostics', true) ?? true,

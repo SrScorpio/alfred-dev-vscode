@@ -44,7 +44,7 @@ Abre la Paleta de comandos y busca la categoría **Alfred Dev**:
 | **Alfred Dev: Abrir Kanban Ralph** | Solo en paleta si Ralph está activa y anuncia `openKanban`. |
 | **Alfred Dev: Ejecutar tarea Ralph** | Solo si Ralph anuncia `runTask`. Trust + `prd.json` (multi-root) + QuickPick de IDs. |
 | **Alfred Dev: Iniciar/Detener runner Ralph** | Solo si Ralph anuncia esos comandos. El runner exige el webview Kanban. |
-| **Alfred Dev: Sincronizar issue con Ralph** | Visible solo cuando Ralph anuncia `ralph-suite.syncIssue`. El contrato actual está en el árbol de trabajo y pendiente de publicar; la release 1.10.0 no lo incluye. |
+| **Alfred Dev: Sincronizar issue con Ralph** | Visible solo cuando Ralph anuncia `ralph-suite.syncIssue`. El contrato actual acepta labels explícitos y escribe únicamente señales runtime; la release 1.10.0 no lo incluye. |
 
 ## Perfil global de modelo
 
@@ -118,8 +118,9 @@ ejecuta cuerpos de issues ni prompts. `syncIssue` está implementado en el
 `1..999999`, `status` `todo|inprogress|blocked|completed` y `workspaceRoot`
 opcional, sujeto a trust y allowlist. Solo reconoce labels `github:#N` u
 `owner/repo#N`; no traduce `ISSUE-00N` a GitHub `#N`, no modifica `prd.json` y
-escribe `.ralph/task-<id-local>-status`. Sigue pendiente de publicación. El
-paralelismo permanece fuera del alcance de Alfred según ADR-016 y [#3](https://github.com/alfred-dev-vscode/issues/3).
+escribe `.ralph/task-<id-local>-status`. La integración está publicada en esta
+release. El paralelismo permanece fuera del alcance de Alfred según ADR-016 y
+[#3](https://github.com/SrScorpio/alfred-dev-vscode/issues/3).
 Contrato en Ralph: [ralph-suite#1](https://github.com/SrScorpio/ralph-suite/issues/1).
 
 ## Desarrollo local
