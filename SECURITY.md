@@ -42,20 +42,20 @@ Incluya, como mínimo:
 
 ## Versiones soportadas
 
-Matriz vigente a 2026-09-18. El manifiesto `package.json` declara la
-versión **0.8.0** y el motor **VS Code `^1.85.0`**. GitHub Releases
-existen: el tag `v0.7.0` ya está publicado. El tag `v0.8.0` y su Release
-se crean después del merge; hasta entonces la línea soportada es el
-manifiesto `0.8.0` en `main`.
+Matriz vigente a 2026-09-19. El manifiesto `package.json` declara la
+versión **0.8.1** y el motor **VS Code `^1.85.0`**. GitHub Releases
+existen: los tags `v0.7.0` y `v0.8.0` ya están publicados. La línea
+soportada es el manifiesto `0.8.1` en `main`.
 
 | Artefacto | Soporte | Host |
 |-----------|---------|------|
-| `0.8.0` (versión del manifiesto) | Línea soportada | VS Code `^1.85.0` |
-| GitHub Release `v0.7.0` | Publicada; sin soporte de seguridad tras `0.8.0` | VS Code `^1.85.0` |
+| `0.8.1` (versión del manifiesto) | Línea soportada | VS Code `^1.85.0` |
+| GitHub Release `v0.8.0` | Publicada; release previa | VS Code `^1.85.0` |
+| GitHub Release `v0.7.0` | Publicada; sin soporte de seguridad tras `0.8.1` | VS Code `^1.85.0` |
 | Versiones anteriores a esa menor | Sin soporte de seguridad | — |
 | Pre-releases, commits intermedios, VSIX locales no publicados | Sin soporte formal | — |
 
-La línea soportada es el manifiesto `0.8.0`. No hay publicación en un
+La línea soportada es el manifiesto `0.8.1`. No hay publicación en un
 marketplace de extensiones.
 
 ## SLA de divulgación
@@ -85,8 +85,8 @@ Advisory o, si existe, Release):
 | Baja / informativa | Siguiente versión menor | Puede quedar como residual aceptado |
 
 Estos plazos no prometen un VSIX en un marketplace de extensiones. El
-canal de publicación es GitHub Releases (`v0.7.0` ya publicado; `v0.8.0`
-se etiqueta tras el merge) y, cuando proceda, el Security Advisory.
+canal de publicación es GitHub Releases (`v0.8.1`, `v0.8.0` y `v0.7.0` ya
+publicados) y, cuando proceda, el Security Advisory.
 
 ## Protocolo de incidentes (NIS2 art. 23)
 
@@ -118,7 +118,7 @@ este documento.
 El publicador se compromete a publicar correcciones o mitigaciones de la
 línea soportada según la tabla de severidad. El canal de actualización
 es el repositorio GitHub y sus Releases (`v0.7.0` publicado;
-`v0.8.0` se etiqueta tras el merge). No hay publicación en un
+`v0.8.0` ya publicado). No hay publicación en un
 marketplace de extensiones.
 
 ## Qué no se garantiza

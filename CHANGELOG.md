@@ -9,6 +9,14 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.8.1] - 2026-09-19
+
+### Added
+
 - Ralph bridge now exposes **Alfred Dev: Sincronizar issue con Ralph** when the
   active Ralph extension announces `ralph-suite.syncIssue`. The current Ralph
   working tree accepts GitHub issue numbers `1..999999`, statuses
@@ -19,7 +27,8 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 ### Changed
 
 - The local Ralph sync contract writes only
-  `.ralph/task-<id-local>-status` and does not modify `prd.json`.
+  `.ralph/task-<id-local>-status`, honors `ralph-suite.prdPath` and does not
+  modify `prd.json`.
 - Ralph's multi-folder watchers, **Analyze Existing Project**, **Start New
   Project**, `scripts/run-tests.js` and `sendToChat` abort/timeout/listener
   cleanup are documented as working-tree changes.

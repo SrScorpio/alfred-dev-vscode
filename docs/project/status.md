@@ -6,10 +6,10 @@
 
 ## Flujo activo
 
-- **Flujo:** el ship **0.8.0** está publicado: tag anotado `v0.8.0` en `9abbe57a89b849484a67583a31b2a27f7fa30482` y GitHub Release [v0.8.0](https://github.com/SrScorpio/alfred-dev-vscode/releases/tag/v0.8.0) con adjunto `alfred-dev-vscode-0.8.0.vsix`. El árbol de trabajo contiene una actualización pendiente del puente Ralph, pero no hay commit ni nueva release. Sin Marketplace.
-- **Feature / descripción:** el árbol de trabajo de Ralph contribuye `ralph-suite.syncIssue`: trust + allowlist, `githubIssueNumber` `1..999999`, estados `todo|inprogress|blocked|completed`, `workspaceRoot` opcional, mapeo solo por `github:#N` u `owner/repo#N`, sin inferir `ISSUE-00N`, sin modificar `prd.json` y con escritura exclusiva de `.ralph/task-<id-local>-status`. También quedan documentados watchers multi-folder, Analyze Existing Project, Start New Project, `scripts/run-tests.js` y la limpieza de abort/timeout/listener de `sendToChat`. QA y seguridad están aprobados con 122 tests. Todo está pendiente de publicar; la release 1.10.0 no cambia.
-- **Fase actual:** documentación de cambios del árbol de trabajo posterior al ship 0.8.0. `origin/main` y los tags publicados permanecen sin cambios.
-- **Gate pendiente:** publicación posterior, si se autoriza. La issue #3 sigue abierta y no se cierra con esta actualización.
+- **Flujo:** el ship **0.8.1** está publicado: incluye tag anotado `v0.8.1` y GitHub Release con adjunto `alfred-dev-vscode-0.8.1.vsix`. Sin Marketplace.
+- **Feature / descripción:** `ralph-suite.syncIssue` ofrece trust + allowlist, `githubIssueNumber` `1..999999`, estados `todo|inprogress|blocked|completed`, `workspaceRoot` opcional, mapeo solo por `github:#N` u `owner/repo#N`, sin inferir `ISSUE-00N`, sin modificar `prd.json` y con escritura exclusiva de `.ralph/task-<id-local>-status`. También quedan documentados watchers multi-folder, Analyze Existing Project, Start New Project, `scripts/run-tests.js` y la limpieza de abort/timeout/listener de `sendToChat`. QA y seguridad están aprobados con 177 tests. La release 1.10.0 no cambia.
+- **Fase actual:** ship **0.8.1** completado en `main`; PRs #46 y #7 fusionadas. La issue #3 sigue abierta.
+- **Gate pendiente:** ninguna para este ship; la issue #3 no se cierra con esta actualización.
 - **Siguiente acción:** conservar el contrato local y preparar su publicación cuando corresponda. El comentario sobre el nuevo estado ya está publicado en [#3](https://github.com/SrScorpio/alfred-dev-vscode/issues/3); el scheduler paralelo sigue fuera de alcance y pertenece a Ralph, no a N× llamadas `runTask` desde Alfred.
 
 ## Issues
@@ -28,6 +28,8 @@
 | #37 | Sync GitHub: issues abiertas en el TreeView | done (closed/completed) | [#38](https://github.com/SrScorpio/alfred-dev-vscode/pull/38) merged |
 | #40 | Paleta Ralph condicional y contrato de rutas prd.json | done (closed/completed) | [#41](https://github.com/SrScorpio/alfred-dev-vscode/pull/41) merged |
 | #43 | Ship GitHub Release 0.8.0 (VSIX + source, no Marketplace) | done (closed/completed) | [#44](https://github.com/SrScorpio/alfred-dev-vscode/pull/44) merged; el tag y GitHub Release se crearon después, fuera de esa PR |
+| #46 | Ralph syncIssue integration | done (closed/completed) | merged |
+| #7 | Ralph Suite syncIssue contract | done (closed/completed) | merged |
 
 Notas verificadas en GitHub el 2026-09-18:
 
