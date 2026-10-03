@@ -121,3 +121,61 @@ prompts, y no se simula paralelismo sin API/scheduler público.
 3. Mantener la confirmacion explicita de la galería, el opt-in de memoria y la instalación voluntaria del hook.
 4. El canal one-shot sustituye la clave en entorno. Unix aplica `chmod 0o600` tras `listen`. Residual restante: el path del socket es visible en el entorno del hijo; un proceso del mismo usuario puede ganar el `accept`; VS Code no permite un descriptor heredado. En Windows no hay DACL nativa vía Node `net`.
 5. Completar el wipe RGPD: retención, portabilidad y evidencia sobre marketplace/Copilot. El comando local borra fichero, clave de este perfil y recicla el provider MCP.
+
+## Revision de diseno: alfred-mode (convivencia Alfred Dev <-> Ralph Suite)
+
+**Fecha:** 2026-10-03
+**Autor:** security-officer (revision de diseno; no dictamen juridico)
+**Alcance:** diseno de la feature `alfred-mode` (Ralph lee la identidad de Alfred y la usa en el prompt). No se revisa codigo de la feature, que aun no existe. Superficie: `ralph-suite/src/promptBuilders.ts`, `chatLauncher.ts`, `contextInjector.ts`, `commands/{task,memory,project}.ts`, `kanban/analyzeProject.ts`, `kanbanPanel.ts` y `alfred-dev-vscode/src/integrations/ralph.ts`.
+
+### Superficie de ataque
+
+Ralph pasa de construir su propio prompt (guardrails/boundaries/perfiles propios, contenido controlado por el usuario en ajustes) a incorporar contenido **originado en Alfred** (prompt, modelo base, agente). Ese contenido entra en la posicion de confianza mas alta del prompt: rol, modelo y reglas. Ya existen barreras vigentes y no se relajan: workspace trust (`requireWorkspaceTrust`), allowlist de carpetas (`listRalphFolders` + `resolveCommandWorkspaceRoot`), deteccion por id de extension (`resolveRalphSuiteExtension`), validacion de `prd.json` (64 KiB, 200 issues, `prdPath` sin traversal) y CSP/escape del webview. Riesgo nuevo: la **procedencia y el momento de lectura** de la identidad Alfred, y la **mezcla de datos no confiables** (tarea, memoria, issues) con esa identidad.
+
+### Analisis STRIDE (solo lo aplicable)
+
+**Spoofing (suplantacion)**
+- Deteccion de extension por comando o por fichero del workspace en vez de por id. Confianza 90. Vector: extension impostora o repo con un fichero que simula a Alfred. Requisito: `getExtension('SrScorpio.alfred-dev-vscode')` + capacidades anunciadas; nunca un comando cualquiera ni un fichero del workspace.
+
+**Tampering (manipulacion) e Inyeccion de prompts**
+- Identidad/modelo anunciados por Alfred cruzando a un workspace **no confiable** (repo clonado): el autor del repo controla `.agent/memories.md`, `prd.json` e issues y puede colar instrucciones que se ejecuten bajo la identidad de Alfred, con los privilegios de Alfred. Confianza 85.
+- Inyeccion desde campos de tarea (`title`, `description`, `epic`, `acceptanceCriteria`, `labels`, `dependencies`) y desde `memories.md`/descripciones de issues que tratan de pisar el bloque de identidad anunciado. Confianza 88. En `buildPrompt` esos campos se interpolan sin delimitar (lineas 158-165) y el contenido se coloca en texto plano junto a las reglas.
+
+**Elevation of Privilege (elevacion de privilegios)**
+- Que el modo Alfred abra una ruta de resolucion de carpeta distinta de la allowlist, o que ejecute en una carpeta no abierta. Confianza 80. Requisito: ninguna ruta nueva de resolucion; todo sigue pasando por `resolveCommandWorkspaceRoot` y `listRalphFolders`.
+- Que la identidad anunciada filtre secretos/tokens (p. ej. credenciales de proveedor) al prompt, que luego va al historial de Chat y a logs. Confianza 80.
+
+**Information Disclosure**
+- Modelo/proveedor anunciados no son secretos, pero el canal (prompt -> Chat) ya transporta contenido del workspace. No se detecta tratamiento nuevo de datos personales en el diseno. Confianza 85 de que no hay fuga nueva por este cambio.
+
+### Riesgos y mitigaciones
+
+| Amenaza | Prob. | Impacto | Riesgo | Mitigacion obligatoria |
+|---------|-------|---------|--------|------------------------|
+| Identidad Alfred ejecutable en workspace no confiable | Media | Alto | Alto | Ingesta de identidad solo con workspace trusted y solo por lectura; enrepo no confiable, modo Alfred no activa o se degrada al comportamiento actual. |
+| Prompt injection de tarea/memoria sobre la identidad anunciada | Media | Alto | Alto | Identidad en canal fuera de banda (inmutable) y datos del workspace delimitados/etiquetados como no instrucciones; allowlist de proveedor/modelo/agente; modelo pasa por el saneado existente. |
+| Deteccion de extension por comando/fichero | Baja | Alto | Medio | Deteccion exclusiva por id de extension + capacidades anunciadas. |
+| Modo Alfred salta allowlist o carpeta no abierta | Baja | Alto | Medio | Sin segunda ruta de resolucion; reutilizar `resolveCommandWorkspaceRoot` y su rechazo explicito. |
+| `setupProject` invocable por paleta en modo Alfred y reescribe `AGENTS.md` | Media | Medio | Medio | Bloqueo en la funcion del comando, no solo en la UI (early-return en modo Alfred). |
+| Escritura de `settings.json` del usuario | Baja | Medio | Bajo | Requisito duro: ninguna escritura global de `ralph-suite.*`/`alfred-dev.*`; el aviso de overrides es solo lectura. Unica escritura existente: `boardScope` a nivel Workspace, preexistente. |
+| Fuga de secretos en el bloque de identidad | Baja | Alto | Medio | La identidad solo transporta literales de proveedor/modelo/agente permitidos; sin credenciales; saneado del modelo. |
+
+### Requisitos verificables (para el implementador)
+
+1. Deteccion: `vscode.extensions.getExtension('SrScorpio.alfred-dev-vscode')`; nunca por comando ni por fichero. Ademas, la mera presencia del fichero `.agent/... ` no altera el modo.
+2. Trust: en workspace no confiable, modo Alfred no inyecta identidad; se conserva el comportamiento actual. Test con y sin trust.
+3. Allowlist: `workspaceRoot` sigue validandose con `resolveCommandWorkspaceRoot` contra `listRalphFolders`. Test de raiz fuera del workspace -> rechazo.
+4. Inyeccion: la identidad viaja en un canal fuera de banda respecto de `title/description/epic/acceptanceCriteria/labels/dependencies` y de `memories.md`; esos campos quedan delimitados y etiquetados como datos. Test con carga maliciosa en `prd.json`/`memories.md` que intente redefinir rol, modelo, reglas o escribir `.ralph`.
+5. Enums: proveedor, modelo y agente de la identidad Alfred pasan por allowlist/saneado, igual que `allowlistedEngine`/`sanitizeModel`. Test de valor no permitido.
+6. Jerarquia: en modo Alfred el prompt no incluye guardrails/boundaries/`agentRole`/`agentStack`/`agentProject`/`modelProfiles` de Ralph; en `off` o sin Alfred, salida identica a la actual (test de no-regresion).
+7. `setupProject`: en modo Alfred, el comando hace early-return y no escribe `AGENTS.md`, aunque se invoque por paleta. Test que invoca el comando y verifica que el fichero no cambia.
+8. Settings: ninguna llamada que escriba ajustes globales de `ralph-suite.*`/`alfred-dev.*`. Verificacion estatica (busqueda de `update(...)` global) + revision: solo `boardScope` a nivel Workspace.
+9. Overrides `/plan/`: solo aviso, solo lectura, sin accion de escritura; nunca se toca `settings.json`.
+10. A06/CRA: si el diseno introduce cualquier dependencia nueva, pasa por `docs/project/dependencies.md` y SBOM antes de aprobar.
+11. CRA/SBOM: si la version de la extension no cambia, el SBOM no cambia; si cambia, regenerar y revisar.
+
+### Residual y no bloqueante
+
+- `ralph-suite` no tiene dependencias de produccion y no usa `fetch`/`child_process`/`net` en runtime (solo `spawnSync` en un test de repoIgnore). El diseno no obliga a anadir superficie de red.
+- NIS2 sigue pendiente de clasificacion del titular (heredado); no lo bloquea esta fase.
+- RGPD: no se detecta base legal ni tratamiento nuevo; la identidad anunciada no debe contener datos personales ni secretos.

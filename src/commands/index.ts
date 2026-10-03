@@ -35,6 +35,7 @@ import {
   runTrustedRalphAction,
 } from '../integrations/ralph';
 import type { AlfredStatus } from '../integrations/ralph';
+import { getRalphIdentityDTO } from '../integrations/identity';
 import { clearLocalMemoryAndRecycleMcp, createMemoryCommandHandlers } from '../memory/memoryIntegration';
 import type { MemoryStore, SecretStorageMemoryEncryptionKeyProvider } from '../memory/memoryStore';
 
@@ -383,6 +384,12 @@ export function registerCommands(
       showError: (message) => { void vscode.window.showErrorMessage(message); },
     });
   });
+  // Contrato de solo lectura: devuelve la identidad v1 a Ralph. No escribe
+  // ficheros ni ajustes y no forma parte de la paleta (solo la invoca Ralph).
+  const ralphAnnounceIdentityCommand = vscode.commands.registerCommand(
+    'alfred-dev.ralph.announceIdentity',
+    () => getRalphIdentityDTO(),
+  );
 
   context.subscriptions.push(
     startFlowCommand,
@@ -408,6 +415,7 @@ export function registerCommands(
     ralphStartRunnerCommand,
     ralphStopRunnerCommand,
     ralphSyncIssueCommand,
+    ralphAnnounceIdentityCommand,
   );
 }
 async function executeMemory(action: () => Promise<void>): Promise<void> {

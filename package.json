@@ -133,6 +133,11 @@
         "command": "alfred-dev.ralph.syncIssue",
         "title": "Alfred Dev: Sincronizar issue con Ralph",
         "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.ralph.announceIdentity",
+        "title": "Alfred Dev: Anunciar identidad a Ralph",
+        "category": "Alfred Dev"
       }
     ],
     "menus": {
