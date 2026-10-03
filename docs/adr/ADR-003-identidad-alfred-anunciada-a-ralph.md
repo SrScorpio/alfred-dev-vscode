@@ -1,8 +1,11 @@
-# ADR-003: Identidad de Alfred anunciada a Ralph — prompt base, modelo base y agente por acción
+# ADR-003: Identidad de Alfred anunciada a Ralph — subagente por acción
 
 **Project:** Project
 **Fecha:** 2026-10-03
 **Estado:** aceptado
+
+> Corrección 2026-10-03, tras la decisión del usuario. El DTO **no anuncia proveedor ni modelo**. Cada `agents/<id>.agent.md` ya trae su cadena `model`, y el chat de Copilot elige el primero que exista cuando Ralph menciona a ese subagente. Anunciar un modelo aquí sería un segundo dueño y pisaría esa cadena. El selector `alfred-dev.chatModel` tampoco entra en este DTO.
+
 **Autor:** architect
 **Feature:** `alfred-mode`
 **Relacionado:** [ADR-018 de `SrScorpio/ralph-suite`](https://github.com/SrScorpio/ralph-suite) (detección del modo, silenciado y propiedad de `AGENTS.md`). ADR-001 (índice de agentes en la raíz) y ADR-002 (carpeta de workspace en multi-root) de este repo.
