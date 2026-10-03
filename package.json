@@ -65,6 +65,11 @@
         "category": "Alfred Dev"
       },
       {
+        "command": "alfred-dev.selectChatModel",
+        "title": "Alfred Dev: Seleccionar modelo de chat",
+        "category": "Alfred Dev"
+      },
+      {
         "command": "alfred-dev.selectModelProfile",
         "title": "Alfred Dev: Seleccionar perfil de modelo",
         "category": "Alfred Dev"
@@ -172,7 +177,12 @@
             "Solo para lo muy complicado"
           ],
           "default": "luna",
-          "description": "Perfil visual de coste preferido para los agentes de Alfred Dev."
+          "description": "Perfil visual de coste preferido para los agentes de Alfred Dev. No es el modelo del chat."
+        },
+        "alfred-dev.chatModel": {
+          "type": "string",
+          "default": "",
+          "description": "Id del modelo de chat elegido la última vez que el IDE lo anunciaba. No cambia el modelo activo del chat de Copilot ni el frontmatter de los agentes."
         },
         "alfred-dev.memory.enabled": {
           "type": "boolean",

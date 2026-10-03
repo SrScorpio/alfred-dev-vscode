@@ -21,6 +21,7 @@ test('declara comandos de chat y selección de perfil de modelo', () => {
   assert.ok(commands.some((command) => command.command === 'alfred-dev.openSettings'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.openChat'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.openGithubIssue'));
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.selectChatModel'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.selectModelProfile'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.openStyleGallery'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.installSecretHook'));
@@ -52,6 +53,8 @@ test('declara comandos de chat y selección de perfil de modelo', () => {
     label: 'Alfred Dev Memory',
   }]);
   assert.equal(packageJson.contributes.configuration.properties['alfred-dev.modelProfile'].default, 'luna');
+  assert.equal(packageJson.contributes.configuration.properties['alfred-dev.chatModel'].default, '');
+  assert.equal(packageJson.contributes.configuration.properties['alfred-dev.chatModel'].enum, undefined);
   assert.equal(packageJson.contributes.configuration.properties['alfred-dev.memory.enabled'].default, false);
   assert.deepEqual(
     packageJson.contributes.configuration.properties['alfred-dev.modelProfile'].enum,

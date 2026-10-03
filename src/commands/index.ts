@@ -12,6 +12,8 @@ import { existsSync } from 'fs';
 import { StatusTreeProvider } from '../providers/statusTreeProvider';
 import { getModelProfileItems } from './modelProfiles';
 import type { ModelProfile } from './modelProfiles';
+import { getAvailableModelItems, normalizeChatModels } from './availableModels';
+import type { ChatModelInfo } from './availableModels';
 import { openAlfredChat } from './chatCommand';
 import { openGithubIssue } from './openGithubIssue';
 import { runStartFlowCommand } from './startFlow';
@@ -198,6 +200,46 @@ export function registerCommands(
     vscode.window.showInformationMessage(`Perfil de modelo guardado: ${selected.label}.`);
   });
 
+  const selectChatModelCommand = vscode.commands.registerCommand('alfred-dev.selectChatModel', async () => {
+    let announced: ChatModelInfo[];
+    try {
+      const models = await vscode.lm.selectChatModels();
+      announced = models.map((model) => ({
+        id: model.id,
+        name: model.name,
+        vendor: model.vendor,
+        family: model.family,
+      }));
+    } catch {
+      vscode.window.showErrorMessage('No se pudo leer la lista de modelos del chat.');
+      return;
+    }
+
+    const available = normalizeChatModels(announced);
+    if (available.length === 0) {
+      vscode.window.showInformationMessage('El chat no tiene modelos disponibles en esta ventana.');
+      return;
+    }
+
+    const configuration = vscode.workspace.getConfiguration('alfred-dev');
+    const selectedModelId = configuration.get<string>('chatModel');
+    const selected = await vscode.window.showQuickPick(getAvailableModelItems(available, selectedModelId), {
+      placeHolder: 'Modelos que el chat anuncia ahora. Se vuelve a leer al abrir.',
+      title: 'Modelo de chat disponible',
+      matchOnDescription: true,
+      matchOnDetail: true,
+    });
+
+    if (!selected) {
+      return;
+    }
+
+    await configuration.update('chatModel', selected.modelId, vscode.ConfigurationTarget.Global);
+    vscode.window.showInformationMessage(
+      `Modelo de chat guardado: ${selected.label}. No cambia el modelo activo del chat de Copilot.`,
+    );
+  });
+
   const openStyleGalleryCommand = vscode.commands.registerCommand('alfred-dev.openStyleGallery', () => {
     void openStyleGallery(context).catch((error: unknown) => {
       vscode.window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo abrir la galería visual.');
@@ -353,6 +395,7 @@ export function registerCommands(
     retomarCommand,
     openSettingsCommand,
     selectModelProfileCommand,
+    selectChatModelCommand,
     openStyleGalleryCommand,
     installSecretHookCommand,
     memoryPutCommand,

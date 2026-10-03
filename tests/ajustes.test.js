@@ -7,6 +7,7 @@ const {
 } = require('../out/commands/ajustes.js');
 
 const REQUIRED_IDS = [
+  'chat-model',
   'model-profile',
   'memory-enabled',
   'secret-guard-diagnostics',
@@ -38,6 +39,7 @@ test('el toggle de memoria refleja el valor actual y no inventa settings', () =>
   assert.match(byId(enabled)['memory-enabled'].label, /desactivar/i);
   assert.equal(byId(disabled)['memory-enabled'].setting, 'alfred-dev.memory.enabled');
   assert.equal(byId(disabled)['secret-guard-diagnostics'].setting, 'alfred-dev.secretGuard.diagnostics');
+  assert.equal(byId(disabled)['chat-model'].command, 'alfred-dev.selectChatModel');
   assert.equal(byId(disabled)['model-profile'].command, 'alfred-dev.selectModelProfile');
   assert.equal(byId(disabled)['install-secret-hook'].command, 'alfred-dev.installSecretHook');
   assert.equal(byId(disabled)['memory-explore'].command, 'alfred-dev.memory.explore');

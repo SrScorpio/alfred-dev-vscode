@@ -114,6 +114,12 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
         { command: 'alfred-dev.retomar', title: 'Retomar trabajo' },
       ),
       new StatusItem(
+        'Seleccionar modelo de chat',
+        vscode.TreeItemCollapsibleState.None,
+        'list-selection',
+        { command: 'alfred-dev.selectChatModel', title: 'Seleccionar modelo de chat' },
+      ),
+      new StatusItem(
         'Seleccionar perfil de modelo',
         vscode.TreeItemCollapsibleState.None,
         'symbol-misc',
