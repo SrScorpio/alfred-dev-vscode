@@ -114,6 +114,12 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
         { command: 'alfred-dev.retomar', title: 'Retomar trabajo' },
       ),
       new StatusItem(
+        'Seleccionar modelo de chat',
+        vscode.TreeItemCollapsibleState.None,
+        'list-selection',
+        { command: 'alfred-dev.selectChatModel', title: 'Seleccionar modelo de chat' },
+      ),
+      new StatusItem(
         'Seleccionar perfil de modelo',
         vscode.TreeItemCollapsibleState.None,
         'symbol-misc',
@@ -143,7 +149,11 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
       if (isFileNotFoundError(error)) {
         return [
           ...actionItems,
-          new StatusItem('Sin snapshot local. El estado vive en GitHub Issues.', vscode.TreeItemCollapsibleState.None, 'info'),
+          new StatusItem(
+            `Sin snapshot en ${path.basename(rootPath)}: no existe docs/project/status.md. El estado vive en GitHub Issues.`,
+            vscode.TreeItemCollapsibleState.None,
+            'info',
+          ),
           ...issueItems,
         ];
       }

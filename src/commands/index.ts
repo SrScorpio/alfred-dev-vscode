@@ -12,6 +12,8 @@ import { existsSync } from 'fs';
 import { StatusTreeProvider } from '../providers/statusTreeProvider';
 import { getModelProfileItems } from './modelProfiles';
 import type { ModelProfile } from './modelProfiles';
+import { getAvailableModelItems, normalizeChatModels } from './availableModels';
+import type { ChatModelInfo } from './availableModels';
 import { openAlfredChat } from './chatCommand';
 import { openGithubIssue } from './openGithubIssue';
 import { runStartFlowCommand } from './startFlow';
@@ -24,6 +26,7 @@ import { installSecretHook } from '../security/secretHook';
 import {
   RalphBridge,
   findRalphWorkspaceRoot,
+  selectRalphCommandRoot,
   ralphCommandContexts,
   readRalphPrd,
   resolveRalphSuiteExtension,
@@ -32,6 +35,7 @@ import {
   runTrustedRalphAction,
 } from '../integrations/ralph';
 import type { AlfredStatus } from '../integrations/ralph';
+import { getRalphIdentityDTO } from '../integrations/identity';
 import { clearLocalMemoryAndRecycleMcp, createMemoryCommandHandlers } from '../memory/memoryIntegration';
 import type { MemoryStore, SecretStorageMemoryEncryptionKeyProvider } from '../memory/memoryStore';
 
@@ -59,7 +63,7 @@ export function registerCommands(
   const getRalphWorkspaceRoot = (): string | undefined => {
     const folders = (vscode.workspace.workspaceFolders ?? []).map((folder) => folder.uri.fsPath);
     const configuredPath = vscode.workspace.getConfiguration('ralph-suite').get<string>('prdPath', 'docs/ralph/prd.json') ?? 'docs/ralph/prd.json';
-    return findRalphWorkspaceRoot(folders, configuredPath, existsSync);
+    return selectRalphCommandRoot(folders, findRalphWorkspaceRoot(folders, configuredPath, existsSync));
   };
   const refreshRalphPalette = () => {
     const extension = resolveRalphSuiteExtension((extensionId) => {
@@ -197,6 +201,46 @@ export function registerCommands(
     vscode.window.showInformationMessage(`Perfil de modelo guardado: ${selected.label}.`);
   });
 
+  const selectChatModelCommand = vscode.commands.registerCommand('alfred-dev.selectChatModel', async () => {
+    let announced: ChatModelInfo[];
+    try {
+      const models = await vscode.lm.selectChatModels();
+      announced = models.map((model) => ({
+        id: model.id,
+        name: model.name,
+        vendor: model.vendor,
+        family: model.family,
+      }));
+    } catch {
+      vscode.window.showErrorMessage('No se pudo leer la lista de modelos del chat.');
+      return;
+    }
+
+    const available = normalizeChatModels(announced);
+    if (available.length === 0) {
+      vscode.window.showInformationMessage('El chat no tiene modelos disponibles en esta ventana.');
+      return;
+    }
+
+    const configuration = vscode.workspace.getConfiguration('alfred-dev');
+    const selectedModelId = configuration.get<string>('chatModel');
+    const selected = await vscode.window.showQuickPick(getAvailableModelItems(available, selectedModelId), {
+      placeHolder: 'Modelos que el chat anuncia ahora. Se vuelve a leer al abrir.',
+      title: 'Modelo de chat disponible',
+      matchOnDescription: true,
+      matchOnDetail: true,
+    });
+
+    if (!selected) {
+      return;
+    }
+
+    await configuration.update('chatModel', selected.modelId, vscode.ConfigurationTarget.Global);
+    vscode.window.showInformationMessage(
+      `Modelo de chat guardado: ${selected.label}. No cambia el modelo activo del chat de Copilot.`,
+    );
+  });
+
   const openStyleGalleryCommand = vscode.commands.registerCommand('alfred-dev.openStyleGallery', () => {
     void openStyleGallery(context).catch((error: unknown) => {
       vscode.window.showErrorMessage(error instanceof Error ? error.message : 'No se pudo abrir la galería visual.');
@@ -301,7 +345,7 @@ export function registerCommands(
         );
         return selected?.label;
       },
-      runTask: (taskId) => getRalphBridge().runTask(taskId),
+      runTask: (taskId, workspaceRoot) => getRalphBridge().runTask(taskId, workspaceRoot),
       showError: (message) => { void vscode.window.showErrorMessage(message); },
     });
   });
@@ -323,6 +367,7 @@ export function registerCommands(
     const bridge = getRalphBridge();
     void runSyncIssueCommand({
       isTrusted: vscode.workspace.isTrusted,
+      workspaceRoot: getRalphWorkspaceRoot(),
       promptIssueId: async () => vscode.window.showInputBox({
         prompt: 'Número de issue GitHub que sincronizar con Ralph',
         validateInput: (value) => /^[1-9]\d{0,5}$/.test(value) ? undefined : 'Introduce un número entre 1 y 999999.',
@@ -334,11 +379,17 @@ export function registerCommands(
         );
         return selected as AlfredStatus | undefined;
       },
-      syncIssue: (issueId, status) => bridge.syncIssue(issueId, status),
+      syncIssue: (issueId, status, workspaceRoot) => bridge.syncIssue(issueId, status, workspaceRoot),
       showInformation: (message) => { void vscode.window.showInformationMessage(message); },
       showError: (message) => { void vscode.window.showErrorMessage(message); },
     });
   });
+  // Contrato de solo lectura: devuelve la identidad v1 a Ralph. No escribe
+  // ficheros ni ajustes y no forma parte de la paleta (solo la invoca Ralph).
+  const ralphAnnounceIdentityCommand = vscode.commands.registerCommand(
+    'alfred-dev.ralph.announceIdentity',
+    () => getRalphIdentityDTO(),
+  );
 
   context.subscriptions.push(
     startFlowCommand,
@@ -351,6 +402,7 @@ export function registerCommands(
     retomarCommand,
     openSettingsCommand,
     selectModelProfileCommand,
+    selectChatModelCommand,
     openStyleGalleryCommand,
     installSecretHookCommand,
     memoryPutCommand,
@@ -363,6 +415,7 @@ export function registerCommands(
     ralphStartRunnerCommand,
     ralphStopRunnerCommand,
     ralphSyncIssueCommand,
+    ralphAnnounceIdentityCommand,
   );
 }
 async function executeMemory(action: () => Promise<void>): Promise<void> {

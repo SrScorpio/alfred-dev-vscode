@@ -15,6 +15,7 @@ const GITHUB_ISSUES_USER_AGENT = 'alfred-dev-vscode';
 const OPEN_ISSUES_PER_PAGE = 20;
 const ISSUES_READ_ERROR = 'No se pudieron leer issues de GitHub';
 const PRIVATE_REPO_ERROR = `${ISSUES_READ_ERROR}: repo no público o sin permiso`;
+const REPO_NOT_FOUND_ERROR = `${ISSUES_READ_ERROR}: repositorio no encontrado`;
 
 export interface GithubRepoRef {
   owner: string;
@@ -158,7 +159,14 @@ export async function fetchOpenIssues(
     timeout.cancel();
   }
 
-  if (response.status === 404) {
+  if (response.status === 404 || response.status === 401 || response.status === 403) {
+    const body = await response.json().catch(() => undefined);
+    const apiMessage = typeof body === 'object' && body !== null && typeof (body as { message?: unknown }).message === 'string'
+      ? (body as { message: string }).message.toLowerCase()
+      : '';
+    if (response.status === 404 && apiMessage.includes('not found')) {
+      throw new Error(REPO_NOT_FOUND_ERROR);
+    }
     throw new Error(PRIVATE_REPO_ERROR);
   }
 

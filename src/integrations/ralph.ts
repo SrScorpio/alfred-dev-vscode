@@ -85,7 +85,7 @@ export function resolveRalphPrdPath(workspaceRoot: string, configuredPath = DEFA
   return resolved;
 }
 
-/** Prefers the multi-root folder that actually contains the PRD; otherwise folder[0]. */
+/** Prefers the first multi-root folder that contains the PRD; otherwise folder[0]. */
 export function findRalphWorkspaceRoot(
   folders: readonly string[],
   configuredPath = DEFAULT_RALPH_PRD_PATH,
@@ -96,6 +96,18 @@ export function findRalphWorkspaceRoot(
     if (hasPrd(resolveRalphPrdPath(folder, configuredPath, hasPrd))) return folder;
   }
   return folders[0];
+}
+
+/**
+ * Folder Alfred may hand to Ralph. Only a path already in `workspaceFolders`
+ * is allowed; anything else is dropped so Ralph keeps its own allowlist choice.
+ */
+export function selectRalphCommandRoot(
+  workspaceFolders: readonly string[],
+  candidate: string | undefined,
+): string | undefined {
+  if (candidate === undefined) return undefined;
+  return workspaceFolders.includes(candidate) ? candidate : undefined;
 }
 
 /** Palette `when` keys: true only if Ralph is active and announces that exact command. */
@@ -174,11 +186,14 @@ export class RalphBridge {
   constructor(private readonly lookup: ExtensionLookup, private readonly execute: CommandExecutor) {}
 
   async openKanban(): Promise<void> { await this.run('ralph-suite.openKanban'); }
-  async runTask(taskId: string): Promise<void> { validateTaskId(taskId); await this.run('ralph-suite.runTask', taskId); }
+  async runTask(taskId: string, workspaceRoot?: string): Promise<void> {
+    validateTaskId(taskId);
+    await this.run('ralph-suite.runTask', ...commandArgs(taskId, workspaceRoot));
+  }
   async startRunner(): Promise<void> { await this.run('ralph-suite.startRunner'); }
   async stopRunner(): Promise<void> { await this.run('ralph-suite.stopRunner'); }
 
-  async syncIssue(issueId: number, status: RalphStatus): Promise<RalphSyncResult> {
+  async syncIssue(issueId: number, status: RalphStatus, workspaceRoot?: string): Promise<RalphSyncResult> {
     const extension = this.lookup();
     if (!extension?.isActive || !extension.commands?.includes('ralph-suite.syncIssue')) {
       return { synced: false, reason: 'unavailable' };
@@ -187,7 +202,7 @@ export class RalphBridge {
       return { synced: false, reason: 'invalid-issue' };
     }
     try {
-      await this.execute('ralph-suite.syncIssue', issueId, status);
+      await this.execute('ralph-suite.syncIssue', ...commandArgs(issueId, status, workspaceRoot));
       return { synced: true };
     } catch {
       return { synced: false, reason: 'command-failed' };
@@ -210,9 +225,10 @@ export class RalphBridge {
 
 interface SyncIssueCommandOptions {
   isTrusted: boolean;
+  workspaceRoot?: string;
   promptIssueId(): Promise<string | undefined>;
   promptStatus(): Promise<AlfredStatus | undefined>;
-  syncIssue(issueId: number, status: RalphStatus): Promise<RalphSyncResult>;
+  syncIssue(issueId: number, status: RalphStatus, workspaceRoot?: string): Promise<RalphSyncResult>;
   showInformation(message: string): void;
   showError(message: string): void;
 }
@@ -232,7 +248,9 @@ export async function runSyncIssueCommand(options: SyncIssueCommandOptions): Pro
   const status = await options.promptStatus();
   if (!status) return;
   const issueId = Number(issueInput);
-  const result = await options.syncIssue(issueId, mapAlfredStatus(status));
+  const result = options.workspaceRoot === undefined
+    ? await options.syncIssue(issueId, mapAlfredStatus(status))
+    : await options.syncIssue(issueId, mapAlfredStatus(status), options.workspaceRoot);
   if (result.synced) {
     options.showInformation(`Issue #${issueId} sincronizada con Ralph desde el estado GitHub seleccionado.`);
     return;
@@ -247,6 +265,12 @@ export async function runSyncIssueCommand(options: SyncIssueCommandOptions): Pro
 
 function validateTaskId(taskId: string): void {
   if (!RALPH_TASK_ID.test(taskId)) throw new Error('El ID de tarea Ralph no es válido');
+}
+
+/** Omits the folder when Alfred has none, so Ralph falls back to its allowlist. */
+function commandArgs<T extends unknown[]>(...args: [...T, string | undefined]): [...T] | [...T, string] {
+  const workspaceRoot = args[args.length - 1];
+  return workspaceRoot === undefined ? args.slice(0, -1) as [...T] : args as [...T, string];
 }
 
 function isFileNotFoundError(error: unknown): boolean {
@@ -265,7 +289,7 @@ interface RalphTaskCommandOptions {
   prdPath?: string;
   readPrd?(workspaceRoot: string, isTrusted: boolean, configuredPath?: string): Promise<RalphPrd>;
   promptTaskId(issues: RalphPrdIssue[]): Promise<string | undefined>;
-  runTask(taskId: string): Promise<void>;
+  runTask(taskId: string, workspaceRoot?: string): Promise<void>;
   showError(message: string): void;
 }
 
@@ -293,13 +317,13 @@ export async function runRalphTaskCommand(options: RalphTaskCommandOptions): Pro
         options.showError('El ID de tarea Ralph no está en prd.json.');
         return;
       }
-      await options.runTask(taskId);
+      await options.runTask(taskId, ...(options.workspaceRoot === undefined ? [] : [options.workspaceRoot]));
       return;
     }
     const taskId = await options.promptTaskId([]);
     if (!taskId) return;
     validateTaskId(taskId);
-    await options.runTask(taskId);
+    await options.runTask(taskId, ...(options.workspaceRoot === undefined ? [] : [options.workspaceRoot]));
   } catch (error: unknown) {
     options.showError(error instanceof Error ? error.message : 'No se pudo ejecutar la tarea Ralph.');
   }

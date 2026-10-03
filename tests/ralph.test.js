@@ -8,6 +8,7 @@ const {
   RALPH_SUITE_EXTENSION_ID,
   RalphBridge,
   findRalphWorkspaceRoot,
+  selectRalphCommandRoot,
   mapAlfredStatus,
   ralphCommandContexts,
   readRalphPrd,
@@ -52,6 +53,41 @@ test('elige la carpeta multi-root con prd.json y no sale del workspace', () => {
   assert.equal(findRalphWorkspaceRoot([], 'prd.json', () => true), undefined);
   assert.equal(resolveRalphPrdPath(first, '../outside.json'), path.join(first, 'docs', 'ralph', 'prd.json'));
   assert.equal(resolveRalphPrdPath(first, 'prd.json'), path.join(first, 'prd.json'));
+});
+
+test('en una ventana con dos PRD pasa solo la primera carpeta del workspace', async () => {
+  const first = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-ralph-prd-a-'));
+  const second = await fs.mkdtemp(path.join(os.tmpdir(), 'alfred-ralph-prd-b-'));
+  const folders = [first, second];
+  const hasPrd = (candidate) => candidate === path.join(first, 'prd.json') || candidate === path.join(second, 'prd.json');
+  const root = selectRalphCommandRoot(folders, findRalphWorkspaceRoot(folders, 'prd.json', hasPrd));
+  const outside = path.join(os.tmpdir(), 'alfred-ralph-outside');
+  const calls = [];
+
+  assert.equal(root, first);
+  assert.equal(selectRalphCommandRoot(folders, outside), undefined);
+  assert.equal(selectRalphCommandRoot(folders, undefined), undefined);
+
+  await fs.writeFile(path.join(first, 'prd.json'), JSON.stringify({
+    issues: [{ id: 'ISSUE-A', status: 'todo' }],
+  }));
+  const bridge = new RalphBridge(
+    () => ({ isActive: true, commands: ['ralph-suite.runTask', 'ralph-suite.syncIssue'] }),
+    async (...args) => { calls.push(args); },
+  );
+  await runRalphTaskCommand({
+    isTrusted: true,
+    workspaceRoot: root,
+    readPrd: readRalphPrd,
+    promptTaskId: async (issues) => issues[0]?.id,
+    runTask: (taskId, workspaceRoot) => bridge.runTask(taskId, workspaceRoot),
+    showError: (message) => { throw new Error(message); },
+  });
+  assert.deepEqual(await bridge.syncIssue(7, 'todo', root), { synced: true });
+  assert.deepEqual(calls, [
+    ['ralph-suite.runTask', 'ISSUE-A', first],
+    ['ralph-suite.syncIssue', 7, 'todo', first],
+  ]);
 });
 
 test('la paleta solo activa capacidades anunciadas por Ralph activo', () => {

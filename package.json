@@ -2,7 +2,7 @@
   "name": "alfred-dev-vscode",
   "displayName": "Alfred Dev for VS Code",
   "description": "Equipo de 12 agentes de ingeniería de software para VS Code con orquestación, quality gates y flujo GitHub.",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "publisher": "SrScorpio",
   "repository": {
     "type": "git",
@@ -62,6 +62,11 @@
       {
         "command": "alfred-dev.openSettings",
         "title": "Alfred Dev: Ajustes",
+        "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.selectChatModel",
+        "title": "Alfred Dev: Seleccionar modelo de chat",
         "category": "Alfred Dev"
       },
       {
@@ -128,6 +133,11 @@
         "command": "alfred-dev.ralph.syncIssue",
         "title": "Alfred Dev: Sincronizar issue con Ralph",
         "category": "Alfred Dev"
+      },
+      {
+        "command": "alfred-dev.ralph.announceIdentity",
+        "title": "Alfred Dev: Anunciar identidad a Ralph",
+        "category": "Alfred Dev"
       }
     ],
     "menus": {
@@ -172,7 +182,12 @@
             "Solo para lo muy complicado"
           ],
           "default": "luna",
-          "description": "Perfil visual de coste preferido para los agentes de Alfred Dev."
+          "description": "Perfil visual de coste preferido para los agentes de Alfred Dev. No es el modelo del chat."
+        },
+        "alfred-dev.chatModel": {
+          "type": "string",
+          "default": "",
+          "description": "Id del modelo de chat elegido la última vez que el IDE lo anunciaba. No cambia el modelo activo del chat de Copilot ni el frontmatter de los agentes."
         },
         "alfred-dev.memory.enabled": {
           "type": "boolean",
@@ -220,5 +235,9 @@
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
     "typescript": "^5.3.3"
+  },
+  "overrides": {
+    "undici": "8.11.2",
+    "brace-expansion": "5.0.12"
   }
 }

@@ -46,11 +46,11 @@ Requisitos: VS Code con GitHub Copilot Chat. Tras instalar, los agentes aparecen
 
 Descarga el VSIX desde
 [GitHub Releases](https://github.com/SrScorpio/alfred-dev-vscode/releases)
-(última publicación; en esta línea, `alfred-dev-vscode-0.8.1.vsix`) e
+(última publicación; en esta línea, `alfred-dev-vscode-0.9.0.vsix`) e
 instálalo en VS Code:
 
 ```bash
-code --install-extension alfred-dev-vscode-0.8.1.vsix
+code --install-extension alfred-dev-vscode-0.9.0.vsix
 ```
 
 Esta extensión no se publica en Visual Studio Marketplace.
@@ -189,12 +189,20 @@ incluidas con Copilot (`copilot`) si acaso, y después a Grok 4.6 y GLM como
 alternativas. Si un nombre no existe en tu catálogo, VS Code lo salta sin
 error y usa el siguiente: es una lista YAML, el orden es la prioridad.
 
-La extensión nativa ofrece **Alfred Dev: Seleccionar perfil de modelo** para
-guardar `alfred-dev.modelProfile` como preferencia global (`luna`, `terra` o
-`sol`). Es una preferencia de UI y no reescribe los arrays `model` de los
-agentes: VS Code no expone una API estable para cambiar ese frontmatter desde
-una extensión. La selección queda guardada como referencia visible de la
-política de coste al trabajar con Alfred.
+La extensión nativa ofrece dos selectores distintos:
+
+- **Alfred Dev: Seleccionar perfil de modelo** guarda `alfred-dev.modelProfile`
+  como preferencia global (`luna`, `terra` o `sol`). Es la política de coste,
+  no el catálogo del chat, y no reescribe los arrays `model` de los agentes:
+  VS Code no expone una API estable para cambiar ese frontmatter desde una
+  extensión. No selecciona el modelo de Ralph Suite: Ralph lee
+  `ralph-suite.modelProfiles` y no consulta `alfred-dev.modelProfile`.
+- **Alfred Dev: Seleccionar modelo de chat** lee, cada vez que se abre,
+  `vscode.lm.selectChatModels()`: los modelos que el IDE anuncia en esa
+  ventana, de cualquier vendor, no una lista fija de Codex. Guarda el id en
+  `alfred-dev.chatModel`. Tampoco cambia el modelo activo del chat de Copilot
+  ni el frontmatter de los agentes. Si un modelo deja de estar disponible, la
+  siguiente apertura ya no lo muestra.
 
 En VS Code, abre **Alfred Dev** en la Activity Bar para consultar el estado del
 workspace y las issues abiertas del `origin` GitHub (hasta 20; Restricted Mode

@@ -13,6 +13,20 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Fixed
 
+## [0.9.0] - 2026-10-03
+
+### Added
+
+- `alfred-dev.ralph.announceIdentity` announces the Alfred subagent to Ralph: agent, mention and preamble. It does not declare a provider or model.
+
+### Changed
+
+- Release version is 0.9.0. Development-only overrides pin `undici` 8.11.2 and `brace-expansion` 5.0.12. The release audit covers the packaged extension, which ships no npm dependencies.
+
+### Fixed
+
+- The chat model picker reads the models announced by the IDE.
+
 ## [0.8.1] - 2026-09-19
 
 ### Added

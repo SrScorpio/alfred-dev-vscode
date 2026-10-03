@@ -278,3 +278,19 @@ test('Restricted Mode no hace GET, conserva acciones y omite el grupo de issues'
   assert.ok(!labels.includes('Issues abiertas'));
   assert.ok(!labels.some((label) => /issues de GitHub/i.test(label)));
 });
+
+test('sin status.md dice en qué carpeta miró', async () => {
+  const provider = new StatusTreeProvider({
+    isTrusted: () => true,
+    readStatusFile: async () => {
+      const error = new Error('not found');
+      error.code = 'ENOENT';
+      throw error;
+    },
+  });
+
+  const labels = labelsOf(await provider.getChildren());
+
+  assert.ok(labels.some((label) => /Sin snapshot en/.test(label) && /docs\/project\/status\.md/.test(label)));
+  assert.ok(!labels.some((label) => label === 'Sin snapshot local. El estado vive en GitHub Issues.'));
+});

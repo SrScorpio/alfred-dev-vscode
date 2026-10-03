@@ -49,6 +49,12 @@ const DIAGNOSTICS_DEFAULT = true;
 export function getAjustesQuickPickItems(state: AjustesState): AjustesQuickPickItem[] {
   return [
     {
+      id: 'chat-model',
+      label: 'Modelo de chat',
+      description: 'Lo que el IDE anuncia ahora (ajuste global)',
+      command: 'alfred-dev.selectChatModel',
+    },
+    {
       id: 'model-profile',
       label: 'Perfil de modelo',
       description: 'luna / terra / sol (ajuste global)',
