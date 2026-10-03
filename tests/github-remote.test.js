@@ -109,14 +109,32 @@ test('fetchOpenIssues limita a 20 issues tras filtrar pull_request', async () =>
   assert.equal(issues[19].number, 20);
 });
 
-test('fetchOpenIssues trata 404 como error accionable', async () => {
+test('fetchOpenIssues distingue repo inexistente de repo privado', async () => {
   await assert.rejects(
     () => fetchOpenIssues({ owner: 'acme', repo: 'widgets' }, async () => ({
       ok: false,
       status: 404,
       json: async () => ({ message: 'Not Found' }),
     })),
-    /no público|sin permiso|issues de GitHub/i,
+    /repositorio no encontrado/,
+  );
+
+  await assert.rejects(
+    () => fetchOpenIssues({ owner: 'acme', repo: 'widgets' }, async () => ({
+      ok: false,
+      status: 404,
+      json: async () => { throw new Error('cuerpo ilegible'); },
+    })),
+    /no público|sin permiso/,
+  );
+
+  await assert.rejects(
+    () => fetchOpenIssues({ owner: 'acme', repo: 'private' }, async () => ({
+      ok: false,
+      status: 403,
+      json: async () => ({ message: 'Resource not accessible' }),
+    })),
+    /no público|sin permiso/,
   );
 });
 
@@ -209,11 +227,11 @@ test('listWorkspaceGithubIssues preserva el 404 accionable y captura fallos de r
     isTrusted: true,
     execGit: async () => 'https://github.com/acme/widgets.git',
     fetchOpenIssues: async () => {
-      throw new Error('No se pudieron leer issues de GitHub: repo no público o sin permiso');
+      throw new Error('No se pudieron leer issues de GitHub: repositorio no encontrado');
     },
   });
   assert.equal(notFound.kind, 'error');
-  assert.match(notFound.message, /no público|sin permiso/);
+  assert.match(notFound.message, /repositorio no encontrado/);
 
   const network = await listWorkspaceGithubIssues('/tmp/project', {
     isTrusted: true,

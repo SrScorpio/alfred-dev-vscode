@@ -143,7 +143,11 @@ export class StatusTreeProvider implements vscode.TreeDataProvider<StatusItem> {
       if (isFileNotFoundError(error)) {
         return [
           ...actionItems,
-          new StatusItem('Sin snapshot local. El estado vive en GitHub Issues.', vscode.TreeItemCollapsibleState.None, 'info'),
+          new StatusItem(
+            `Sin snapshot en ${path.basename(rootPath)}: no existe docs/project/status.md. El estado vive en GitHub Issues.`,
+            vscode.TreeItemCollapsibleState.None,
+            'info',
+          ),
           ...issueItems,
         ];
       }

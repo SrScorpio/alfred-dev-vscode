@@ -24,3 +24,4 @@ out/
 
 # Temporales de auditoría visual
 .style-options/
+.ralph/

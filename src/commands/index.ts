@@ -24,6 +24,7 @@ import { installSecretHook } from '../security/secretHook';
 import {
   RalphBridge,
   findRalphWorkspaceRoot,
+  selectRalphCommandRoot,
   ralphCommandContexts,
   readRalphPrd,
   resolveRalphSuiteExtension,
@@ -59,7 +60,7 @@ export function registerCommands(
   const getRalphWorkspaceRoot = (): string | undefined => {
     const folders = (vscode.workspace.workspaceFolders ?? []).map((folder) => folder.uri.fsPath);
     const configuredPath = vscode.workspace.getConfiguration('ralph-suite').get<string>('prdPath', 'docs/ralph/prd.json') ?? 'docs/ralph/prd.json';
-    return findRalphWorkspaceRoot(folders, configuredPath, existsSync);
+    return selectRalphCommandRoot(folders, findRalphWorkspaceRoot(folders, configuredPath, existsSync));
   };
   const refreshRalphPalette = () => {
     const extension = resolveRalphSuiteExtension((extensionId) => {
@@ -301,7 +302,7 @@ export function registerCommands(
         );
         return selected?.label;
       },
-      runTask: (taskId) => getRalphBridge().runTask(taskId),
+      runTask: (taskId, workspaceRoot) => getRalphBridge().runTask(taskId, workspaceRoot),
       showError: (message) => { void vscode.window.showErrorMessage(message); },
     });
   });
@@ -323,6 +324,7 @@ export function registerCommands(
     const bridge = getRalphBridge();
     void runSyncIssueCommand({
       isTrusted: vscode.workspace.isTrusted,
+      workspaceRoot: getRalphWorkspaceRoot(),
       promptIssueId: async () => vscode.window.showInputBox({
         prompt: 'Número de issue GitHub que sincronizar con Ralph',
         validateInput: (value) => /^[1-9]\d{0,5}$/.test(value) ? undefined : 'Introduce un número entre 1 y 999999.',
@@ -334,7 +336,7 @@ export function registerCommands(
         );
         return selected as AlfredStatus | undefined;
       },
-      syncIssue: (issueId, status) => bridge.syncIssue(issueId, status),
+      syncIssue: (issueId, status, workspaceRoot) => bridge.syncIssue(issueId, status, workspaceRoot),
       showInformation: (message) => { void vscode.window.showInformationMessage(message); },
       showError: (message) => { void vscode.window.showErrorMessage(message); },
     });

@@ -1,0 +1,113 @@
+{
+  "project": "alfred-dev-vscode",
+  "description": "Contrato de integración con Ralph Suite. Sin fusión de repos. Reconstruido y actualizado el 2026-10-03 a partir del puente en src/integrations/ralph.ts y del registro de comandos de SrScorpio/ralph-suite.",
+  "version": "1.0.0",
+  "issues": [
+    {
+      "id": "ISSUE-001",
+      "title": "Matriz de contrato Alfred ↔ Ralph",
+      "description": "Inventario de qué envuelve Alfred, qué ejecuta Ralph y dónde no se hablan. Evidencia: src/integrations/ralph.ts y src/activate.ts de ralph-suite. Artefacto: docs/ralph/integracion.md.",
+      "priority": "P1",
+      "status": "completed",
+      "acceptanceCriteria": [
+        "La matriz lista los 13 comandos registrados por Ralph y dice cuáles envuelve Alfred",
+        "Documenta que runTask y syncIssue se invocan sin workspaceRoot",
+        "Documenta que alfred-dev.modelProfile no selecciona ralph-suite.modelProfiles",
+        "No propone fusionar los dos repositorios"
+      ],
+      "dependencies": [],
+      "labels": [
+        "docs",
+        "integracion"
+      ]
+    },
+    {
+      "id": "ISSUE-002",
+      "title": "Alinear la documentación con el contrato real",
+      "description": "README de Alfred, docs/vsix.md y README de ralph-suite decían que syncIssue seguía en el árbol de trabajo, que la release 1.10.0 no lo incluía y que alfred-dev-vscode#3 seguía abierta. GitHub cerró esa issue el 2026-09-19. La frase del perfil de modelo no existía en ningún README.",
+      "priority": "P1",
+      "status": "completed",
+      "acceptanceCriteria": [
+        "README de Alfred dice que alfred-dev.modelProfile no selecciona el modelo de Ralph",
+        "docs/vsix.md dice que Alfred no envía workspaceRoot y ya no cita la release 1.10.0 como límite",
+        "README de ralph-suite lista syncIssue y los comandos que Alfred no envuelve",
+        "README de ralph-suite ya no afirma que alfred-dev-vscode#3 sigue abierta"
+      ],
+      "dependencies": [],
+      "labels": [
+        "docs"
+      ]
+    },
+    {
+      "id": "ISSUE-003",
+      "title": "Decidir el workspaceRoot en multi-root",
+      "description": "Hueco real, no cubierto por esta pasada. Ralph acepta workspaceRoot allowlisted en runTask y syncIssue (src/activate.ts). El puente de Alfred no lo envía, así que en una ventana con varias carpetas Ralph elige la que tiene PRD o, si ninguna, la primera. Hace falta un ADR corto antes de tocar código: o Alfred pasa la carpeta del QuickPick, o se documenta como límite y se deja.",
+      "priority": "P2",
+      "status": "todo",
+      "acceptanceCriteria": [
+        "Hay una decisión escrita: Alfred pasa la carpeta, o el límite queda aceptado",
+        "Si se pasa la carpeta, el valor sale de las workspace folders y Ralph lo valida contra su allowlist",
+        "Un test cubre la ventana multi-root con dos PRD"
+      ],
+      "dependencies": [
+        "ISSUE-001"
+      ],
+      "labels": [
+        "decision"
+      ]
+    },
+    {
+      "id": "ISSUE-004",
+      "title": "Auto-ejecutar no arranca el ciclo y Agents no muestra agentes",
+      "description": "Confirmado en codigo de ralph-suite el 2026-10-03. El boton Auto-ejecutar (webview/kanbanHtml.ts, data-action startRunner) llama a KanbanPanel.startRunner y runNextTask (kanbanPanel.ts). Si no hay PRD, hay una issue inprogress o nextPending no devuelve nada, haltRunner deja el motivo en el tablero (runnerNotice) en vez de volver al estado parado en silencio. El boton Agents pasa a llamarse AGENTS.md (i18n.ts, agents) porque setupProject (commands/project.ts), si AGENTS.md ya existe, solo ofrece regenerar, abrir o cancelar. Estado local: .ralph/task-ISSUE-004-status = completed (2026-10-03T12:09:01Z).",
+      "priority": "P1",
+      "status": "completed",
+      "acceptanceCriteria": [
+        "Auto-ejecutar dice en el tablero por que no lanza ninguna tarea (sin PRD, tarea en curso o ninguna elegible) en vez de volver al estado parado",
+        "El boton Agents se llama como lo que hace (generar AGENTS.md) o, si debe listar agentes, lo hace",
+        "Un test cubre el arranque del runner sin tarea elegible y el caso de AGENTS.md ya presente"
+      ],
+      "dependencies": [],
+      "labels": [
+        "bug",
+        "ralph-suite"
+      ]
+    },
+    {
+      "id": "ISSUE-005",
+      "title": "Vista de Ralph Suite en la barra lateral",
+      "description": "Pedido el 2026-10-03. Ralph solo aporta un StatusBarItem a la izquierda (activate.ts: text $(layout-panel) Ralph, command ralph-suite.showMenu). No tiene viewsContainers en package.json. Alfred Dev si tiene contenedor en la Activity Bar (package.json, viewsContainers.activitybar). Hace falta una vista propia de Ralph al estilo de la de Alfred, sin quitar el boton inferior.",
+      "priority": "P2",
+      "status": "todo",
+      "acceptanceCriteria": [
+        "Ralph Suite aparece como icono propio en la Activity Bar",
+        "La vista muestra el estado del backlog y da acceso a tablero, runner y menu",
+        "El boton de la barra inferior sigue abriendo ralph-suite.showMenu",
+        "La vista no depende de que Alfred Dev este instalado"
+      ],
+      "dependencies": [],
+      "labels": [
+        "ui",
+        "ralph-suite"
+      ]
+    },
+    {
+      "id": "ISSUE-006",
+      "title": "El panel de estado avisa sin decir por qué",
+      "description": "Visto en la Activity Bar de Alfred Dev el 2026-10-03: Sin snapshot local y No se pudieron leer issues de GitHub: repo no público o sin permiso. El snapshot solo se lee de la primera carpeta del workspace (statusTreeProvider.ts, workspaceFolders[0]); si docs/project/status.md no está ahí, el aviso no decía cuál. El 404 de la API se traducía siempre a repo privado, también cuando GitHub respondía Not Found. Corregido en esta pasada: el aviso nombra la carpeta, y 404 con mensaje Not Found dice repositorio no encontrado; 401, 403 y un 404 ilegible siguen siendo sin permiso.",
+      "priority": "P2",
+      "status": "completed",
+      "acceptanceCriteria": [
+        "Si falta docs/project/status.md, el árbol dice en qué carpeta lo buscó",
+        "Un 404 con mensaje Not Found no se presenta como repo privado",
+        "Un 403 sigue diciendo que no hay permiso",
+        "Los tests de github-remote y status-tree-provider cubren los tres casos"
+      ],
+      "dependencies": [],
+      "labels": [
+        "bug",
+        "alfred-dev"
+      ]
+    }
+  ]
+}

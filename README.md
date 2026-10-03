@@ -194,7 +194,9 @@ guardar `alfred-dev.modelProfile` como preferencia global (`luna`, `terra` o
 `sol`). Es una preferencia de UI y no reescribe los arrays `model` de los
 agentes: VS Code no expone una API estable para cambiar ese frontmatter desde
 una extensión. La selección queda guardada como referencia visible de la
-política de coste al trabajar con Alfred.
+política de coste al trabajar con Alfred. No selecciona el modelo de Ralph
+Suite: Ralph lee `ralph-suite.modelProfiles` y no consulta
+`alfred-dev.modelProfile`.
 
 En VS Code, abre **Alfred Dev** en la Activity Bar para consultar el estado del
 workspace y las issues abiertas del `origin` GitHub (hasta 20; Restricted Mode
