@@ -2,7 +2,7 @@
   "name": "alfred-dev-vscode",
   "displayName": "Alfred Dev for VS Code",
   "description": "Equipo de 12 agentes de ingeniería de software para VS Code con orquestación, quality gates y flujo GitHub.",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "publisher": "SrScorpio",
   "repository": {
     "type": "git",
@@ -235,5 +235,9 @@
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
     "typescript": "^5.3.3"
+  },
+  "overrides": {
+    "undici": "8.11.2",
+    "brace-expansion": "5.0.12"
   }
 }

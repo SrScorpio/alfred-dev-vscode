@@ -46,11 +46,11 @@ Requisitos: VS Code con GitHub Copilot Chat. Tras instalar, los agentes aparecen
 
 Descarga el VSIX desde
 [GitHub Releases](https://github.com/SrScorpio/alfred-dev-vscode/releases)
-(última publicación; en esta línea, `alfred-dev-vscode-0.8.1.vsix`) e
+(última publicación; en esta línea, `alfred-dev-vscode-0.9.0.vsix`) e
 instálalo en VS Code:
 
 ```bash
-code --install-extension alfred-dev-vscode-0.8.1.vsix
+code --install-extension alfred-dev-vscode-0.9.0.vsix
 ```
 
 Esta extensión no se publica en Visual Studio Marketplace.

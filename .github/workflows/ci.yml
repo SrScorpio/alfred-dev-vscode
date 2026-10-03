@@ -33,8 +33,8 @@ jobs:
           node-version: '22.14.0'
       - name: Install dependencies
         run: npm ci
-      - name: Audit dependencies
-        run: npm audit --audit-level=high
+      - name: Audit the packaged extension
+        run: npm audit --omit=dev --audit-level=high
 
   package:
     needs: [test, security]
