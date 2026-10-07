@@ -108,6 +108,115 @@
         "bug",
         "alfred-dev"
       ]
+    },
+    {
+      "id": "ISSUE-007",
+      "title": "Sincronizar prd.json: ISSUE-003 e ISSUE-005 ya están completadas",
+      "description": "La revisión del 2026-10-04 detectó que ISSUE-003 e ISSUE-005 figuran todo en este fichero mientras .ralph las marca completed (evidencia: ADR-002 y selectRalphCommandRoot para 003; ralph-suite v1.12.0 con viewsContainers para 005). Diff exacto de dos líneas y criterios: github:#52.",
+      "priority": "P1",
+      "status": "todo",
+      "acceptanceCriteria": [
+        "Los status de ISSUE-003 e ISSUE-005 valen completed y ningún otro campo cambia",
+        "El JSON parsea sin errores tras el cambio",
+        "github:#52 se cierra al completar la tarea"
+      ],
+      "dependencies": [],
+      "labels": [
+        "github:#52",
+        "integracion"
+      ]
+    },
+    {
+      "id": "ISSUE-008",
+      "title": "Refrescar el snapshot docs/project/status.md: aún anuncia el ship 0.8.1",
+      "description": "status.md está fechado el 2026-09-19 y describe 0.8.1 como flujo activo; la 0.9.0 salió el 2026-10-03 (CHANGELOG, commit 13ca020) y la vista Estado del Proyecto lee ese snapshot. Lo escribe tech-writer. Detalle: github:#53.",
+      "priority": "P2",
+      "status": "todo",
+      "acceptanceCriteria": [
+        "El snapshot refleja 0.9.0 con fecha de refresco",
+        "Cubre announceIdentity, selector de chat y auditoría del vsix, y deja de presentar 0.8.1 como activo",
+        "github:#53 se cierra al completar la tarea"
+      ],
+      "dependencies": [],
+      "labels": [
+        "github:#53",
+        "docs"
+      ]
+    },
+    {
+      "id": "ISSUE-009",
+      "title": "ADR-004: política de registro cross-repo con ralph-suite",
+      "description": "ISSUE-004 e ISSUE-005 eran trabajo de ralph-suite registrado en este backlog; la desincronización del 2026-10-04 mostró el riesgo de dos fuentes de verdad. Decidir y documentar en ADR-004, sin proponer fusionar repositorios. Detalle: github:#54.",
+      "priority": "P2",
+      "status": "todo",
+      "acceptanceCriteria": [
+        "Existe ADR-004 con la decisión y su motivación",
+        "La decisión no propone fusionar los dos repositorios",
+        "github:#54 se cierra al completar la tarea"
+      ],
+      "dependencies": [],
+      "labels": [
+        "github:#54",
+        "decision"
+      ]
+    },
+    {
+      "id": "ISSUE-010",
+      "title": "Deuda menor: memories.md, gating de announceIdentity y vsix en raíz",
+      "description": "AGENTS.md ordena leer .agent/memories.md pero no existe; announceIdentity es el único comando Ralph sin gating en la paleta; alfred-dev-vscode-0.9.0.vsix acumula en la raíz y solo se borra con confirmación (checkpoint 1). Detalle: github:#55.",
+      "priority": "P3",
+      "status": "todo",
+      "acceptanceCriteria": [
+        "AGENTS.md y el estado real del repo coinciden sobre memories.md",
+        "announceIdentity sigue el gating de sus hermanos o documenta por qué siempre es visible",
+        "El vsix se retira con confirmación o se documenta como artefacto deliberado",
+        "github:#55 se cierra al completar la tarea"
+      ],
+      "dependencies": [],
+      "labels": [
+        "github:#55",
+        "alfred-dev"
+      ]
+    },
+    {
+      "id": "ISSUE-011",
+      "title": "Los agentes no crean tareas en el tablero de Ralph cuando Ralph Suite está presente",
+      "description": "Revision 2026-10-04: ningun agente instruye crear tareas del tablero; la unica mencion de Ralph es un disclaimer en alfred.agent.md (lineas 91-95) y product-owner no conoce la integracion. ralph-suite no expone addTask: las tareas nacen por plan import (planImport.ts) o edicion de prd.json. Decidir mecanismo (instruccion con autorizacion maintainer, comando cross-repo o paso manual), redactar la instruccion con mapeo explicito github:#N y valorar un contract test de prompts. Detalle: github:#56.",
+      "priority": "P2",
+      "status": "todo",
+      "acceptanceCriteria": [
+        "alfred.agent.md y product-owner.agent.md indican registrar historias como tareas del tablero cuando Ralph esta activa, con label github:#N",
+        "El mecanismo respeta la regla de no editar prd.json sin autorizacion del maintainer",
+        "Sin Ralph Suite el flujo GitHub no cambia",
+        "La decision queda documentada y enlazada a ISSUE-009 si toca politica cross-repo",
+        "github:#56 se cierra al completar la tarea"
+      ],
+      "dependencies": [],
+      "labels": [
+        "github:#56",
+        "integracion",
+        "decision"
+      ]
+    },
+    {
+      "id": "ISSUE-012",
+      "title": "El runner no selecciona el agente real ni activa autopilot: el prompt cae al chat generico",
+      "description": "Confirmado 2026-10-04 en ralph-suite: sendToChat envia el prompt con workbench.action.chat.open al chat activo (el generico por defecto); el Agent Profile es solo texto de recomendacion y la mencion del subagente en modo Alfred va incrustada en Markdown a mitad de prompt, sin enrutado funcional. chatLauncher no gestiona modo ni auto-aprobacion: cada tool call requiere revision manual. Decidir mecanismo (mencion funcional al inicio del query o session API, autonomia por sesion), respetando ADR-018, e implementar en ralph-suite (enlaza ISSUE-009 e ISSUE-011). Detalle: github:#57.",
+      "priority": "P2",
+      "status": "todo",
+      "acceptanceCriteria": [
+        "runTask envia cada tarea al subagente declarado mediante un mecanismo real de enrutado, no texto decorativo",
+        "La mencion se construye desde la identidad anunciada y prd.json no puede redefinirla (ADR-018)",
+        "La ejecucion automatica resuelve autonomia/auto-aprobacion o la guia con un clic, sin revisar cada tool call",
+        "Si el chat no soporta el mecanismo, fallback documentado sin romper el runner",
+        "La decision queda documentada y enlazada a ISSUE-009 e ISSUE-011; github:#57 se cierra al completar"
+      ],
+      "dependencies": [],
+      "labels": [
+        "github:#57",
+        "ralph-suite",
+        "decision"
+      ]
     }
   ]
 }
