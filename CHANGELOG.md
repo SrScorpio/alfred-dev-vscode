@@ -9,7 +9,13 @@ y este proyecto se adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.
 
 ### Added
 
+- El VSIX incluye el catálogo (`catalog/`: 12 agentes, skills de proceso, instrucciones y plantillas). Al activarse copia los agentes a `~/.copilot/agents` y ofrece **Alfred Dev: Instalar agentes** para repetirlo. Recargar la ventana los muestra en el selector del chat.
+- Los prompts de `alfred` y `product-owner` registran cada historia en el tablero de Ralph cuando Ralph está activa, con label explícito `github:#N` y sin editar `prd.json` salvo autorización del maintainer.
+
 ### Changed
+
+- `docs/project/status.md` describe el ship 0.9.0. ISSUE-003 e ISSUE-005 del backlog local pasan a `completed`.
+- ADR-004: el trabajo que cruza de repo se registra solo en alfred-dev-vscode.
 
 ### Fixed
 

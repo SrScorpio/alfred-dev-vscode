@@ -34,6 +34,11 @@ test('declara comandos de chat y selección de perfil de modelo', () => {
     commands.find((command) => command.command === 'alfred-dev.memory.explore')?.title,
     'Alfred Dev: Explorar memoria local',
   );
+  assert.ok(commands.some((command) => command.command === 'alfred-dev.installAgents'));
+  assert.equal(
+    commands.find((command) => command.command === 'alfred-dev.installAgents')?.title,
+    'Alfred Dev: Instalar agentes',
+  );
   assert.ok(commands.some((command) => command.command === 'alfred-dev.ralph.openKanban'));
   assert.ok(commands.some((command) => command.command === 'alfred-dev.ralph.syncIssue'));
   assert.equal(packageJson.extensionDependencies, undefined);
@@ -48,6 +53,11 @@ test('declara comandos de chat y selección de perfil de modelo', () => {
   ]) {
     assert.equal(palette.find((entry) => entry.command === command)?.when, command);
   }
+  assert.equal(
+    palette.find((entry) => entry.command === 'alfred-dev.ralph.announceIdentity'),
+    undefined,
+    'announceIdentity no es de paleta: solo lo invoca Ralph y un when lo ocultaría',
+  );
   assert.deepEqual(packageJson.contributes.mcpServerDefinitionProviders, [{
     id: 'alfred-dev.memory',
     label: 'Alfred Dev Memory',

@@ -33,7 +33,7 @@ You are a **Senior Software Engineer** working on this project.
 6. Change architecture documented in docs/
 
 ## Before starting any task, read:
-- `.agent/memories.md` — accumulated project knowledge
+- `.agent/memories.md` — accumulated project knowledge, only if the file exists. Its absence is not a blocker and must not be invented.
 - `docs/project/architecture.md` — architecture decisions
 - `docs/project/threat-model.md` — security requirements
 - `docs/adr/` — decision log

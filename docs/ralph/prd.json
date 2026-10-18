@@ -43,7 +43,7 @@
       "title": "Decidir el workspaceRoot en multi-root",
       "description": "Hueco real, no cubierto por esta pasada. Ralph acepta workspaceRoot allowlisted en runTask y syncIssue (src/activate.ts). El puente de Alfred no lo envía, así que en una ventana con varias carpetas Ralph elige la que tiene PRD o, si ninguna, la primera. Hace falta un ADR corto antes de tocar código: o Alfred pasa la carpeta del QuickPick, o se documenta como límite y se deja.",
       "priority": "P2",
-      "status": "todo",
+      "status": "completed",
       "acceptanceCriteria": [
         "Hay una decisión escrita: Alfred pasa la carpeta, o el límite queda aceptado",
         "Si se pasa la carpeta, el valor sale de las workspace folders y Ralph lo valida contra su allowlist",
@@ -78,7 +78,7 @@
       "title": "Vista de Ralph Suite en la barra lateral",
       "description": "Pedido el 2026-10-03. Ralph solo aporta un StatusBarItem a la izquierda (activate.ts: text $(layout-panel) Ralph, command ralph-suite.showMenu). No tiene viewsContainers en package.json. Alfred Dev si tiene contenedor en la Activity Bar (package.json, viewsContainers.activitybar). Hace falta una vista propia de Ralph al estilo de la de Alfred, sin quitar el boton inferior.",
       "priority": "P2",
-      "status": "todo",
+      "status": "completed",
       "acceptanceCriteria": [
         "Ralph Suite aparece como icono propio en la Activity Bar",
         "La vista muestra el estado del backlog y da acceso a tablero, runner y menu",

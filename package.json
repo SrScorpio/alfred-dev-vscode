@@ -25,6 +25,11 @@
         "category": "Alfred Dev"
       },
       {
+        "command": "alfred-dev.installAgents",
+        "title": "Alfred Dev: Instalar agentes",
+        "category": "Alfred Dev"
+      },
+      {
         "command": "alfred-dev.checkUpdate",
         "title": "Alfred Dev: Comprobar actualización",
         "category": "Alfred Dev"
@@ -220,7 +225,7 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "node scripts/stage-catalog.js && npm run compile",
     "compile": "tsc -p ./",
     "package": "vsce package",
     "pretest": "npm run compile",

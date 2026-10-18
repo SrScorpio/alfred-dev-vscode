@@ -36,6 +36,7 @@ import {
 } from '../integrations/ralph';
 import type { AlfredStatus } from '../integrations/ralph';
 import { getRalphIdentityDTO } from '../integrations/identity';
+import { installUserCatalog } from '../agents/catalogInstaller';
 import { clearLocalMemoryAndRecycleMcp, createMemoryCommandHandlers } from '../memory/memoryIntegration';
 import type { MemoryStore, SecretStorageMemoryEncryptionKeyProvider } from '../memory/memoryStore';
 
@@ -100,6 +101,28 @@ export function registerCommands(
     (command, ...args) => vscode.commands.executeCommand(command, ...args),
   );
 
+  const installAgentsCommand = vscode.commands.registerCommand('alfred-dev.installAgents', async () => {
+    try {
+      const result = await installUserCatalog({
+        extensionPath: context.extensionPath,
+        version: String(context.extension.packageJSON.version ?? ''),
+        force: true,
+      });
+      const choice = await vscode.window.showInformationMessage(
+        result.agents > 0
+          ? `Instalados ${result.agents} agentes, ${result.skills} skills y ${result.templates} plantillas. Recarga la ventana para verlos en el selector del chat.`
+          : 'El VSIX no trae el catálogo de agentes. Reinstala la extensión o usa install.ps1 desde el repositorio.',
+        result.agents > 0 ? 'Recargar ventana' : 'Cerrar',
+      );
+      if (choice === 'Recargar ventana') {
+        await vscode.commands.executeCommand('workbench.action.reloadWindow');
+      }
+    } catch (error: unknown) {
+      void vscode.window.showErrorMessage(
+        error instanceof Error ? `No se pudieron instalar los agentes: ${error.message}` : 'No se pudieron instalar los agentes.',
+      );
+    }
+  });
   const startFlowCommand = vscode.commands.registerCommand('alfred-dev.startFlow', async () => {
     await runStartFlowCommand({
       quickPick: (items) => vscode.window.showQuickPick(items, {
@@ -393,6 +416,7 @@ export function registerCommands(
 
   context.subscriptions.push(
     startFlowCommand,
+    installAgentsCommand,
     checkUpdateCommand,
     refreshStatusCommand,
     openChatCommand,

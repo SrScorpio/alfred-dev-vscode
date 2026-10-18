@@ -20,6 +20,7 @@ import type { MemoryStore } from './memory/memoryStore';
 import { registerMemoryMcpProviderOnTrust } from './memory/memoryIntegration';
 import { createMemoryMcpChildEnvironment } from './memory/memoryKeyChannel';
 import { registerSecretDiagnostics, registerSecretDiagnosticsOnChange } from './security/diagnostics';
+import { installUserCatalog } from './agents/catalogInstaller';
 
 let configuredMemoryStore: MemoryStore | undefined;
 
@@ -90,6 +91,25 @@ export function activate(context: vscode.ExtensionContext) {
     filePath: memoryPath,
     keyProvider: memoryKeyProvider,
     recycleMemoryMcp: () => { memoryMcp.recycle(); },
+  });
+
+  void installUserCatalog({
+    extensionPath: context.extensionPath,
+    version: String(context.extension.packageJSON.version ?? ''),
+  }).then((result) => {
+    if (!result.changed) return;
+    void vscode.window.showInformationMessage(
+      `Alfred Dev instaló ${result.agents} agentes en tu perfil. Recarga la ventana para verlos en el selector del chat.`,
+      'Recargar ventana',
+    ).then((choice) => {
+      if (choice === 'Recargar ventana') {
+        void vscode.commands.executeCommand('workbench.action.reloadWindow');
+      }
+    });
+  }).catch((error: unknown) => {
+    void vscode.window.showErrorMessage(
+      error instanceof Error ? `No se pudieron instalar los agentes: ${error.message}` : 'No se pudieron instalar los agentes.',
+    );
   });
 }
 

@@ -21,6 +21,8 @@ node_modules/
 out/
 *-out/
 *.vsix
+catalog/
+alfred-ralph-suite/
 
 # Temporales de auditoría visual
 .style-options/
