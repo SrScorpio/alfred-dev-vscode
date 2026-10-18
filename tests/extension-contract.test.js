@@ -54,9 +54,9 @@ test('declara comandos de chat y selección de perfil de modelo', () => {
     assert.equal(palette.find((entry) => entry.command === command)?.when, command);
   }
   assert.equal(
-    palette.find((entry) => entry.command === 'alfred-dev.ralph.announceIdentity'),
-    undefined,
-    'announceIdentity no es de paleta: solo lo invoca Ralph y un when lo ocultaría',
+    palette.find((entry) => entry.command === 'alfred-dev.ralph.announceIdentity')?.when,
+    'false',
+    'announceIdentity no es de paleta: solo lo invoca Ralph',
   );
   assert.deepEqual(packageJson.contributes.mcpServerDefinitionProviders, [{
     id: 'alfred-dev.memory',

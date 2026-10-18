@@ -166,6 +166,10 @@
         {
           "command": "alfred-dev.ralph.syncIssue",
           "when": "alfred-dev.ralph.syncIssue"
+        },
+        {
+          "command": "alfred-dev.ralph.announceIdentity",
+          "when": "false"
         }
       ]
     },
