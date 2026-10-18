@@ -31,6 +31,18 @@ Fecha: 2026-10-03. Evidencia de código, no de intención.
 - **Backlog.** Alfred lee `docs/ralph/prd.json` (o `prd.json` heredado) para el QuickPick. Tope 64 KiB y 200 issues. No lo escribe.
 - **Estados.** Alfred traduce `backlog→todo`, `in-progress→inprogress`, `blocked→blocked`, `closed→completed`. Ralph, al leer, acepta además `in_progress`, `done` y `closed`.
 
+## Registro de tareas cuando Ralph está presente
+
+GitHub sigue siendo la fuente de verdad colaborativa. Si Ralph Suite está
+activa y anuncia comandos, cada historia publicada también se anota en
+`docs/ralph/prd.json` del proyecto de destino, con el label explícito
+`github:#N` u `owner/repo#N`. Nunca se deduce `ISSUE-00N` de `#N`.
+
+Ese fichero está protegido por AGENTS.md. El agente no lo edita por su cuenta:
+pide autorización explícita del maintainer en el turno, o usa el alta del
+tablero de Ralph. Si Ralph no está instalada o no anuncia comandos, el flujo
+de GitHub no cambia y no se menciona Ralph.
+
 ## Qué no es un bug
 
 Que Alfred no envuelva init, analyze, setup, menú, settings ni memoria. Son superficie de Ralph. Envolverlos sin un caso de uso sería un segundo panel de control.

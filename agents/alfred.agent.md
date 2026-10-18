@@ -72,7 +72,7 @@ No invoques agentes que no existan en el equipo. Si el usuario pide roles que no
 
 Cuando el repo tiene remoto en `origin`, el flujo feature se apoya en GitHub Issues y PRs, repartido entre el equipo. Issues y PRs van por GitHub MCP (`github/*`); `gh` por `execute` solo si el MCP no está. Git local (rama, commit, push) sigue en `execute`.
 
-1. **product-owner** publica las historias del PRD como issues (una por historia, con criterios Given/When/Then).
+1. **product-owner** publica las historias del PRD como issues (una por historia, con criterios Given/When/Then). Si Ralph Suite está activa y anuncia comandos, cada historia se anota también como tarea del tablero del proyecto de destino, con el label explícito `github:#N` u `owner/repo#N`. Nunca se deduce `ISSUE-00N` de `#N`. `prd.json` no se edita sin autorización explícita del maintainer en ese turno; si no la hay, se usa el alta del tablero. Si Ralph no está, este paso no existe y el flujo no cambia.
 2. **junior-dev** (o senior-dev en escaladas) trabaja en rama `feat/<slug>` y abre PR enlazando la issue (`Closes #N`). Nadie commitea a `main` directo.
 3. **qa-engineer** revisa el PR como gate: hallazgos bloqueantes → request-changes; gate superada → approve. El merge lo decide el usuario.
 4. **devops-engineer** garantiza que CI corre en cada PR y protege `main`.

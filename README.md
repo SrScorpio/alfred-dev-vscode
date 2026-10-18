@@ -55,6 +55,12 @@ code --install-extension alfred-dev-vscode-0.9.0.vsix
 
 Esta extensión no se publica en Visual Studio Marketplace.
 
+El VSIX instala los agentes solo. Al activarse los copia a
+`~/.copilot/agents` y pide recargar la ventana: Copilot no los ve hasta
+entonces. Si no aparecen, paleta de comandos → **Alfred Dev: Instalar
+agentes** y recarga. Las skills de stack siguen siendo opcionales y se
+instalan con `install.ps1` (paquete Completas).
+
 **Ralph Suite es opcional.** Los wrappers de paleta `alfred-dev.ralph.*`
 solo aparecen si Ralph está instalada y activa. Se honra
 `ralph-suite.prdPath`. El layout por defecto (`docs/` y

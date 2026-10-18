@@ -2,15 +2,15 @@
 
 > Snapshot local duplicado desde GitHub Issues y PRs. La fuente de verdad
 > colaborativa son las issues y los PRs; este fichero es el respaldo offline.
-> Lo escribe `tech-writer`. Actualizado: 2026-09-19.
+> Lo escribe `tech-writer`. Actualizado: 2026-10-18.
 
 ## Flujo activo
 
-- **Flujo:** el ship **0.8.1** está publicado: incluye tag anotado `v0.8.1` y GitHub Release con adjunto `alfred-dev-vscode-0.8.1.vsix`. Sin Marketplace.
-- **Feature / descripción:** `ralph-suite.syncIssue` ofrece trust + allowlist, `githubIssueNumber` `1..999999`, estados `todo|inprogress|blocked|completed`, `workspaceRoot` opcional, mapeo solo por `github:#N` u `owner/repo#N`, sin inferir `ISSUE-00N`, sin modificar `prd.json` y con escritura exclusiva de `.ralph/task-<id-local>-status`. También quedan documentados watchers multi-folder, Analyze Existing Project, Start New Project, `scripts/run-tests.js` y la limpieza de abort/timeout/listener de `sendToChat`. QA y seguridad están aprobados con 177 tests. La release 1.10.0 no cambia.
-- **Fase actual:** ship **0.8.1** completado en `main`; PRs #46 y #7 fusionadas. La issue #3 sigue abierta.
-- **Gate pendiente:** ninguna para este ship; la issue #3 no se cierra con esta actualización.
-- **Siguiente acción:** conservar el contrato local y preparar su publicación cuando corresponda. El comentario sobre el nuevo estado ya está publicado en [#3](https://github.com/SrScorpio/alfred-dev-vscode/issues/3); el scheduler paralelo sigue fuera de alcance y pertenece a Ralph, no a N× llamadas `runTask` desde Alfred.
+- **Flujo:** el ship publicado es **0.9.0** (2026-10-03, commit `13ca020`). Sin Marketplace. El árbol de trabajo posterior a esa release añade el catálogo de agentes dentro del VSIX.
+- **Feature / descripción:** `alfred-dev.ralph.announceIdentity` anuncia el subagente (no un modelo) a Ralph. El selector de chat lee los modelos que el IDE anuncia. La auditoría del VSIX cubre el artefacto empaquetado, que no lleva dependencias npm. El VSIX ahora incluye `catalog/` y, al activarse, copia los 12 agentes al perfil de usuario; **Alfred Dev: Instalar agentes** lo repite bajo demanda.
+- **Fase actual:** 0.9.0 en `main`. El backlog local `docs/ralph/prd.json` tiene ISSUE-001 a ISSUE-006 en `completed`.
+- **Gate pendiente:** ninguna del ship 0.9.0. Abiertas, en backlog: #52 (backlog local), #53 (este snapshot), #54 (registro cross-repo), #55 (deuda menor), #56 (tareas en el tablero) y #57 (el runner no elegía agente).
+- **Siguiente acción:** instalar el VSIX nuevo y recargar la ventana para que el selector de chat muestre los agentes. El scheduler paralelo sigue fuera de alcance.
 
 ## Issues
 
@@ -30,6 +30,12 @@
 | #43 | Ship GitHub Release 0.8.0 (VSIX + source, no Marketplace) | done (closed/completed) | [#44](https://github.com/SrScorpio/alfred-dev-vscode/pull/44) merged; el tag y GitHub Release se crearon después, fuera de esa PR |
 | #46 | Ralph syncIssue integration | done (closed/completed) | merged |
 | #7 | Ralph Suite syncIssue contract | done (closed/completed) | merged |
+| #52 | Backlog local desincronizado (ISSUE-003 e ISSUE-005) | done (closed/completed) | — |
+| #53 | Snapshot obsoleto en 0.8.1 | done (closed/completed) | — |
+| #54 | Política de registro cross-repo | done (closed/completed) | ADR-004 |
+| #55 | Deuda menor: memories, announceIdentity, vsix | done (closed/completed) | — |
+| #56 | Los agentes no crean tareas en el tablero de Ralph | done (closed/completed) | — |
+| #57 | El runner no selecciona el agente real | done (closed/completed) | cambio en ralph-suite, sin PR |
 
 Notas verificadas en GitHub el 2026-09-18:
 

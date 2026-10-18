@@ -4,6 +4,8 @@
 !package.json
 !README.md
 !LICENSE
+!catalog/**/*.md
+!catalog/**/*.json
 
 # Explicit exclusions for generated and non-runtime files
 docs/
@@ -23,4 +25,6 @@ templates/
 install.ps1
 install.sh
 plugin.json
+scripts/
+alfred-ralph-suite/
 CHANGELOG.md

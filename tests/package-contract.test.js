@@ -27,7 +27,7 @@ const entries = output
   .split(/\r?\n/)
   .map((entry) => entry.trim())
   .filter(Boolean);
-const allowedEntry = /^(README\.md|package\.json|LICENSE|out\/.+\.js)$/;
+const allowedEntry = /^(README\.md|package\.json|LICENSE|out\/.+\.js|catalog\/(agents|skills|instructions|templates)\/.+\.md)$/;
 const forbiddenEntry = /^(src|tests|node_modules|skills|agents|instructions|templates|docs|\.github|\.vscode)(\/|$)|\.map$|\.ts$|-out(\/|$)/;
 
 assert.ok(entries.length > 0, 'vsce ls returned no package entries');
